@@ -12,7 +12,7 @@ export default function Gallery({ onBack }: Props) {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-purple-200 tracking-widest uppercase">Gallery</h1>
-            <p className="text-purple-400 text-sm mt-1">Original art — handcrafted in Google Drawings</p>
+            <p className="text-purple-400 text-sm mt-1">Original art, handcrafted in Google Drawings by the human developer (2017-2025)</p>
           </div>
           <button
             onClick={onBack}
