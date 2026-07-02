@@ -1,0 +1,69 @@
+{
+    "deals": {
+        "dark": {
+            "amount": 2,
+            "spells": [
+                "Shoot a few bolts of darkness",
+                "Hurl a writhing black sphere in their direction",
+                "Command a few massive rock demons"
+            ]
+        },
+        "light": {
+            "amount": 2,
+            "spells": [
+                "Shoot some pink and blue spinny things. So pretty! So BRIGHT!",
+                "Shoot two huge, luminescent orange spheres",
+                "A great ball of....what is this, the SUN?! Because you're THAT big."
+            ]
+        },
+        "chaotic": {
+            "amount": 1,
+            "spells": [
+                "Make some boulders fly everywhere in a disorganized fashion",
+                "How about some wind? TORNADOOOOO!",
+                "Why not meteors?"
+            ]
+        },
+        "ordered": {
+            "amount": 2,
+            "spells": [
+                "Split the earth perfectly, right under their feet",
+                "Perfect, cubic boulder hurl to the face",
+                "Kindly order some demons to march in perfect lines. Toward them, obviously."
+            ]
+        },
+        "hot": {
+            "amount": 3,
+            "spells": [
+                "Shoot orange and yellow flames",
+                "Throw a sprial of yellow fire",
+                "LAVA HURL! Maybe some nice rocks got in there, too.",
+                "Create a massive wall of orange flame"
+            ]
+        },
+        "cold": {
+            "amount": 0,
+            "spells": []
+        }
+    },
+    "takes": {
+        "dark": {
+            "amount": 3
+        },
+        "light": {
+            "amount": 0
+        },
+        "chaotic": {
+            "amount": 2
+        },
+        "ordered": {
+            "amount": 1
+        },
+        "hot": {
+            "amount": 2
+        },
+        "cold": {
+            "amount": 2
+        }
+    }
+}

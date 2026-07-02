@@ -1,0 +1,81 @@
+{
+    "deals": {
+        "dark": {
+            "amount": 3,
+            "spells": [
+                "Lights out, I'm afraid. I mean that metaphorically.",
+                "The orbs pulsate a bit, then drain the light from your eyes. And your mind. And your soul. And theirs.",
+                "Finally make eye contact with your opponent, and take their soul with it",
+                "Cast a cold, silent shadow that begins to drain the stamina and happiness of your opponent",
+                "Erzeuge einen dunklen, unerträglichen Dunst, der die Augen und den Geist verbrennt",
+                "Ei muuta kuin pelkoa."
+            ]
+        },
+        "light": {
+            "amount": 1,
+            "spells": [
+                "Cast an amazing array of silver and pink luminescence",
+                "Your eyes begin to glow cobalt blue as an incredible burst of the same color strikes from the sky",
+                "A most precise hand gesture. An instant, blinding light",
+                "Make the orbs strobe like the party balls they are 🕺"
+            ]
+        },
+        "chaotic": {
+            "amount": 1,
+            "spells": [
+                "The orbs appear to multiply and swirl around you violently, and there is definitely blood.",
+                "Point a finger, from which flawless but horrifyingly unpredictable spirals silver fly forth",
+                "Take one orb in each hand as you turn the world upside down, causing everyone and everything to fall upward",
+                "Multiply the orbs into fifty, and send them flying randomly with deadly speed and precision",
+                "Verliere endlich deinen Verstand und lass sie ihren verlieren.",
+                "huutaa."
+            ]
+        },
+        "ordered": {
+            "amount": 3,
+            "spells": [
+                "Align the orbs with your eyes, then carefully, carefully build tension until-",
+                "Emit dark fractals",
+                "Create a great conic shadow that rapidly removes the air from the room",
+                "Float the orbs along a perfectly straight line. Meanwhile, the ground follows suit and pulls apart into a void"
+            ]
+        },
+        "hot": {
+            "amount": 1,
+            "spells": [
+                "Emit a vortex of fire from your non-dominant hand",
+                "Superheat both orbs until the surrounding twenty metres are uninhabitable",
+                "Feuerball!",
+                "hienovarainen tuhopoltto."
+            ]
+        },
+        "cold": {
+            "amount": 1,
+            "spells": [
+                "Turn the orbs white. An actual wintry whiteout ensues.",
+                "Turn the orbs black. All heat is sucked from the air and those in it.",
+                "Shoot perfectly formed ice crystals"
+            ]
+        }
+    },
+    "takes": {
+        "dark": {
+            "amount": 1
+        },
+        "light": {
+            "amount": 1
+        },
+        "chaotic": {
+            "amount": 3
+        },
+        "ordered": {
+            "amount": 1
+        },
+        "hot": {
+            "amount": 2
+        },
+        "cold": {
+            "amount": 2
+        }
+    }
+}

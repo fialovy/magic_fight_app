@@ -1,0 +1,10 @@
+{
+    "Shapeshift - Norman": {
+        "description": "At the cost of 1 life point, transform into Norm. His magic is a little different, but it might be a better fit against your opponent!",
+        "effect": "change_to_norm"
+    },
+    "Shapeshift - Meadow Sprite 🌿": {
+        "description": "At the cost of 1 life point, transform into a meadow sprite.",
+        "effect": "change_to_meadow_sprite"
+    }
+}

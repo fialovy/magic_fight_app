@@ -1,0 +1,71 @@
+{
+    "deals": {
+        "dark": {
+            "amount": 0,
+            "spells": []
+        },
+        "light": {
+            "amount": 3,
+            "spells": [
+                "Cast some devastatingly precise lines of blue and pink light",
+                "Shoot a perfect spiral of white spheres",
+                "Make that wand sparkle!",
+                "Create a blinding wall of blue light",
+                "I also happen to know some lightning..."
+            ]
+        },
+        "chaotic": {
+            "amount": 1,
+            "spells": [
+                "Rain unpredictable, burning luminescent dots",
+                "Try some aerokinesis and blow them off their feet",
+                "Make it hail! (water is fun, amirite?)"
+            ]
+        },
+        "ordered": {
+            "amount": 3,
+            "spells": [
+                "*raise wand* It's a SWORD! Well, now it's a lightsaber of sorts.",
+                "Cast geometric light shapes of utter perfection",
+                "Hurl your favorite luminescent hyperplane",
+                "Cast some interesting and sinister cubes of glowing pink"
+            ]
+        },
+        "hot": {
+            "amount": 2,
+            "spells": [
+                "Shoot some classic flames",
+                "Precision arson.",
+                "Throw a sprial of orange fire",
+                "Create a massive wall of yellow flame"
+            ]
+        },
+        "cold": {
+            "amount": 1,
+            "spells": [
+                "Don't tell Sando, but this is definitely, maybe an ice spell.",
+                "TOTALLY NOT A SMALL BLIZZARD OF ANY KIND"
+            ]
+        }
+    },
+    "takes": {
+        "dark": {
+            "amount": 2
+        },
+        "light": {
+            "amount": 1
+        },
+        "chaotic": {
+            "amount": 3
+        },
+        "ordered": {
+            "amount": 0
+        },
+        "hot": {
+            "amount": 2
+        },
+        "cold": {
+            "amount": 2
+        }
+    }
+}

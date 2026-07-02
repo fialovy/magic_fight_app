@@ -1,0 +1,70 @@
+{
+    "deals": {
+        "dark": {
+            "amount": 0,
+            "spells": []
+        },
+        "light": {
+            "amount": 4,
+            "spells": [
+                "Cast an amazing array of blue and white luminescence",
+                "Create a tornado of blinding white light",
+                "Throw a few beams of neon blue laser",
+                "SPARKLY EXPLOSION :D :D :D !!!!"
+            ]
+        },
+        "chaotic": {
+            "amount": 1,
+            "spells": [
+                "Create a totally unpredictable ice storm",
+                "BLIZZARD WHITEOUT AND THE SNOW IS ALL OVER THE PLACE!",
+                "Throw some shaky spirals of blue and silver light all over the place",
+                "Make it hail!"
+            ]
+        },
+        "ordered": {
+            "amount": 1,
+            "spells": [
+                "Throw some perfectly-formed, gigantic ninja stars made of ICE!",
+                "Create a perfect wall of ice and hurl it forward",
+                "Cast some amazing flying frost formations",
+                "Just a few ice cubes. Three-ton ice cubes, directly to their face."
+            ]
+        },
+        "hot": {
+            "amount": 0,
+            "spells": []
+        },
+        "cold": {
+            "amount": 4,
+            "spells": [
+                "Time for a record-breaking blizzard!",
+                "Throw hundreds of tiny frost bolts!",
+                "Create a snow tornado and drive it right at 'em!",
+                "Just a flurry...no, wait...each flake is so cold it breaks the skin...",
+                "Do those Wolverine claws out of icicles that you've always wanted to try",
+                "SNOWBALL FIGHT!!!"
+            ]
+        }
+    },
+    "takes": {
+        "dark": {
+            "amount": 4
+        },
+        "light": {
+            "amount": 0
+        },
+        "chaotic": {
+            "amount": 1
+        },
+        "ordered": {
+            "amount": 0
+        },
+        "hot": {
+            "amount": 4
+        },
+        "cold": {
+            "amount": 1
+        }
+    }
+}

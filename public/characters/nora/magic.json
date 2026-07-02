@@ -1,0 +1,66 @@
+{
+    "deals": {
+        "dark": {
+            "amount": 2,
+            "spells": [
+                "Shoot a shadowy projectile",
+                "Try your hand at a black hole",
+                "Summon some little dark flying creatures, and hurl them at your enemy!"
+            ]
+        },
+        "light": {
+            "amount": 2,
+            "spells": [
+                "Shoot some lovely pink and blue luminescent forms, just like old times",
+                "Create some crazy, blinding flashes of rainbow light"
+            ]
+        },
+        "chaotic": {
+            "amount": 3,
+            "spells": [
+                "Make some cool green explosions",
+                "Flex your terrakinesis and let the rocks fly",
+                "Shoot some weird rainbow spirals"
+            ]
+        },
+        "ordered": {
+            "amount": 1,
+            "spells": [
+                "Shoot some terrifingly detailed and well-aligned bolts of green glowy goodness",
+                "More earth moving, but in an orderly and well-aimed manner. GIANT ROCK CUBE TO THE FACE!"
+            ]
+        },
+        "hot": {
+            "amount": 2,
+            "spells": [
+                "Shoot green flames",
+                "Throw a sprial of bright green fire",
+                "Rain a few meteors"
+            ]
+        },
+        "cold": {
+            "amount": 0,
+            "spells": []
+        }
+    },
+    "takes": {
+        "dark": {
+            "amount": 1
+        },
+        "light": {
+            "amount": 1
+        },
+        "chaotic": {
+            "amount": 1
+        },
+        "ordered": {
+            "amount": 2
+        },
+        "hot": {
+            "amount": 2
+        },
+        "cold": {
+            "amount": 3
+        }
+    }
+}

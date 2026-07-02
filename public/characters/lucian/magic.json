@@ -1,0 +1,64 @@
+{
+    "deals": {
+        "dark": {
+            "amount": 2,
+            "spells": [
+                "Summon a feisty little shadow friend",
+                "Shoot a few balls of pitch black, distorted weirdness",
+                "Call upon a hoard of hungry little imps"
+            ]
+        },
+        "light": {
+            "amount": 1,
+            "spells": [
+                "Shoot a few glowing projectiles of sharp, white light",
+                "Create a glowing ball and do exactly as your name suggests as you bring it to...your enemy's face"
+            ]
+        },
+        "chaotic": {
+            "amount": 5,
+            "spells": [
+                "Shoot a writhing, rainbow-colored mass of devastating chaos",
+                "Emit an army of confusing, tangled, rapidly-moving glowy spiral things",
+                "Take your friend Norm's advice and try a little WICKED LIGHTNING!",
+                "Just throw everything into chaos. All of it. Or try to, anyway."
+            ]
+        },
+        "ordered": {
+            "amount": 0,
+            "spells": []
+        },
+        "hot": {
+            "amount": 2,
+            "spells": [
+                "Shoot neon pink flames",
+                "Throw a spiral of ballin' pink fire",
+                "Change things up a bit and torch them with some green flames"
+            ]
+        },
+        "cold": {
+            "amount": 0,
+            "spells": []
+        }
+    },
+    "takes": {
+        "dark": {
+            "amount": 0
+        },
+        "light": {
+            "amount": 2
+        },
+        "chaotic": {
+            "amount": 0
+        },
+        "ordered": {
+            "amount": 4
+        },
+        "hot": {
+            "amount": 1
+        },
+        "cold": {
+            "amount": 3
+        }
+    }
+}

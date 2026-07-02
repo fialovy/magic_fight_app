@@ -1,0 +1,72 @@
+{
+    "deals": {
+        "dark": {
+            "amount": 0,
+            "spells": []
+        },
+        "light": {
+            "amount": 3,
+            "spells": [
+                "Haphazdardly wave staff around. Neat! It's the sun!",
+                "Wave hands. Interstellar luminescent explosion. Neat!",
+                "Wave staff around like a drunken spider monkey. Blinding starbust!",
+                "Did I do that weird quasar thing again? Neat!"
+            ]
+        },
+        "chaotic": {
+            "amount": 2,
+            "spells": [
+                "Tap staff to ground. Hair blows everywhere accordingly. Oops, so does a torando!",
+                "Oh, this? It's just a neat little wind vortex.",
+                "I call this one 'Hurricane Anton' 😄",
+                "What happens when I- *spacetime folds* ...NEAT!"
+            ]
+        },
+        "ordered": {
+            "amount": 1,
+            "spells": [
+                "Tap staff to ground. Planets align, but in a bad way.",
+                "Wave staff; perfect cubes of blinding light proceed to explode into fractals. Neat!",
+                "Oh, hey? Is this telekinesis?"
+            ]
+        },
+        "hot": {
+            "amount": 2,
+            "spells": [
+                "Oh, neat! It's a flame staff too?",
+                "Wave hand. Fire meteor.",
+                "Wave staff. Infrared catastophe.",
+                "Taps staff to ground. Your hair is now on fire."
+            ]
+        },
+        "cold": {
+            "amount": 2,
+            "spells": [
+                "Hey, look! It's snowing. *whiteout*",
+                "lol try not to get hypothermia",
+                "Wave staff. Snow vortex.",
+                "Wave hand. Ice crystals descend from on high."
+            ]
+        }
+    },
+    "takes": {
+        "dark": {
+            "amount": 3
+        },
+        "light": {
+            "amount": 0
+        },
+        "chaotic": {
+            "amount": 2
+        },
+        "ordered": {
+            "amount": 1
+        },
+        "hot": {
+            "amount": 2
+        },
+        "cold": {
+            "amount": 2
+        }
+    }
+}

@@ -1,0 +1,88 @@
+{
+    "deals": {
+        "dark": {
+            "amount": 0,
+            "spells": [
+                "chirp",
+                "chirp",
+                "chirp",
+                "chirp",
+                "*unintelligible clicking*"
+            ]
+        },
+        "light": {
+            "amount": 0,
+            "spells": [
+                "chirp",
+                "*angry territorial clicking*",
+                "*grumpy territorial clicking*",
+                "*vexed territorial clicking*",
+                "*irked territorial clicking*",
+                "*angry territorial clicking*"
+            ]
+        },
+        "chaotic": {
+            "amount": 0,
+            "spells": [
+                "squeak",
+                "chirp",
+                "squeak",
+                "squeak",
+                "CHAOTIC CHIRP",
+                "*blink emerald eyes nervously*"
+            ]
+        },
+        "ordered": {
+            "amount": 0,
+            "spells": [
+                "chirp",
+                "chirp",
+                "chirp",
+                "chirp",
+                "ORDERED CHIRP",
+                "flutter wings"
+            ]
+        },
+        "hot": {
+            "amount": 0,
+            "spells": [
+                "flutter wings",
+                "CHIRP",
+                "CHIRP",
+                "flit about",
+                "flutter wings",
+                "flutter wings"
+            ]
+        },
+        "cold": {
+            "amount": 0,
+            "spells": [
+                "Dance in circle",
+                "Dance in circle",
+                "*rapid chirps*",
+                "*rapid clicking sounds*",
+                "Dance in circle"
+            ]
+        }
+    },
+    "takes": {
+        "dark": {
+            "amount": 0
+        },
+        "light": {
+            "amount": 0
+        },
+        "chaotic": {
+            "amount": 0
+        },
+        "ordered": {
+            "amount": 0
+        },
+        "hot": {
+            "amount": 0
+        },
+        "cold": {
+            "amount": 0
+        }
+    }
+}

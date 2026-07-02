@@ -1,0 +1,10 @@
+{
+    "chance": 0.5,
+    "taunts": [
+        "chirp",
+        "chirp",
+        "chirp",
+        "*territorial clicks*",
+        "chirp"
+    ]
+}

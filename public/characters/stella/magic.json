@@ -1,0 +1,68 @@
+{
+    "deals": {
+        "dark": {
+            "amount": 3,
+            "spells": [
+                "Summon your three-headed hellhound. NOW it's a party!",
+                "Throw a few massive flames, except that they're totally dark and scary somehow",
+                "Command a hoard of feisty, flaming imps",
+                "Create a spiral of darkness that is still somehow 373 Kelvin and rising",
+                "Order a pack of shadow wolves to pounce"
+            ]
+        },
+        "light": {
+            "amount": 2,
+            "spells": [
+                "Cast a few charring beams of orange light",
+                "Create a blinding spiral of yellow luminescence",
+                "Try some good ol' balls of white glowy terror"
+            ]
+        },
+        "chaotic": {
+            "amount": 1,
+            "spells": [
+                "Rain random tongues of fire",
+                "Throw an unpredictable spiral of golden flame",
+                "Create an amazing kaleidoscope of tiny but very painful flames"
+            ]
+        },
+        "ordered": {
+            "amount": 0,
+            "spells": []
+        },
+        "hot": {
+            "amount": 4,
+            "spells": [
+                "Shoot some MASSIVE, classic flames",
+                "Shoot a giant meteor of FIRE!!!",
+                "Throw a sprial of yellow fire",
+                "Create a gigantic wall of orange flame",
+                "Create a fire tornado!"
+            ]
+        },
+        "cold": {
+            "amount": 0,
+            "spells": []
+        }
+    },
+    "takes": {
+        "dark": {
+            "amount": 1
+        },
+        "light": {
+            "amount": 1
+        },
+        "chaotic": {
+            "amount": 1
+        },
+        "ordered": {
+            "amount": 2
+        },
+        "hot": {
+            "amount": 2
+        },
+        "cold": {
+            "amount": 3
+        }
+    }
+}

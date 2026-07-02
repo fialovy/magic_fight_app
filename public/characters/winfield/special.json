@@ -1,0 +1,6 @@
+{
+    "Use the orbs of disorder for real": {
+        "description": "Inflict chaos on your opponent's magical ability by randomly swapping the hit values of their spells",
+        "effect": "orbs_of_disorderify"
+    }
+}

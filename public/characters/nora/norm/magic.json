@@ -1,0 +1,70 @@
+{
+    "deals": {
+        "dark": {
+            "amount": 1,
+            "spells": [
+                "Spray a bunch of shadowy projectiles",
+                "Create a massive wall of darkness",
+                "Summon some pretty large and nasty-looking hound things, and let them do the work for you."
+            ]
+        },
+        "light": {
+            "amount": 2,
+            "spells": [
+                "Wicked balls of brightness!",
+                "Throw some flashes of green and orange"
+            ]
+        },
+        "chaotic": {
+            "amount": 3,
+            "spells": [
+                "WICKED LIGHTNING, BABY!",
+                "Hmm..more lightning?",
+                "Throw some crazy static spirals",
+                "Nora isn't the only one who can throw rocks!"
+            ]
+        },
+        "ordered": {
+            "amount": 1,
+            "spells": [
+                "THIS lightning is neat and PRECISE!",
+                "Throw some cool, calm bolts of electricity"
+            ]
+        },
+        "hot": {
+            "amount": 2,
+            "spells": [
+                "Shoot green flames. Fun fact: your default flame color is inborn.",
+                "Throw a sprial of bright green fire",
+                "Wicked meteor shower!"
+            ]
+        },
+        "cold": {
+            "amount": 1,
+            "spells": [
+                "How about some thundersnow?!",
+                "Toss some icy ball lightning!"
+            ]
+        }
+    },
+    "takes": {
+        "dark": {
+            "amount": 1
+        },
+        "light": {
+            "amount": 1
+        },
+        "chaotic": {
+            "amount": 2
+        },
+        "ordered": {
+            "amount": 4
+        },
+        "hot": {
+            "amount": 2
+        },
+        "cold": {
+            "amount": 0
+        }
+    }
+}
