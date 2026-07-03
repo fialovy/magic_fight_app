@@ -3,8 +3,8 @@ export interface CharacterMeta {
   displayName: string;
   faceImagePrefix: string;
   blastImagePrefix: string;
-  blastCount: number;
-  isVariant: boolean;
+  blastCount: number; // number of casting art images available for this character
+  isVariant: boolean;  // is this another form of the character? (e.g., shapeshifted)
 }
 
 export const CHARACTER_REGISTRY: CharacterMeta[] = [
