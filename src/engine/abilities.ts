@@ -22,7 +22,7 @@ export const ABILITY_HANDLERS: Record<string, AbilityFn> = {
 };
 
 async function shapeshift(actor: Character, target: Character, targetPath: string): Promise<AbilityResult> {
-  const newLife = Math.max(1, actor.life - 1);
+  const newLife = Math.max(1, actor.life - 1); // don't die
   const newForm = await loadCharacter(targetPath, newLife);
   return {
     updatedActor: newForm,
@@ -34,6 +34,7 @@ async function shapeshift(actor: Character, target: Character, targetPath: strin
 }
 
 async function orbs_of_disorderify(actor: Character, target: Character): Promise<AbilityResult> {
+  // scramble the amount of magic dealt by the opponent's spells
   const amounts = MAGIC_TYPES.map(t => target.magicInfo.deals[t].amount);
   for (let i = amounts.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
