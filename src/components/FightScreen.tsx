@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ActionChoice, Character, LogEntry, MagicType } from '../types/game';
 import { GAME_LIFE } from '../types/game';
-import { executeAction, getActionChoices, pickOpponentAction, pickReaction, wearDownEffects } from '../engine/combat';
+import { executeAction, getActionChoices, pickOpponentAction, pickReaction, pickTaunt, wearDownEffects } from '../engine/combat';
 
 interface Props {
   initialPlayer: Character;
@@ -68,72 +68,72 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
 
     let p = player;
     let o = opponent;
-    const newLog: LogEntry[] = [];
 
-    // --- Player action ---
+    // ── Player's turn ──────────────────────────────────────────────────
     const pResult = await executeAction(actionKey, p, o);
     p = pResult.updatedActor;
     o = pResult.updatedTarget;
 
-    // Show blast before applying damage visually (blast plays, then bars update)
-    if (!pResult.transformation) {
-      await showBlast(p, 'player');
+    if (pResult.transformation) {
+      setPlayer(p);
+      setLog(prev => [...prev,
+        makeLog(`✨ ${pResult.transformation!.message}`, 'system'),
+        makeLog(pResult.message, 'player'),
+      ].slice(-60));
     } else {
-      newLog.push(makeLog(`✨ ${pResult.transformation.message}`, 'system'));
+      // Blast plays first, then health bar drops and message appears together
+      await showBlast(p, 'player');
+      setPlayer(p);
+      setOpponent(o);
+      setLog(prev => [...prev, makeLog(pResult.message, 'player')].slice(-60));
     }
 
-    newLog.push(makeLog(pResult.message, 'player'));
-    setPlayer(p);
-    setOpponent(o);
-    setLog(prev => [...prev, ...newLog].slice(-60));
-    newLog.length = 0;
+    // Pause so the player can read what just happened before opponent fires
+    await delay(900);
 
     if (o.life <= 0) {
-      setPhase('choosing');
       onGameOver('player', p, o);
       return;
     }
 
-    // --- Opponent action ---
-    await delay(400);
+    // ── Opponent's turn ────────────────────────────────────────────────
     const oppActionKey = pickOpponentAction(o);
     const oResult = await executeAction(oppActionKey, o, p);
     o = oResult.updatedActor;
     p = oResult.updatedTarget;
 
-    if (!oResult.transformation) {
-      await showBlast(o, 'opponent');
+    if (oResult.transformation) {
+      setOpponent(o);
+      setLog(prev => [...prev,
+        makeLog(`✨ ${oResult.transformation!.message}`, 'system'),
+        makeLog(oResult.message, 'opponent'),
+      ].slice(-60));
     } else {
-      newLog.push(makeLog(`✨ ${oResult.transformation.message}`, 'system'));
+      await showBlast(o, 'opponent');
+      setPlayer(p);
+      setOpponent(o);
+
+      const oppEntries: LogEntry[] = [makeLog(oResult.message, 'opponent')];
+      if (oResult.damage > 0) {
+        const reaction = pickReaction(p);
+        if (reaction) oppEntries.push(makeLog(`${p.displayName}: "${reaction}"`, 'taunt'));
+      }
+      const newTaunt = pickTaunt(o);
+      if (newTaunt) oppEntries.push(makeLog(`${o.displayName}: "${newTaunt}"`, 'taunt'));
+      setTaunt(newTaunt);
+      setLog(prev => [...prev, ...oppEntries].slice(-60));
     }
 
-    // Reaction from player when hit
-    if (!oResult.transformation && oResult.damage > 0) {
-      const reaction = pickReaction(p);
-      if (reaction) newLog.push(makeLog(`${p.displayName}: "${reaction}"`, 'taunt'));
-    }
+    // Brief pause after opponent result, then re-enable choices
+    await delay(600);
 
-    newLog.push(makeLog(oResult.message, 'opponent'));
-
-    // Opponent taunt
-    let newTaunt: string | null = null;
-    if (o.tauntsInfo && Math.random() < o.tauntsInfo.chance) {
-      const taunts = o.tauntsInfo.taunts;
-      newTaunt = taunts[Math.floor(Math.random() * taunts.length)];
-      newLog.push(makeLog(`${o.displayName}: "${newTaunt}"`, 'taunt'));
-    }
-
-    // Wear down debuffs
+    // Wear down any active debuffs
     p = wearDownEffects(p);
     o = wearDownEffects(o);
-
     setPlayer(p);
     setOpponent(o);
-    setTaunt(newTaunt);
-    setLog(prev => [...prev, ...newLog].slice(-60));
 
     if (p.life <= 0) {
-      setPhase('choosing');
       onGameOver('opponent', p, o);
       return;
     }

@@ -103,3 +103,11 @@ export function pickReaction(character: Character): string | null {
   }
   return null;
 }
+
+export function pickTaunt(character: Character): string | null {
+  if (!character.tauntsInfo) return null;
+  if (roll(character.tauntsInfo.chance)) {
+    return pick(character.tauntsInfo.taunts);
+  }
+  return null;
+}
