@@ -184,7 +184,6 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
                 >
                   <span className="block text-[10px] uppercase tracking-wider opacity-70 mb-0.5">
                     {choice.isSpecial ? '★ special' : choice.magicType}
-                    {!choice.isSpecial && ` · ${choice.damage} dmg`}
                   </span>
                   {choice.label}
                 </button>

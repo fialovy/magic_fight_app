@@ -53,7 +53,7 @@ export default function CharacterSelectScreen({ mode, disabledPath, onSelect, lo
             >
               <div className="relative w-24 h-24 mb-2">
                 <img
-                  src={`/images/characters/${meta.faceImagePrefix}_mf_face_${mode === 'player' ? 'right' : 'left'}.png`}
+                  src={`/images/characters/${meta.imagePrefix}_mf_face_${mode === 'player' ? 'right' : 'left'}.png`}
                   alt={meta.displayName}
                   className="w-full h-full object-contain"
                 />

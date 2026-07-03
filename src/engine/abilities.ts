@@ -1,6 +1,7 @@
 import type { Character, MagicInfo } from '../types/game';
 import { DEFAULT_EFFECT_TURNS, MAGIC_TYPES } from '../types/game';
 import { loadCharacter } from './loader';
+import { coinFlip, randomInt, shuffle, zalgoify } from './random';
 
 export interface AbilityResult {
   updatedActor: Character;
@@ -22,7 +23,7 @@ export const ABILITY_HANDLERS: Record<string, AbilityFn> = {
 };
 
 async function shapeshift(actor: Character, target: Character, targetPath: string): Promise<AbilityResult> {
-  const newLife = Math.max(1, actor.life - 1); // don't die
+  const newLife = Math.max(1, actor.life - 1);
   const newForm = await loadCharacter(targetPath, newLife);
   return {
     updatedActor: newForm,
@@ -34,12 +35,7 @@ async function shapeshift(actor: Character, target: Character, targetPath: strin
 }
 
 async function orbs_of_disorderify(actor: Character, target: Character): Promise<AbilityResult> {
-  // scramble the amount of magic dealt by the opponent's spells
-  const amounts = MAGIC_TYPES.map(t => target.magicInfo.deals[t].amount);
-  for (let i = amounts.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [amounts[i], amounts[j]] = [amounts[j], amounts[i]];
-  }
+  const amounts = shuffle(MAGIC_TYPES.map(t => target.magicInfo.deals[t].amount));
 
   const newDeals = Object.fromEntries(
     MAGIC_TYPES.map((t, i) => [t, { ...target.magicInfo.deals[t], amount: amounts[i] }])
@@ -62,12 +58,12 @@ async function orbs_of_disorderify(actor: Character, target: Character): Promise
 }
 
 async function potionify(actor: Character, target: Character): Promise<AbilityResult> {
-  const delta = (Math.random() < 0.5 ? 1 : -1) * (Math.floor(Math.random() * 5) + 1);
+  const delta = (coinFlip() ? 1 : -1) * randomInt(1, 5);
 
-  const reversedDeals = Object.fromEntries(
+  const wackyDeals = Object.fromEntries(
     MAGIC_TYPES.map(t => [t, {
       ...actor.magicInfo.deals[t],
-      spells: actor.magicInfo.deals[t].spells.map(s => s.split('').reverse().join('')),
+      spells: actor.magicInfo.deals[t].spells.map(s => zalgoify(s)),
     }])
   ) as MagicInfo['deals'];
 
@@ -75,7 +71,7 @@ async function potionify(actor: Character, target: Character): Promise<AbilityRe
     ...actor,
     life: actor.life + delta,
     isDrunk: true,
-    magicInfo: { ...actor.magicInfo, deals: reversedDeals },
+    magicInfo: { ...actor.magicInfo, deals: wackyDeals },
     savedMagicInfo: actor.savedMagicInfo ?? actor.magicInfo,
     savedTauntsInfo: actor.savedTauntsInfo ?? actor.tauntsInfo,
   };
@@ -90,7 +86,7 @@ async function potionify(actor: Character, target: Character): Promise<AbilityRe
 }
 
 async function attempt_sobering(actor: Character, target: Character): Promise<AbilityResult> {
-  if (Math.random() < 0.5) {
+  if (coinFlip()) {
     return {
       updatedActor: {
         ...actor,
@@ -113,3 +109,16 @@ async function attempt_sobering(actor: Character, target: Character): Promise<Ab
     message: `${actor.displayName} tries the sobering potion and fails miserably. (-1 life)`,
   };
 }
+
+// Re-apply zalgo each time spells are shown while still drunk, so it looks different every turn.
+export function reapplyDrunkSpells(actor: Character): Character {
+  if (!actor.isDrunk || !actor.savedMagicInfo) return actor;
+  const wackyDeals = Object.fromEntries(
+    MAGIC_TYPES.map(t => [t, {
+      ...actor.savedMagicInfo!.deals[t],
+      spells: actor.savedMagicInfo!.deals[t].spells.map(s => zalgoify(s)),
+    }])
+  ) as MagicInfo['deals'];
+  return { ...actor, magicInfo: { ...actor.magicInfo, deals: wackyDeals } };
+}
+

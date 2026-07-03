@@ -1,10 +1,7 @@
 import type { Character, ActionChoice, ActionResult, MagicType } from '../types/game';
 import { MAGIC_TYPES, OPPONENT_SPECIAL_CHANCE } from '../types/game';
 import { ABILITY_HANDLERS } from './abilities';
-
-function getRandomArrayItem<T>(arr: T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)];
-}
+import { pick, roll } from './random';
 
 export function getActionChoices(character: Character): ActionChoice[] {
   const choices: ActionChoice[] = [];
@@ -14,7 +11,7 @@ export function getActionChoices(character: Character): ActionChoice[] {
     if (deal.amount > 0 && deal.spells.length > 0) {
       choices.push({
         key: `spell_${magicType}`,
-        label: getRandomArrayItem(deal.spells),
+        label: pick(deal.spells),
         magicType,
         damage: deal.amount,
         isSpecial: false,
@@ -49,15 +46,13 @@ export async function executeAction(
 
   const magicType = actionKey.slice('spell_'.length) as MagicType;
   const deal = actor.magicInfo.deals[magicType];
-  // only as much damage of this kind as they can take (e.g., might be strong against
-  // a particular kind of magic)
   const actualDamage = Math.min(deal.amount, target.magicInfo.takes[magicType].amount);
 
   return {
     updatedActor: actor,
     updatedTarget: { ...target, life: target.life - actualDamage },
     damage: actualDamage,
-    message: `${actor.displayName} — "${getRandomArrayItem(deal.spells)}" [${magicType}] — ${actualDamage} damage!`,
+    message: `${actor.displayName} — "${pick(deal.spells)}" [${magicType}] — ${actualDamage} damage!`,
   };
 }
 
@@ -66,10 +61,10 @@ export function pickOpponentAction(opponent: Character): string {
   const spellChoices = choices.filter(c => !c.isSpecial);
   const specialChoices = choices.filter(c => c.isSpecial);
 
-  if (specialChoices.length > 0 && Math.random() < OPPONENT_SPECIAL_CHANCE) {
-    return getRandomArrayItem(specialChoices).key;
+  if (specialChoices.length > 0 && roll(OPPONENT_SPECIAL_CHANCE)) {
+    return pick(specialChoices).key;
   }
-  return getRandomArrayItem(spellChoices.length > 0 ? spellChoices : choices).key;
+  return pick(spellChoices.length > 0 ? spellChoices : choices).key;
 }
 
 export function wearDownEffects(character: Character): Character {
@@ -103,8 +98,8 @@ export function wearDownEffects(character: Character): Character {
 
 export function pickReaction(character: Character): string | null {
   if (!character.reactionsInfo) return null;
-  if (Math.random() < character.reactionsInfo.chance) {
-    return getRandomArrayItem(character.reactionsInfo.reactions);
+  if (roll(character.reactionsInfo.chance)) {
+    return pick(character.reactionsInfo.reactions);
   }
   return null;
 }

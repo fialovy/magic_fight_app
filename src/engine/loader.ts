@@ -9,8 +9,6 @@ async function fetchJSON<T>(path: string): Promise<T | null> {
   try {
     const res = await fetch(path);
     if (!res.ok) return null;
-    // Vite dev server returns index.html (text/html, status 200) for missing public files
-    if ((res.headers.get('content-type') ?? '').includes('text/html')) return null;
     return await res.json() as T;
   } catch {
     return null;
@@ -32,6 +30,7 @@ export async function loadCharacter(namePath: string, inheritLife?: number): Pro
   if (!meta) throw new Error(`Unknown character: ${namePath}`);
 
   const base = `${DATA_BASE}${namePath}/`;
+  const { imagePrefix, blastCount, hasDrunkSpecial } = meta;
 
   const [magicInfo, tauntsInfo, reactionsInfo, specialAbilities, drunkSpecialAbilities, bio, asciiArt] =
     await Promise.all([
@@ -39,12 +38,12 @@ export async function loadCharacter(namePath: string, inheritLife?: number): Pro
       fetchJSON<TauntsInfo>(`${base}taunts.json`),
       fetchJSON<ReactionsInfo>(`${base}reactions.json`),
       fetchJSON<Record<string, SpecialAbilityDef>>(`${base}special.json`),
-      fetchJSON<Record<string, SpecialAbilityDef>>(`${base}drunk_special.json`),
+      hasDrunkSpecial
+        ? fetchJSON<Record<string, SpecialAbilityDef>>(`${base}drunk_special.json`)
+        : Promise.resolve(null),
       fetchText(`${base}bio.txt`),
       fetchText(`${base}ascii_art.txt`),
     ]);
-
-  const { faceImagePrefix, blastImagePrefix, blastCount } = meta;
 
   return {
     namePath,
@@ -57,10 +56,10 @@ export async function loadCharacter(namePath: string, inheritLife?: number): Pro
     reactionsInfo: reactionsInfo ?? null,
     bio: bio?.trim() ?? '',
     asciiArt: asciiArt?.trim() ?? null,
-    imageLeft:  `${IMG_BASE}${faceImagePrefix}_mf_face_left.png`,
-    imageRight: `${IMG_BASE}${faceImagePrefix}_mf_face_right.png`,
-    blastImagesLeft:  Array.from({ length: blastCount }, (_, i) => `${IMG_BASE}${blastImagePrefix}_mf_blast_${i}_face_left.png`),
-    blastImagesRight: Array.from({ length: blastCount }, (_, i) => `${IMG_BASE}${blastImagePrefix}_mf_blast_${i}_face_right.png`),
+    imageLeft:  `${IMG_BASE}${imagePrefix}_mf_face_left.png`,
+    imageRight: `${IMG_BASE}${imagePrefix}_mf_face_right.png`,
+    blastImagesLeft:  Array.from({ length: blastCount }, (_, i) => `${IMG_BASE}${imagePrefix}_mf_blast_${i}_face_left.png`),
+    blastImagesRight: Array.from({ length: blastCount }, (_, i) => `${IMG_BASE}${imagePrefix}_mf_blast_${i}_face_right.png`),
     affectedBy: {},
     savedMagicInfo: null,
     savedTauntsInfo: null,

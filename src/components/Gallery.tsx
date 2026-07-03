@@ -34,15 +34,15 @@ function CharacterGallerySection({ meta }: { meta: (typeof CHARACTER_REGISTRY)[n
   const [showLeft, setShowLeft] = useState(false);
 
   const blastImages = Array.from({ length: meta.blastCount }, (_, i) => ({
-    left: `/images/characters/${meta.blastImagePrefix}_mf_blast_${i}_face_left.png`,
-    right: `/images/characters/${meta.blastImagePrefix}_mf_blast_${i}_face_right.png`,
+    left: `/images/characters/${meta.imagePrefix}_mf_blast_${i}_face_left.png`,
+    right: `/images/characters/${meta.imagePrefix}_mf_blast_${i}_face_right.png`,
   }));
 
   return (
     <div className="mb-10">
       <div className="flex items-center gap-3 mb-4">
         <img
-          src={`/images/characters/${meta.faceImagePrefix}_mf_face_right.png`}
+          src={`/images/characters/${meta.imagePrefix}_mf_face_right.png`}
           alt={meta.displayName}
           className="w-10 h-10 object-contain"
         />
@@ -63,7 +63,7 @@ function CharacterGallerySection({ meta }: { meta: (typeof CHARACTER_REGISTRY)[n
       <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
         <div className="aspect-square bg-purple-950/60 border border-purple-800 rounded-xl p-2 flex items-center justify-center">
           <img
-            src={`/images/characters/${meta.faceImagePrefix}_mf_face_${showLeft ? 'left' : 'right'}.png`}
+            src={`/images/characters/${meta.imagePrefix}_mf_face_${showLeft ? 'left' : 'right'}.png`}
             alt={`${meta.displayName} portrait`}
             className="max-w-full max-h-full object-contain"
           />
