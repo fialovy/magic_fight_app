@@ -69,7 +69,7 @@ function NoraGallerySection() {
               className={[
                 'px-3 py-1.5 text-base transition-colors',
                 i === formIdx
-                  ? 'bg-amber-700 text-amber-100'
+                  ? 'bg-amber-500 text-amber-100'
                   : 'bg-purple-900/60 text-purple-300 hover:bg-purple-800',
                 i > 0 ? 'border-l border-purple-700' : '',
               ].join(' ')}
