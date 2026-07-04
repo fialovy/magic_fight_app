@@ -23,9 +23,9 @@ export default function GameOverScreen({ winner, player, opponent, onNewGame }: 
         </p>
       </div>
 
-      <div className="flex items-end gap-12 mb-10">
+      <div className="flex items-center gap-12 mb-10">
         <CharacterDisplay character={player} side="player" won={playerWon} />
-        <span className="text-4xl font-bold text-purple-500 pb-4">vs</span>
+        <span className="text-4xl font-bold text-purple-500">vs</span>
         <CharacterDisplay character={opponent} side="opponent" won={!playerWon} />
       </div>
 
@@ -52,7 +52,7 @@ function CharacterDisplay({ character, side, won }: { character: Character; side
       <span className={`font-semibold text-sm ${won ? 'text-amber-300' : 'text-rose-400'}`}>
         {character.displayName}
       </span>
-      {won && <span className="text-xs text-amber-400">★ Winner</span>}
+      <span className={`text-xs ${won ? 'text-amber-400' : 'invisible'}`}>★ Winner</span>
     </div>
   );
 }

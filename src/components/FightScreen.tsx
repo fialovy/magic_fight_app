@@ -167,32 +167,36 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
             <div ref={logEndRef} />
           </div>
 
-          {/* Action buttons */}
+          {/* Action buttons — stay visible, just dimmed while animating */}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            {phase === 'choosing' ? (
-              choices.map(choice => (
-                <button
-                  key={choice.key}
-                  onClick={() => executeTurn(choice.key)}
-                  title={choice.description}
-                  className={[
-                    'px-3 py-2 rounded-lg border text-xs font-semibold text-left transition-all leading-snug',
-                    choice.isSpecial
-                      ? 'bg-indigo-800 hover:bg-indigo-700 border-indigo-500 text-indigo-100'
-                      : MAGIC_COLORS[choice.magicType!],
-                  ].join(' ')}
-                >
-                  <span className="block text-[10px] uppercase tracking-wider opacity-70 mb-0.5">
-                    {choice.isSpecial ? '★ special' : choice.magicType}
-                  </span>
-                  {choice.label}
-                </button>
-              ))
-            ) : (
-              <div className="col-span-2 sm:col-span-3 flex items-center justify-center gap-2 py-4 text-purple-400 text-sm">
-                <div className="w-4 h-4 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
+            {choices.map(choice => (
+              <button
+                key={choice.key}
+                onClick={() => executeTurn(choice.key)}
+                disabled={phase !== 'choosing'}
+                title={choice.description}
+                className={[
+                  'px-3 py-2 rounded-lg border text-xs font-semibold text-left leading-snug',
+                  'transition-opacity disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none',
+                  choice.isSpecial
+                    ? 'bg-indigo-800 hover:bg-indigo-700 border-indigo-500 text-indigo-100'
+                    : MAGIC_COLORS[choice.magicType!],
+                ].join(' ')}
+              >
+                <span className="block text-[10px] uppercase tracking-wider opacity-70 mb-0.5">
+                  {choice.isSpecial ? '★ special' : choice.magicType}
+                </span>
+                {choice.label}
+              </button>
+            ))}
+          </div>
+          {/* Casting indicator — fixed height so layout never jumps */}
+          <div className="h-6 flex items-center justify-center mt-1">
+            {phase === 'animating' && (
+              <span className="flex items-center gap-1.5 text-xs text-purple-400">
+                <span className="w-3 h-3 border-2 border-purple-400 border-t-transparent rounded-full animate-spin inline-block" />
                 Casting…
-              </div>
+              </span>
             )}
           </div>
         </div>
@@ -223,13 +227,15 @@ function CharacterPanel({
   const barColor = pct > 60 ? 'bg-emerald-500' : pct > 30 ? 'bg-amber-500' : 'bg-rose-500';
 
   return (
-    <div className="flex flex-col items-center gap-2 w-36">
-      {/* Taunt bubble (opponent only) */}
-      {side === 'opponent' && taunt && (
-        <div className="text-xs bg-white/10 border border-purple-600 text-purple-200 rounded-xl px-3 py-1.5 text-center max-w-full animate-fade-in">
-          &ldquo;{taunt}&rdquo;
-        </div>
-      )}
+    <div className="flex flex-col items-center w-36">
+      {/* Fixed-height taunt bubble area — always reserved so both panels stay the same height */}
+      <div className="h-12 w-full flex items-center justify-center mb-2">
+        {side === 'opponent' && taunt && (
+          <div className="text-xs bg-white/10 border border-purple-600 text-purple-200 rounded-xl px-3 py-1.5 text-center max-w-full animate-fade-in">
+            &ldquo;{taunt}&rdquo;
+          </div>
+        )}
+      </div>
 
       {/* Character image */}
       <div className="relative w-32 h-32">
@@ -245,8 +251,12 @@ function CharacterPanel({
       </div>
 
       {/* Name */}
-      <span className="text-purple-200 text-sm font-semibold">{character.displayName}</span>
-      {character.isDrunk && <span className="text-xs text-amber-400">🍺 dizzy</span>}
+      <span className="text-purple-200 text-sm font-semibold mt-2">{character.displayName}</span>
+
+      {/* Fixed-height drunk badge area */}
+      <div className="h-5 flex items-center">
+        {character.isDrunk && <span className="text-xs text-amber-400">🍺 dizzy</span>}
+      </div>
 
       {/* Health bar */}
       <div className="w-full bg-slate-800 rounded-full h-3 border border-slate-700">
@@ -255,7 +265,7 @@ function CharacterPanel({
           style={{ width: `${pct}%` }}
         />
       </div>
-      <span className="text-xs text-purple-400 tabular-nums">{character.life} / {GAME_LIFE} HP</span>
+      <span className="text-xs text-purple-400 tabular-nums mt-1">{character.life} / {GAME_LIFE} HP</span>
     </div>
   );
 }
