@@ -8,7 +8,7 @@ export function getActionChoices(character: Character): ActionChoice[] {
 
   for (const magicType of MAGIC_TYPES) {
     const deal = character.magicInfo.deals[magicType];
-    if (deal.amount > 0 && deal.spells.length > 0) {
+    if (deal.spells.length > 0) {
       choices.push({
         key: `spell_${magicType}`,
         label: pick(deal.spells),
@@ -48,11 +48,12 @@ export async function executeAction(
   const deal = actor.magicInfo.deals[magicType];
   const actualDamage = Math.min(deal.amount, target.magicInfo.takes[magicType].amount);
 
+  const damageText = actualDamage === 0 ? 'no damage!' : `${actualDamage} damage!`;
   return {
     updatedActor: actor,
     updatedTarget: { ...target, life: target.life - actualDamage },
     damage: actualDamage,
-    message: `${actor.displayName} — "${pick(deal.spells)}" [${magicType}] — ${actualDamage} damage!`,
+    message: `${actor.displayName} — "${pick(deal.spells)}" [${magicType}] — ${damageText}`,
   };
 }
 
