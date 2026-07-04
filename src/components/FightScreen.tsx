@@ -18,6 +18,14 @@ interface BlastAnim {
   side: 'player' | 'opponent';
 }
 
+const ORB_SHAPES: { clipPath: string; borderRadius: string }[] = [
+  { clipPath: 'none',                                                                                                                                                       borderRadius: '50%' }, // circle
+  { clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',                                                                                                               borderRadius: '0'   }, // diamond
+  { clipPath: 'polygon(50% 0%, 54% 46%, 100% 50%, 54% 54%, 50% 100%, 46% 54%, 0% 50%, 46% 46%)',                                                                           borderRadius: '0'   }, // 4-pointed star
+  { clipPath: 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)',                                                          borderRadius: '0'   }, // 5-pointed star
+  { clipPath: 'polygon(50% 0%, 57% 34%, 85% 15%, 66% 43%, 100% 50%, 66% 57%, 85% 85%, 57% 66%, 50% 100%, 43% 66%, 15% 85%, 34% 57%, 0% 50%, 34% 43%, 15% 15%, 43% 34%)', borderRadius: '0'   }, // 8-pointed burst
+];
+
 const MAGIC_COLORS: Record<MagicType, string> = {
   dark:    'bg-purple-800 hover:bg-purple-700 border-purple-500 text-purple-100',
   light:   'bg-amber-700  hover:bg-amber-600  border-amber-400  text-amber-100',
@@ -63,7 +71,7 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
     if (!fromEl || !toEl || !el) return;
     if (typeof el.animate !== 'function') return;
 
-    const S = 24; // projectile diameter in px
+    const S = 36;
     const fromRect = fromEl.getBoundingClientRect();
     const toRect   = toEl.getBoundingClientRect();
     const fromX = fromRect.left + fromRect.width  / 2 - S / 2;
@@ -71,15 +79,19 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
     const toX   = toRect.left  + toRect.width    / 2 - S / 2;
     const toY   = toRect.top   + toRect.height   / 2 - S / 2;
 
+    const shape = ORB_SHAPES[Math.floor(Math.random() * ORB_SHAPES.length)];
+    el.style.clipPath     = shape.clipPath;
+    el.style.borderRadius = shape.borderRadius;
+
     sampleDominantColor(imageUrl).then(color => {
-      el.style.background  = `radial-gradient(circle, white 0%, ${color} 35%, transparent 70%)`;
-      el.style.boxShadow   = `0 0 14px 5px ${color}`;
+      el.style.background = `radial-gradient(circle, white 0%, ${color} 35%, transparent 70%)`;
+      el.style.filter     = `drop-shadow(0 0 10px ${color})`;
       el.animate([
         { transform: `translate(${fromX}px, ${fromY}px)`, opacity: 0 },
         { transform: `translate(${fromX}px, ${fromY}px)`, opacity: 1,   offset: 0.07 },
         { transform: `translate(${toX}px,   ${toY}px)`,   opacity: 0.9, offset: 0.88 },
         { transform: `translate(${toX}px,   ${toY}px)`,   opacity: 0 },
-      ], { duration: 680, easing: 'ease-in' });
+      ], { duration: 950, easing: 'ease-in', fill: 'none' });
     });
   }
 
@@ -176,11 +188,11 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-purple-950 to-slate-900 flex flex-col">
-      {/* Projectile orb — fixed-position, always present, invisible when not animating */}
+      {/* Projectile orb — fixed-position, opacity:0 keeps it invisible when idle */}
       <div
         ref={projectileRef}
-        className="fixed top-0 left-0 pointer-events-none rounded-full"
-        style={{ width: 24, height: 24, zIndex: 100 }}
+        className="fixed top-0 left-0 pointer-events-none"
+        style={{ width: 36, height: 36, zIndex: 100, opacity: 0 }}
       />
       {/* Header */}
       <div className="text-center py-3 border-b border-purple-800">
