@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { ActionChoice, Character, LogEntry, MagicType } from '../types/game';
 import { GAME_LIFE } from '../types/game';
 import { executeAction, getActionChoices, pickOpponentAction, pickReaction, pickTaunt, wearDownEffects } from '../engine/combat';
+import { sampleDominantColor } from '../engine/colorSampler';
 
 interface Props {
   initialPlayer: Character;
@@ -47,16 +48,47 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
   const playerBlastIdx = useRef(0);
   const opponentBlastIdx = useRef(0);
   const logEndRef = useRef<HTMLDivElement>(null);
+  const playerPortraitRef = useRef<HTMLDivElement>(null);
+  const opponentPortraitRef = useRef<HTMLDivElement>(null);
+  const projectileRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     logEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [log]);
+
+  function fireProjectile(imageUrl: string, fromSide: 'player' | 'opponent') {
+    const fromEl = fromSide === 'player' ? playerPortraitRef.current : opponentPortraitRef.current;
+    const toEl   = fromSide === 'player' ? opponentPortraitRef.current : playerPortraitRef.current;
+    const el = projectileRef.current;
+    if (!fromEl || !toEl || !el) return;
+    if (typeof el.animate !== 'function') return;
+
+    const S = 24; // projectile diameter in px
+    const fromRect = fromEl.getBoundingClientRect();
+    const toRect   = toEl.getBoundingClientRect();
+    const fromX = fromRect.left + fromRect.width  / 2 - S / 2;
+    const fromY = fromRect.top  + fromRect.height / 2 - S / 2;
+    const toX   = toRect.left  + toRect.width    / 2 - S / 2;
+    const toY   = toRect.top   + toRect.height   / 2 - S / 2;
+
+    sampleDominantColor(imageUrl).then(color => {
+      el.style.background  = `radial-gradient(circle, white 0%, ${color} 35%, transparent 70%)`;
+      el.style.boxShadow   = `0 0 14px 5px ${color}`;
+      el.animate([
+        { transform: `translate(${fromX}px, ${fromY}px)`, opacity: 0 },
+        { transform: `translate(${fromX}px, ${fromY}px)`, opacity: 1,   offset: 0.07 },
+        { transform: `translate(${toX}px,   ${toY}px)`,   opacity: 0.9, offset: 0.88 },
+        { transform: `translate(${toX}px,   ${toY}px)`,   opacity: 0 },
+      ], { duration: 680, easing: 'ease-in' });
+    });
+  }
 
   async function showBlast(character: Character, side: 'player' | 'opponent') {
     const images = side === 'player' ? character.blastImagesRight : character.blastImagesLeft;
     const idx = side === 'player' ? playerBlastIdx : opponentBlastIdx;
     const url = images[idx.current % images.length];
     idx.current++;
+    fireProjectile(url, side); // fire-and-forget; runs concurrently with blast image
     setBlast({ url, key: Date.now(), side });
     await delay(2200);
     setBlast(null);
@@ -144,6 +176,12 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-purple-950 to-slate-900 flex flex-col">
+      {/* Projectile orb — fixed-position, always present, invisible when not animating */}
+      <div
+        ref={projectileRef}
+        className="fixed top-0 left-0 pointer-events-none rounded-full"
+        style={{ width: 24, height: 24, zIndex: 100 }}
+      />
       {/* Header */}
       <div className="text-center py-3 border-b border-purple-800">
         <span className="text-purple-400 text-sm tracking-widest uppercase">Magic Fight</span>
@@ -153,7 +191,7 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
       <div className="flex flex-col md:flex-row flex-1 gap-0">
         {/* Player */}
         <div className="flex flex-col items-center justify-center p-4 md:w-48 shrink-0">
-          <CharacterPanel character={player} side="player" blast={blast} taunt={null} />
+          <CharacterPanel character={player} side="player" blast={blast} taunt={null} portraitRef={playerPortraitRef} />
         </div>
 
         {/* Center: log */}
@@ -203,7 +241,7 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
 
         {/* Opponent */}
         <div className="flex flex-col items-center justify-center p-4 md:w-48 shrink-0">
-          <CharacterPanel character={opponent} side="opponent" blast={blast} taunt={taunt} />
+          <CharacterPanel character={opponent} side="opponent" blast={blast} taunt={taunt} portraitRef={opponentPortraitRef} />
         </div>
       </div>
     </div>
@@ -215,11 +253,13 @@ function CharacterPanel({
   side,
   blast,
   taunt,
+  portraitRef,
 }: {
   character: Character;
   side: 'player' | 'opponent';
   blast: BlastAnim | null;
   taunt: string | null;
+  portraitRef?: React.RefObject<HTMLDivElement | null>;
 }) {
   const isMyBlast = blast?.side === side;
   const img = side === 'player' ? character.imageRight : character.imageLeft;
@@ -238,7 +278,7 @@ function CharacterPanel({
       </div>
 
       {/* Character image */}
-      <div className="relative w-32 h-32">
+      <div ref={portraitRef} className="relative w-32 h-32">
         <img src={img} alt={character.displayName} className="w-full h-full object-contain" />
         {isMyBlast && blast && (
           <img

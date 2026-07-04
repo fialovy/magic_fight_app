@@ -56,6 +56,11 @@ function NoraGallerySection() {
   return (
     <div className="mb-10">
       <div className="flex items-center gap-3 mb-4 flex-wrap">
+        <img
+          src={`/images/characters/${meta.imagePrefix}_mf_face_right.png`}
+          alt={meta.displayName}
+          className="w-10 h-10 object-contain shrink-0"
+        />
         {/* Fixed-width name so the segmented control never shifts position */}
         <h2 className="text-xl font-bold text-amber-300 w-44 shrink-0">{meta.displayName}</h2>
 
