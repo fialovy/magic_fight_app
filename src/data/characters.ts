@@ -15,7 +15,7 @@ export const CHARACTER_REGISTRY: CharacterMeta[] = [
   { namePath: 'nora',               displayName: 'Nora',         imagePrefix: 'nora',          blastCount: 7, isVariant: false, hasDrunkSpecial: false },
   { namePath: 'sandoval',           displayName: 'Sandoval',     imagePrefix: 'sandoval',      blastCount: 4, isVariant: false, hasDrunkSpecial: false },
   { namePath: 'stella',             displayName: 'Stella',       imagePrefix: 'stella',        blastCount: 4, isVariant: false, hasDrunkSpecial: false },
-  { namePath: 'winfield',           displayName: 'Winfield',     imagePrefix: 'winfield',      blastCount: 4, isVariant: false, hasDrunkSpecial: false },
+  { namePath: 'winfield',           displayName: 'Winfield',     imagePrefix: 'winfield',      blastCount: 5, isVariant: false, hasDrunkSpecial: false },
   { namePath: 'winston',            displayName: 'Winston',      imagePrefix: 'winston',       blastCount: 7, isVariant: false, hasDrunkSpecial: true  },
   { namePath: 'nora/norm',          displayName: 'Norm',         imagePrefix: 'norm',          blastCount: 6, isVariant: true,  hasDrunkSpecial: false },
   { namePath: 'nora/meadow_sprite', displayName: 'Meadow Sprite',imagePrefix: 'meadow_sprite', blastCount: 3, isVariant: true,  hasDrunkSpecial: false },
