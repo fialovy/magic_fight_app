@@ -8,16 +8,16 @@ export interface CharacterMeta {
 }
 
 export const CHARACTER_REGISTRY: CharacterMeta[] = [
-  { namePath: 'adrian',             displayName: 'Adrian',       imagePrefix: 'adrian',        blastCount: 5, isVariant: false, hasDrunkSpecial: false },
+  { namePath: 'adrian',             displayName: 'Adrian',       imagePrefix: 'adrian',        blastCount: 7, isVariant: false, hasDrunkSpecial: false },
   { namePath: 'anton',              displayName: 'Anton',        imagePrefix: 'anton',         blastCount: 4, isVariant: false, hasDrunkSpecial: false },
-  { namePath: 'bastion',            displayName: 'Bastion',      imagePrefix: 'bastion',       blastCount: 3, isVariant: false, hasDrunkSpecial: false },
-  { namePath: 'lucian',             displayName: 'Lucian',       imagePrefix: 'lucian',        blastCount: 3, isVariant: false, hasDrunkSpecial: false },
-  { namePath: 'nora',               displayName: 'Nora',         imagePrefix: 'nora',          blastCount: 3, isVariant: false, hasDrunkSpecial: false },
+  { namePath: 'bastion',            displayName: 'Bastion',      imagePrefix: 'bastion',       blastCount: 5, isVariant: false, hasDrunkSpecial: false },
+  { namePath: 'lucian',             displayName: 'Lucian',       imagePrefix: 'lucian',        blastCount: 6, isVariant: false, hasDrunkSpecial: false },
+  { namePath: 'nora',               displayName: 'Nora',         imagePrefix: 'nora',          blastCount: 7, isVariant: false, hasDrunkSpecial: false },
   { namePath: 'sandoval',           displayName: 'Sandoval',     imagePrefix: 'sandoval',      blastCount: 4, isVariant: false, hasDrunkSpecial: false },
   { namePath: 'stella',             displayName: 'Stella',       imagePrefix: 'stella',        blastCount: 4, isVariant: false, hasDrunkSpecial: false },
   { namePath: 'winfield',           displayName: 'Winfield',     imagePrefix: 'winfield',      blastCount: 4, isVariant: false, hasDrunkSpecial: false },
-  { namePath: 'winston',            displayName: 'Winston',      imagePrefix: 'winston',       blastCount: 4, isVariant: false, hasDrunkSpecial: true  },
-  { namePath: 'nora/norm',          displayName: 'Norm',         imagePrefix: 'norm',          blastCount: 3, isVariant: true,  hasDrunkSpecial: false },
+  { namePath: 'winston',            displayName: 'Winston',      imagePrefix: 'winston',       blastCount: 7, isVariant: false, hasDrunkSpecial: true  },
+  { namePath: 'nora/norm',          displayName: 'Norm',         imagePrefix: 'norm',          blastCount: 6, isVariant: true,  hasDrunkSpecial: false },
   { namePath: 'nora/meadow_sprite', displayName: 'Meadow Sprite',imagePrefix: 'meadow_sprite', blastCount: 3, isVariant: true,  hasDrunkSpecial: false },
 ];
 
