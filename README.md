@@ -7,5 +7,5 @@ When I was also in my 20s, I wrote a Python command line game featuring these ch
 Now I'm in my 30s and there's AI.
 
 So I asked Claude to please use that 'serverless' buzzword we keep seeing all over the place
-and convert my original game (and art) into a web app. With javascript or whatever this is.
+and convert my original game (and art) into a web app. With, like, fancy JavaScript.
 
