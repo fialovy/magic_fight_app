@@ -51,6 +51,7 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
   const [choices, setChoices] = useState<ActionChoice[]>(() => getActionChoices(initialPlayer));
   const [phase, setPhase] = useState<Phase>('choosing');
   const [blast, setBlast] = useState<BlastAnim | null>(null);
+  const [transitionAnim, setTransitionAnim] = useState<BlastAnim | null>(null);
   const [taunt, setTaunt] = useState<string | null>(null);
 
   const playerBlastIdx = useRef(0);
@@ -95,6 +96,18 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
     });
   }
 
+  async function showTransition(side: 'player' | 'opponent', fromPath: string, toPath: string) {
+    const isSprite = fromPath === 'nora/meadow_sprite' || toPath === 'nora/meadow_sprite';
+    const suffix = isSprite
+      ? 'sprite_to_humanoid_or_humanoid_to_sprite'
+      : 'humanoid_to_humanoid';
+    const dir = side === 'player' ? 'right' : 'left';
+    const url = `/images/characters/ability_transitions/nora_mf_splat_${suffix}_face_${dir}.png`;
+    setTransitionAnim({ url, key: Date.now(), side });
+    await delay(1800);
+    setTransitionAnim(null);
+  }
+
   async function showBlast(character: Character, side: 'player' | 'opponent') {
     const images = side === 'player' ? character.blastImagesRight : character.blastImagesLeft;
     const idx = side === 'player' ? playerBlastIdx : opponentBlastIdx;
@@ -115,10 +128,12 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
 
     // ── Player's turn ──────────────────────────────────────────────────
     const pResult = await executeAction(actionKey, p, o);
+    const pFromPath = p.namePath;
     p = pResult.updatedActor;
     o = pResult.updatedTarget;
 
     if (pResult.transformation) {
+      await showTransition('player', pFromPath, p.namePath);
       setPlayer(p);
       setLog(prev => [...prev,
         makeLog(`✨ ${pResult.transformation!.message}`, 'system'),
@@ -143,10 +158,12 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
     // ── Opponent's turn ────────────────────────────────────────────────
     const oppActionKey = pickOpponentAction(o);
     const oResult = await executeAction(oppActionKey, o, p);
+    const oFromPath = o.namePath;
     o = oResult.updatedActor;
     p = oResult.updatedTarget;
 
     if (oResult.transformation) {
+      await showTransition('opponent', oFromPath, o.namePath);
       setOpponent(o);
       setLog(prev => [...prev,
         makeLog(`✨ ${oResult.transformation!.message}`, 'system'),
@@ -203,7 +220,7 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
       <div className="flex flex-col md:flex-row flex-1 gap-0">
         {/* Player */}
         <div className="flex flex-col items-center justify-center p-4 md:w-48 shrink-0">
-          <CharacterPanel character={player} side="player" blast={blast} taunt={null} portraitRef={playerPortraitRef} />
+          <CharacterPanel character={player} side="player" blast={blast} transitionAnim={transitionAnim} taunt={null} portraitRef={playerPortraitRef} />
         </div>
 
         {/* Center: log */}
@@ -253,7 +270,7 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
 
         {/* Opponent */}
         <div className="flex flex-col items-center justify-center p-4 md:w-48 shrink-0">
-          <CharacterPanel character={opponent} side="opponent" blast={blast} taunt={taunt} portraitRef={opponentPortraitRef} />
+          <CharacterPanel character={opponent} side="opponent" blast={blast} transitionAnim={transitionAnim} taunt={taunt} portraitRef={opponentPortraitRef} />
         </div>
       </div>
     </div>
@@ -264,16 +281,19 @@ function CharacterPanel({
   character,
   side,
   blast,
+  transitionAnim,
   taunt,
   portraitRef,
 }: {
   character: Character;
   side: 'player' | 'opponent';
   blast: BlastAnim | null;
+  transitionAnim: BlastAnim | null;
   taunt: string | null;
   portraitRef?: React.RefObject<HTMLDivElement | null>;
 }) {
   const isMyBlast = blast?.side === side;
+  const isMyTransition = transitionAnim?.side === side;
   const img = side === 'player' ? character.imageRight : character.imageLeft;
   const pct = Math.max(0, (character.life / GAME_LIFE) * 100);
   const barColor = pct > 60 ? 'bg-emerald-500' : pct > 30 ? 'bg-amber-500' : 'bg-rose-500';
@@ -281,9 +301,9 @@ function CharacterPanel({
   return (
     <div className="flex flex-col items-center w-36">
       {/* Fixed-height taunt bubble area — always reserved so both panels stay the same height */}
-      <div className="h-12 w-full flex items-center justify-center mb-2">
+      <div className="h-20 w-full flex items-center justify-center mb-2">
         {side === 'opponent' && taunt && (
-          <div className="text-xs bg-white/10 border border-purple-600 text-purple-200 rounded-xl px-3 py-1.5 text-center max-w-full animate-fade-in">
+          <div className="text-xs bg-white/10 border border-purple-600 text-purple-200 rounded-xl px-3 py-1.5 text-center max-w-full animate-fade-in overflow-hidden line-clamp-4">
             &ldquo;{taunt}&rdquo;
           </div>
         )}
@@ -296,6 +316,14 @@ function CharacterPanel({
           <img
             key={blast.key}
             src={blast.url}
+            alt=""
+            className="absolute inset-0 w-full h-full object-contain blast-animate"
+          />
+        )}
+        {isMyTransition && transitionAnim && (
+          <img
+            key={transitionAnim.key}
+            src={transitionAnim.url}
             alt=""
             className="absolute inset-0 w-full h-full object-contain blast-animate"
           />

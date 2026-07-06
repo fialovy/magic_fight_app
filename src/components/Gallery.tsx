@@ -14,6 +14,22 @@ const NORA_FORMS: { emoji: string; meta: CharacterMeta }[] = [
 
 const NORA_PATHS = new Set(NORA_FORMS.map(f => f.meta.namePath));
 
+// Shared-index sequence for the secret gallery, sorted by narrative order 0-11
+const SECRET_IMAGES: { num: number; prefix: 'norm' | 'nora' }[] = [
+  { num: 0,  prefix: 'norm' },
+  { num: 1,  prefix: 'norm' },
+  { num: 2,  prefix: 'norm' },
+  { num: 3,  prefix: 'norm' },
+  { num: 4,  prefix: 'norm' },
+  { num: 5,  prefix: 'nora' },
+  { num: 6,  prefix: 'nora' },
+  { num: 7,  prefix: 'norm' },
+  { num: 8,  prefix: 'nora' },
+  { num: 9,  prefix: 'nora' },
+  { num: 10, prefix: 'norm' },
+  { num: 11, prefix: 'norm' },
+];
+
 export default function Gallery({ onBack }: Props) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-purple-950 to-slate-900 px-4 py-8">
@@ -46,7 +62,10 @@ export default function Gallery({ onBack }: Props) {
 function NoraGallerySection() {
   const [formIdx, setFormIdx] = useState(0);
   const [showLeft, setShowLeft] = useState(false);
-  const { meta } = NORA_FORMS[formIdx];
+  const [secretFound, setSecretFound] = useState(false);
+
+  const isSecret = formIdx === 3;
+  const { meta } = NORA_FORMS[isSecret ? 0 : formIdx];
 
   const blastImages = Array.from({ length: meta.blastCount }, (_, i) => ({
     left:  `/images/characters/${meta.imagePrefix}_mf_blast_${i}_face_left.png`,
@@ -62,61 +81,102 @@ function NoraGallerySection() {
           className="w-10 h-10 object-contain shrink-0"
         />
         {/* Fixed-width name so the segmented control never shifts position */}
-        <h2 className="text-xl font-bold text-amber-300 w-44 shrink-0">{meta.displayName}</h2>
+        <h2 className="text-xl font-bold text-amber-300 w-44 shrink-0">
+          {isSecret ? 'N + W' : meta.displayName}
+        </h2>
 
         {/* Segmented form picker — emoji only */}
-        <div className="flex rounded-lg border border-purple-700 overflow-hidden shrink-0">
-          {NORA_FORMS.map((form, i) => (
-            <button
-              key={i}
-              onClick={() => setFormIdx(i)}
-              title={form.meta.displayName}
-              className={[
-                'px-3 py-1.5 text-base transition-colors',
-                i === formIdx
-                  ? 'bg-amber-500 text-amber-100'
-                  : 'bg-purple-900/60 text-purple-300 hover:bg-purple-800',
-                i > 0 ? 'border-l border-purple-700' : '',
-              ].join(' ')}
+        <div className="flex items-stretch shrink-0 gap-1">
+          <div className="flex rounded-lg border border-purple-700 overflow-hidden">
+            {NORA_FORMS.map((form, i) => (
+              <button
+                key={i}
+                onClick={() => setFormIdx(i)}
+                title={form.meta.displayName}
+                className={[
+                  'px-3 py-1.5 text-base transition-colors',
+                  i === formIdx
+                    ? 'bg-amber-500 text-amber-100'
+                    : 'bg-purple-900/60 text-purple-300 hover:bg-purple-800',
+                  i > 0 ? 'border-l border-purple-700' : '',
+                ].join(' ')}
+              >
+                {form.emoji}
+              </button>
+            ))}
+          </div>
+          {/* Hidden heart button — lives outside overflow-hidden so no border bleeds through */}
+          <button
+            onClick={() => { setSecretFound(true); setFormIdx(3); }}
+            className={[
+              'px-3 py-1.5 text-base rounded-lg border transition-all duration-300',
+              formIdx === 3
+                ? 'bg-rose-800/80 text-rose-200 border-purple-700'
+                : secretFound
+                  ? 'bg-purple-900/60 text-rose-300/70 hover:bg-purple-800 border-purple-700'
+                  : 'opacity-0 hover:opacity-100 hover:bg-purple-900/30 hover:text-purple-400/60 border-transparent hover:border-purple-600/30',
+            ].join(' ')}
+          >
+            ❤️
+          </button>
+        </div>
+
+        {!isSecret && (
+          <button
+            onClick={() => setShowLeft(v => !v)}
+            className="ml-auto text-xs px-3 py-1 rounded-lg border border-purple-600 text-purple-300 hover:bg-purple-800 transition-colors"
+          >
+            {showLeft ? '◀ Facing left' : '▶ Facing right'}
+          </button>
+        )}
+      </div>
+
+      {isSecret ? (
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+          {SECRET_IMAGES.map(({ num, prefix }) => (
+            <div
+              key={num}
+              className="aspect-square bg-purple-950/60 border border-rose-900/40 rounded-xl p-2 flex items-center justify-center relative group"
             >
-              {form.emoji}
-            </button>
+              <img
+                src={`/images/characters/secret/${prefix}_secret_${num}.png`}
+                alt={`${prefix} secret ${num}`}
+                className="max-w-full max-h-full object-contain"
+                onError={e => { (e.target as HTMLImageElement).style.opacity = '0.2'; }}
+              />
+              <span className="absolute bottom-1 right-2 text-xs text-rose-700/50 group-hover:text-rose-300 transition-colors">
+                {num}
+              </span>
+            </div>
           ))}
         </div>
-
-        <button
-          onClick={() => setShowLeft(v => !v)}
-          className="ml-auto text-xs px-3 py-1 rounded-lg border border-purple-600 text-purple-300 hover:bg-purple-800 transition-colors"
-        >
-          {showLeft ? '◀ Facing left' : '▶ Facing right'}
-        </button>
-      </div>
-
-      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
-        <div className="aspect-square bg-purple-950/60 border border-purple-800 rounded-xl p-2 flex items-center justify-center">
-          <img
-            src={`/images/characters/${meta.imagePrefix}_mf_face_${showLeft ? 'left' : 'right'}.png`}
-            alt={`${meta.displayName} portrait`}
-            className="max-w-full max-h-full object-contain"
-          />
-        </div>
-        {blastImages.map((imgs, i) => (
-          <div
-            key={i}
-            className="aspect-square bg-purple-950/60 border border-purple-800 rounded-xl p-2 flex items-center justify-center relative group"
-          >
+      ) : (
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+          <div className="aspect-square bg-purple-950/60 border border-purple-800 rounded-xl p-2 flex items-center justify-center">
             <img
-              src={showLeft ? imgs.left : imgs.right}
-              alt={`${meta.displayName} blast ${i}`}
+              src={`/images/characters/${meta.imagePrefix}_mf_face_${showLeft ? 'left' : 'right'}.png`}
+              alt={`${meta.displayName} portrait`}
               className="max-w-full max-h-full object-contain"
-              onError={e => { (e.target as HTMLImageElement).style.opacity = '0.2'; }}
             />
-            <span className="absolute bottom-1 right-2 text-xs text-purple-500 group-hover:text-purple-300">
-              blast {i}
-            </span>
           </div>
-        ))}
-      </div>
+          {blastImages.map((imgs, i) => (
+            <div
+              key={i}
+              className="aspect-square bg-purple-950/60 border border-purple-800 rounded-xl p-2 flex items-center justify-center relative group"
+            >
+              <img
+                src={showLeft ? imgs.left : imgs.right}
+                alt={`${meta.displayName} blast ${i}`}
+                className="max-w-full max-h-full object-contain"
+                onError={e => { (e.target as HTMLImageElement).style.opacity = '0.2'; }}
+              />
+              <span className="absolute bottom-1 right-2 text-xs text-purple-500 group-hover:text-purple-300">
+                blast {i}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
