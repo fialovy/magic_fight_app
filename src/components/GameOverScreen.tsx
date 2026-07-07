@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { Character } from '../types/game';
 
 interface Props {
@@ -7,8 +8,23 @@ interface Props {
   onNewGame: () => void;
 }
 
+async function downloadImage(url: string, filename: string) {
+  const res = await fetch(url);
+  const blob = await res.blob();
+  const objectUrl = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = objectUrl;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(objectUrl);
+}
+
 export default function GameOverScreen({ winner, player, opponent, onNewGame }: Props) {
   const playerWon = winner === 'player';
+  const [previewIdx, setPreviewIdx] = useState<number | null>(null);
+
+  const previewUrl  = previewIdx !== null ? player.blastImagesRight[previewIdx] : null;
+  const previewName = `${player.displayName.toLowerCase().replace(/\s+/g, '_')}_combat_${previewIdx}.png`;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-purple-950 to-slate-900 flex flex-col items-center justify-center px-4 py-8">
@@ -35,6 +51,84 @@ export default function GameOverScreen({ winner, player, opponent, onNewGame }: 
       >
         New Game
       </button>
+
+      {playerWon && player.blastImagesRight.length > 0 && (
+        <div className="mt-10 text-center max-w-xl">
+          <p className="text-amber-300 text-sm font-semibold tracking-wide uppercase mb-1">✦ Trophy cabinet</p>
+          <p className="text-purple-400 text-xs mb-4">Click any combat portrait for a closer look.</p>
+          <div className="flex flex-wrap justify-center gap-3">
+            {player.blastImagesRight.map((url, i) => (
+              <button
+                key={i}
+                onClick={() => setPreviewIdx(i)}
+                title="View full size"
+                className="w-24 h-24 bg-purple-950/60 border border-purple-700 rounded-xl p-1.5 hover:border-amber-400 hover:bg-purple-900/60 transition-all group relative overflow-hidden"
+              >
+                <img src={url} alt={`${player.displayName} combat ${i}`} className="w-full h-full object-contain" />
+                <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl">
+                  <span className="text-white text-xl">🔍</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Preview modal */}
+      {previewUrl !== null && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+          onClick={() => setPreviewIdx(null)}
+        >
+          <div
+            className="relative bg-indigo-950 border border-purple-700 rounded-2xl p-6 shadow-2xl flex flex-col items-center gap-5 max-w-lg w-full mx-4"
+            onClick={e => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setPreviewIdx(null)}
+              className="absolute top-3 right-4 text-purple-400 hover:text-purple-200 text-2xl leading-none"
+              aria-label="Close"
+            >
+              ✕
+            </button>
+
+            <p className="text-amber-300 text-sm font-semibold tracking-wide">
+              {player.displayName} — combat portrait {previewIdx! + 1} of {player.blastImagesRight.length}
+            </p>
+
+            <img
+              src={previewUrl}
+              alt={`${player.displayName} combat ${previewIdx}`}
+              className="max-h-[60vh] max-w-full object-contain rounded-lg"
+            />
+
+            <div className="flex gap-3">
+              {previewIdx! > 0 && (
+                <button
+                  onClick={() => setPreviewIdx(i => i! - 1)}
+                  className="px-4 py-2 rounded-lg border border-purple-600 text-purple-300 hover:bg-purple-800 text-sm transition-colors"
+                >
+                  ← Prev
+                </button>
+              )}
+              <button
+                onClick={() => downloadImage(previewUrl, previewName)}
+                className="px-5 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-semibold text-sm border border-amber-400 transition-colors"
+              >
+                ⬇ Download
+              </button>
+              {previewIdx! < player.blastImagesRight.length - 1 && (
+                <button
+                  onClick={() => setPreviewIdx(i => i! + 1)}
+                  className="px-4 py-2 rounded-lg border border-purple-600 text-purple-300 hover:bg-purple-800 text-sm transition-colors"
+                >
+                  Next →
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
