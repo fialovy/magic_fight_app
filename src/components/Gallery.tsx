@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { CHARACTER_REGISTRY } from '../data/characters';
 import type { CharacterMeta } from '../data/characters';
+import { probeBlastCount } from '../engine/loader';
 
 interface Props {
   onBack: () => void;
@@ -59,6 +60,22 @@ export default function Gallery({ onBack }: Props) {
   );
 }
 
+function useBlastImages(imagePrefix: string, showLeft: boolean) {
+  const [blastCount, setBlastCount] = useState<number | null>(null);
+  useEffect(() => {
+    setBlastCount(null);
+    probeBlastCount(imagePrefix).then(setBlastCount);
+  }, [imagePrefix]);
+  const blastImages = blastCount === null ? null : Array.from({ length: blastCount }, (_, i) => ({
+    left:  `/images/characters/on_cast/${imagePrefix}_mf_blast_${i}_face_left.png`,
+    right: `/images/characters/on_cast/${imagePrefix}_mf_blast_${i}_face_right.png`,
+    url:   showLeft
+      ? `/images/characters/on_cast/${imagePrefix}_mf_blast_${i}_face_left.png`
+      : `/images/characters/on_cast/${imagePrefix}_mf_blast_${i}_face_right.png`,
+  }));
+  return blastImages;
+}
+
 function NoraGallerySection() {
   const [formIdx, setFormIdx] = useState(0);
   const [showLeft, setShowLeft] = useState(false);
@@ -66,11 +83,7 @@ function NoraGallerySection() {
 
   const isSecret = formIdx === 3;
   const { meta } = NORA_FORMS[isSecret ? 0 : formIdx];
-
-  const blastImages = Array.from({ length: meta.blastCount }, (_, i) => ({
-    left:  `/images/characters/${meta.imagePrefix}_mf_blast_${i}_face_left.png`,
-    right: `/images/characters/${meta.imagePrefix}_mf_blast_${i}_face_right.png`,
-  }));
+  const blastImages = useBlastImages(meta.imagePrefix, showLeft);
 
   return (
     <div className="mb-10">
@@ -151,31 +164,7 @@ function NoraGallerySection() {
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
-          <div className="aspect-square bg-purple-950/60 border border-purple-800 rounded-xl p-2 flex items-center justify-center">
-            <img
-              src={`/images/characters/${meta.imagePrefix}_mf_face_${showLeft ? 'left' : 'right'}.png`}
-              alt={`${meta.displayName} portrait`}
-              className="max-w-full max-h-full object-contain"
-            />
-          </div>
-          {blastImages.map((imgs, i) => (
-            <div
-              key={i}
-              className="aspect-square bg-purple-950/60 border border-purple-800 rounded-xl p-2 flex items-center justify-center relative group"
-            >
-              <img
-                src={showLeft ? imgs.left : imgs.right}
-                alt={`${meta.displayName} blast ${i}`}
-                className="max-w-full max-h-full object-contain"
-                onError={e => { (e.target as HTMLImageElement).style.opacity = '0.2'; }}
-              />
-              <span className="absolute bottom-1 right-2 text-xs text-purple-500 group-hover:text-purple-300">
-                blast {i}
-              </span>
-            </div>
-          ))}
-        </div>
+        <BlastGrid meta={meta} blastImages={blastImages} showLeft={showLeft} />
       )}
     </div>
   );
@@ -183,11 +172,7 @@ function NoraGallerySection() {
 
 function CharacterGallerySection({ meta }: { meta: CharacterMeta }) {
   const [showLeft, setShowLeft] = useState(false);
-
-  const blastImages = Array.from({ length: meta.blastCount }, (_, i) => ({
-    left:  `/images/characters/${meta.imagePrefix}_mf_blast_${i}_face_left.png`,
-    right: `/images/characters/${meta.imagePrefix}_mf_blast_${i}_face_right.png`,
-  }));
+  const blastImages = useBlastImages(meta.imagePrefix, showLeft);
 
   return (
     <div className="mb-10">
@@ -205,32 +190,47 @@ function CharacterGallerySection({ meta }: { meta: CharacterMeta }) {
           {showLeft ? '◀ Facing left' : '▶ Facing right'}
         </button>
       </div>
+      <BlastGrid meta={meta} blastImages={blastImages} showLeft={showLeft} />
+    </div>
+  );
+}
 
-      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
-        <div className="aspect-square bg-purple-950/60 border border-purple-800 rounded-xl p-2 flex items-center justify-center">
-          <img
-            src={`/images/characters/${meta.imagePrefix}_mf_face_${showLeft ? 'left' : 'right'}.png`}
-            alt={`${meta.displayName} portrait`}
-            className="max-w-full max-h-full object-contain"
-          />
-        </div>
-        {blastImages.map((imgs, i) => (
-          <div
-            key={i}
-            className="aspect-square bg-purple-950/60 border border-purple-800 rounded-xl p-2 flex items-center justify-center relative group"
-          >
-            <img
-              src={showLeft ? imgs.left : imgs.right}
-              alt={`${meta.displayName} blast ${i}`}
-              className="max-w-full max-h-full object-contain"
-              onError={e => { (e.target as HTMLImageElement).style.opacity = '0.2'; }}
-            />
-            <span className="absolute bottom-1 right-2 text-xs text-purple-500 group-hover:text-purple-300">
-              blast {i}
-            </span>
-          </div>
-        ))}
+function BlastGrid({
+  meta,
+  blastImages,
+  showLeft,
+}: {
+  meta: CharacterMeta;
+  blastImages: { url: string }[] | null;
+  showLeft: boolean;
+}) {
+  return (
+    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+      <div className="aspect-square bg-purple-950/60 border border-purple-800 rounded-xl p-2 flex items-center justify-center">
+        <img
+          src={`/images/characters/${meta.imagePrefix}_mf_face_${showLeft ? 'left' : 'right'}.png`}
+          alt={`${meta.displayName} portrait`}
+          className="max-w-full max-h-full object-contain"
+        />
       </div>
+      {blastImages === null ? (
+        <div className="aspect-square flex items-center justify-center text-purple-600 text-xs">…</div>
+      ) : blastImages.map((img, i) => (
+        <div
+          key={i}
+          className="aspect-square bg-purple-950/60 border border-purple-800 rounded-xl p-2 flex items-center justify-center relative group"
+        >
+          <img
+            src={img.url}
+            alt={`${meta.displayName} blast ${i}`}
+            className="max-w-full max-h-full object-contain"
+            onError={e => { (e.target as HTMLImageElement).style.opacity = '0.2'; }}
+          />
+          <span className="absolute bottom-1 right-2 text-xs text-purple-500 group-hover:text-purple-300">
+            blast {i}
+          </span>
+        </div>
+      ))}
     </div>
   );
 }

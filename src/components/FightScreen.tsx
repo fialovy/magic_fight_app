@@ -52,6 +52,7 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
   const [phase, setPhase] = useState<Phase>('choosing');
   const [blast, setBlast] = useState<BlastAnim | null>(null);
   const [transitionAnim, setTransitionAnim] = useState<BlastAnim | null>(null);
+  const [hitAnim, setHitAnim] = useState<BlastAnim | null>(null);
   const [taunt, setTaunt] = useState<string | null>(null);
 
   const playerBlastIdx = useRef(0);
@@ -108,15 +109,23 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
     setTransitionAnim(null);
   }
 
-  async function showBlast(character: Character, side: 'player' | 'opponent') {
-    const images = side === 'player' ? character.blastImagesRight : character.blastImagesLeft;
-    const idx = side === 'player' ? playerBlastIdx : opponentBlastIdx;
+  async function showBlast(caster: Character, casterSide: 'player' | 'opponent', recipient: Character) {
+    const images = casterSide === 'player' ? caster.blastImagesRight : caster.blastImagesLeft;
+    const idx = casterSide === 'player' ? playerBlastIdx : opponentBlastIdx;
     const url = images[idx.current % images.length];
     idx.current++;
-    fireProjectile(url, side); // fire-and-forget; runs concurrently with blast image
-    setBlast({ url, key: Date.now(), side });
-    await delay(2200);
+    fireProjectile(url, casterSide);
+    setBlast({ url, key: Date.now(), side: casterSide });
+
+    // Orb arrives at 88% of 950ms ≈ 836ms — trigger hit reaction on the recipient then
+    const recipientSide: 'player' | 'opponent' = casterSide === 'player' ? 'opponent' : 'player';
+    const hitUrl = recipientSide === 'player' ? recipient.hitImageRight : recipient.hitImageLeft;
+    await delay(836);
+    setHitAnim({ url: hitUrl, key: Date.now(), side: recipientSide });
+
+    await delay(1364); // remaining time to reach 2200ms total
     setBlast(null);
+    setHitAnim(null);
   }
 
   async function executeTurn(actionKey: string) {
@@ -141,7 +150,7 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
       ].slice(-60));
     } else {
       // Blast plays first, then health bar drops and message appears together
-      await showBlast(p, 'player');
+      await showBlast(p, 'player', o);
       setPlayer(p);
       setOpponent(o);
       setLog(prev => [...prev, makeLog(pResult.message, 'player')].slice(-60));
@@ -170,7 +179,7 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
         makeLog(oResult.message, 'opponent'),
       ].slice(-60));
     } else {
-      await showBlast(o, 'opponent');
+      await showBlast(o, 'opponent', p);
       setPlayer(p);
       setOpponent(o);
 
@@ -220,7 +229,7 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
       <div className="flex flex-col md:flex-row flex-1 gap-0">
         {/* Player */}
         <div className="flex flex-col items-center justify-center p-4 md:w-48 shrink-0">
-          <CharacterPanel character={player} side="player" blast={blast} transitionAnim={transitionAnim} taunt={null} portraitRef={playerPortraitRef} />
+          <CharacterPanel character={player} side="player" blast={blast} transitionAnim={transitionAnim} hitAnim={hitAnim} taunt={null} portraitRef={playerPortraitRef} />
         </div>
 
         {/* Center: log */}
@@ -270,7 +279,7 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
 
         {/* Opponent */}
         <div className="flex flex-col items-center justify-center p-4 md:w-48 shrink-0">
-          <CharacterPanel character={opponent} side="opponent" blast={blast} transitionAnim={transitionAnim} taunt={taunt} portraitRef={opponentPortraitRef} />
+          <CharacterPanel character={opponent} side="opponent" blast={blast} transitionAnim={transitionAnim} hitAnim={hitAnim} taunt={taunt} portraitRef={opponentPortraitRef} />
         </div>
       </div>
     </div>
@@ -282,6 +291,7 @@ function CharacterPanel({
   side,
   blast,
   transitionAnim,
+  hitAnim,
   taunt,
   portraitRef,
 }: {
@@ -289,11 +299,13 @@ function CharacterPanel({
   side: 'player' | 'opponent';
   blast: BlastAnim | null;
   transitionAnim: BlastAnim | null;
+  hitAnim: BlastAnim | null;
   taunt: string | null;
   portraitRef?: React.RefObject<HTMLDivElement | null>;
 }) {
   const isMyBlast = blast?.side === side;
   const isMyTransition = transitionAnim?.side === side;
+  const isMyHit = hitAnim?.side === side;
   const img = side === 'player' ? character.imageRight : character.imageLeft;
   const pct = Math.max(0, (character.life / GAME_LIFE) * 100);
   const barColor = pct > 60 ? 'bg-emerald-500' : pct > 30 ? 'bg-amber-500' : 'bg-rose-500';
@@ -326,6 +338,14 @@ function CharacterPanel({
             src={transitionAnim.url}
             alt=""
             className="absolute inset-0 w-full h-full object-contain blast-animate"
+          />
+        )}
+        {isMyHit && hitAnim && (
+          <img
+            key={hitAnim.key}
+            src={hitAnim.url}
+            alt=""
+            className="absolute inset-0 w-full h-full object-contain hit-animate"
           />
         )}
       </div>

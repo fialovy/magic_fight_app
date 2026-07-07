@@ -43,6 +43,8 @@ export interface Character {
   asciiArt: string | null;
   imageLeft: string;
   imageRight: string;
+  hitImageLeft: string;
+  hitImageRight: string;
   blastImagesLeft: string[];
   blastImagesRight: string[];
   // runtime state
