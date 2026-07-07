@@ -228,7 +228,7 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
       {/* Arena */}
       <div className="flex flex-col md:flex-row flex-1 gap-0">
         {/* Player */}
-        <div className="flex flex-col items-center justify-center p-4 md:w-48 shrink-0">
+        <div className="flex flex-col items-center justify-center p-4 md:w-64 shrink-0">
           <CharacterPanel character={player} side="player" blast={blast} transitionAnim={transitionAnim} hitAnim={hitAnim} taunt={null} portraitRef={playerPortraitRef} />
         </div>
 
@@ -278,7 +278,7 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
         </div>
 
         {/* Opponent */}
-        <div className="flex flex-col items-center justify-center p-4 md:w-48 shrink-0">
+        <div className="flex flex-col items-center justify-center p-4 md:w-64 shrink-0">
           <CharacterPanel character={opponent} side="opponent" blast={blast} transitionAnim={transitionAnim} hitAnim={hitAnim} taunt={taunt} portraitRef={opponentPortraitRef} />
         </div>
       </div>
@@ -311,7 +311,7 @@ function CharacterPanel({
   const barColor = pct > 60 ? 'bg-emerald-500' : pct > 30 ? 'bg-amber-500' : 'bg-rose-500';
 
   return (
-    <div className="flex flex-col items-center w-36">
+    <div className="flex flex-col items-center w-52">
       {/* Fixed-height taunt bubble area — always reserved so both panels stay the same height */}
       <div className="h-20 w-full flex items-center justify-center mb-2">
         {side === 'opponent' && taunt && (
@@ -322,7 +322,7 @@ function CharacterPanel({
       </div>
 
       {/* Character image */}
-      <div ref={portraitRef} className="relative w-32 h-32">
+      <div ref={portraitRef} className="relative w-44 h-44">
         <img src={img} alt={character.displayName} className="w-full h-full object-contain" />
         {isMyBlast && blast && (
           <img
