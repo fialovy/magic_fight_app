@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { CHARACTER_REGISTRY } from '../data/characters';
 import type { CharacterMeta } from '../data/characters';
-import { probeBlastCount } from '../engine/loader';
+import { BLAST_COUNTS } from 'virtual:blast-counts';
 
 interface Props {
   onBack: () => void;
@@ -61,19 +61,10 @@ export default function Gallery({ onBack }: Props) {
 }
 
 function useBlastImages(imagePrefix: string, showLeft: boolean) {
-  const [blastCount, setBlastCount] = useState<number | null>(null);
-  useEffect(() => {
-    setBlastCount(null);
-    probeBlastCount(imagePrefix).then(setBlastCount);
-  }, [imagePrefix]);
-  const blastImages = blastCount === null ? null : Array.from({ length: blastCount }, (_, i) => ({
-    left:  `/images/characters/on_cast/${imagePrefix}_mf_blast_${i}_face_left.png`,
-    right: `/images/characters/on_cast/${imagePrefix}_mf_blast_${i}_face_right.png`,
-    url:   showLeft
-      ? `/images/characters/on_cast/${imagePrefix}_mf_blast_${i}_face_left.png`
-      : `/images/characters/on_cast/${imagePrefix}_mf_blast_${i}_face_right.png`,
+  const blastCount = BLAST_COUNTS[imagePrefix] ?? 0;
+  return Array.from({ length: blastCount }, (_, i) => ({
+    url: `/images/characters/on_cast/${imagePrefix}_mf_blast_${i}_face_${showLeft ? 'left' : 'right'}.png`,
   }));
-  return blastImages;
 }
 
 function NoraGallerySection() {
@@ -201,7 +192,7 @@ function BlastGrid({
   showLeft,
 }: {
   meta: CharacterMeta;
-  blastImages: { url: string }[] | null;
+  blastImages: { url: string }[];
   showLeft: boolean;
 }) {
   return (
@@ -213,9 +204,7 @@ function BlastGrid({
           className="max-w-full max-h-full object-contain"
         />
       </div>
-      {blastImages === null ? (
-        <div className="aspect-square flex items-center justify-center text-purple-600 text-xs">…</div>
-      ) : blastImages.map((img, i) => (
+      {blastImages.map((img, i) => (
         <div
           key={i}
           className="aspect-square bg-purple-950/60 border border-purple-800 rounded-xl p-2 flex items-center justify-center relative group"

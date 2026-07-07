@@ -1,11 +1,12 @@
 import type { Character, MagicInfo, SpecialAbilityDef, TauntsInfo, ReactionsInfo } from '../types/game';
 import { GAME_LIFE } from '../types/game';
 import { findMeta } from '../data/characters';
+import { BLAST_COUNTS } from 'virtual:blast-counts';
 
-const IMG_BASE    = '/images/characters/';
-const ON_CAST     = `${IMG_BASE}on_cast/`;
-const ON_IMPACT   = `${IMG_BASE}on_impact/`;
-const DATA_BASE   = '/characters/';
+const IMG_BASE  = '/images/characters/';
+const ON_CAST   = `${IMG_BASE}on_cast/`;
+const ON_IMPACT = `${IMG_BASE}on_impact/`;
+const DATA_BASE = '/characters/';
 
 async function fetchJSON<T>(path: string): Promise<T | null> {
   try {
@@ -27,29 +28,15 @@ async function fetchText(path: string): Promise<string | null> {
   }
 }
 
-// Probes HEAD requests until a 404, caches result per prefix.
-const blastCountCache = new Map<string, number>();
-
-export async function probeBlastCount(imagePrefix: string): Promise<number> {
-  if (blastCountCache.has(imagePrefix)) return blastCountCache.get(imagePrefix)!;
-  let i = 0;
-  while (i < 30) {
-    const res = await fetch(`${ON_CAST}${imagePrefix}_mf_blast_${i}_face_right.png`, { method: 'HEAD' });
-    if (!res.ok) break;
-    i++;
-  }
-  blastCountCache.set(imagePrefix, i);
-  return i;
-}
-
 export async function loadCharacter(namePath: string, inheritLife?: number): Promise<Character> {
   const meta = findMeta(namePath);
   if (!meta) throw new Error(`Unknown character: ${namePath}`);
 
   const base = `${DATA_BASE}${namePath}/`;
   const { imagePrefix, hasDrunkSpecial } = meta;
+  const blastCount = BLAST_COUNTS[imagePrefix] ?? 0;
 
-  const [magicInfo, tauntsInfo, reactionsInfo, specialAbilities, drunkSpecialAbilities, bio, asciiArt, blastCount] =
+  const [magicInfo, tauntsInfo, reactionsInfo, specialAbilities, drunkSpecialAbilities, bio, asciiArt] =
     await Promise.all([
       fetchJSON<MagicInfo>(`${base}magic.json`),
       fetchJSON<TauntsInfo>(`${base}taunts.json`),
@@ -60,7 +47,6 @@ export async function loadCharacter(namePath: string, inheritLife?: number): Pro
         : Promise.resolve(null),
       fetchText(`${base}bio.txt`),
       fetchText(`${base}ascii_art.txt`),
-      probeBlastCount(imagePrefix),
     ]);
 
   return {
