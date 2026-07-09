@@ -95,6 +95,7 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
   const opponentBlastIdx = useRef(0);
 
   // Display state
+  const [debugPattern, setDebugPattern] = useState(patternRef.current);
   const [player,       setPlayer]       = useState(initialPlayer);
   const [opponent,     setOpponent]     = useState(initialOpponent);
   const [log,          setLog]          = useState<LogEntry[]>([
@@ -179,6 +180,8 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
     const p = livePlayerRef.current;
     const o = liveOpponentRef.current;
     const { rule, turnsLeft } = patternRef.current;
+
+    setDebugPattern({ rule, turnsLeft });
 
     // Phase 1: show hand
     setHand(generateHand(p.affinity));
@@ -268,6 +271,7 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
     patternRef.current = newTurnsLeft <= 0
       ? { rule: randomPatternRule(), turnsLeft: 5 }
       : { rule, turnsLeft: newTurnsLeft };
+    setDebugPattern(patternRef.current);
 
     await delay(400);
     runTurn();
@@ -311,6 +315,13 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
               <p key={entry.id} className={logClass(entry.type)}>{entry.text}</p>
             ))}
             <div ref={logEndRef} />
+          </div>
+
+          {/* DEBUG: current pattern rule */}
+          <div className="flex justify-center">
+            <span className="text-xs font-mono bg-yellow-900/60 border border-yellow-600/50 text-yellow-300 rounded px-2 py-0.5">
+              🐛 rule: <strong>{debugPattern.rule}</strong> &nbsp;·&nbsp; rotates in {debugPattern.turnsLeft}
+            </span>
           </div>
 
           {/* Opponent spell */}

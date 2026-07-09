@@ -38,13 +38,23 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-/** 4-card hand: 1 forced to primary dimension, 1 to secondary, 2 random — then shuffled */
+function spellKey(s: Spell) { return `${s.color}|${s.shape}|${s.fill}`; }
+
+function uniqueSpell(generate: () => Spell, seen: Set<string>): Spell {
+  let spell: Spell;
+  do { spell = generate(); } while (seen.has(spellKey(spell)));
+  seen.add(spellKey(spell));
+  return spell;
+}
+
+/** 4-card hand: 1 forced to primary dimension, 1 to secondary, 2 random — then shuffled. All cards guaranteed distinct. */
 export function generateHand(affinity: CharacterAffinity): Spell[] {
+  const seen = new Set<string>();
   return shuffle([
-    applyDimension(randomSpell(), affinity.primary),
-    applyDimension(randomSpell(), affinity.secondary),
-    randomSpell(),
-    randomSpell(),
+    uniqueSpell(() => applyDimension(randomSpell(), affinity.primary),   seen),
+    uniqueSpell(() => applyDimension(randomSpell(), affinity.secondary),  seen),
+    uniqueSpell(() => randomSpell(), seen),
+    uniqueSpell(() => randomSpell(), seen),
   ]);
 }
 

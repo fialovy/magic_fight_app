@@ -29,7 +29,7 @@ export default function TitleScreen({ onStart, onGallery }: Props) {
       </div>
 
       <p className="text-purple-600 text-xs mt-8 max-w-sm text-center">
-        A simple, turn-based magic duel. Six dimensions of power — dark, light, chaotic, ordered, hot, and cold. Choose wisely.
+        Find the pattern. Learn your strengths. Choose wisely - and choose fast.
       </p>
     </div>
   );
