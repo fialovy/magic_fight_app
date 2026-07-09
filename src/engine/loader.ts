@@ -1,6 +1,6 @@
 import type { Character, MagicInfo, SpecialAbilityDef, TauntsInfo, ReactionsInfo } from '../types/game';
 import { GAME_LIFE } from '../types/game';
-import { findMeta } from '../data/characters';
+import { findMeta, CHARACTER_AFFINITIES } from '../data/characters';
 import { BLAST_COUNTS } from 'virtual:blast-counts';
 
 const IMG_BASE  = '/images/characters/';
@@ -60,6 +60,7 @@ export async function loadCharacter(namePath: string, inheritLife?: number): Pro
     reactionsInfo: reactionsInfo ?? null,
     bio: bio?.trim() ?? '',
     asciiArt: asciiArt?.trim() ?? null,
+    affinity: CHARACTER_AFFINITIES[imagePrefix]!,
     imageLeft:      `${IMG_BASE}${imagePrefix}_mf_face_left.png`,
     imageRight:     `${IMG_BASE}${imagePrefix}_mf_face_right.png`,
     hitImageLeft:   `${ON_IMPACT}${imagePrefix}_mf_hit_face_left.png`,

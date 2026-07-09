@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { CHARACTER_REGISTRY } from '../data/characters';
 import type { CharacterMeta } from '../data/characters';
 import { BLAST_COUNTS } from 'virtual:blast-counts';
+import type { Spell } from '../types/game';
+import SpellCard from './SpellCard';
 
 interface Props {
   onBack: () => void;
@@ -55,6 +57,8 @@ export default function Gallery({ onBack }: Props) {
             : <CharacterGallerySection key={meta.namePath} meta={meta} />
           )
         }
+
+        <SpellPreviewSection />
       </div>
     </div>
   );
@@ -220,6 +224,31 @@ function BlastGrid({
           </span>
         </div>
       ))}
+    </div>
+  );
+}
+
+const PREVIEW_SPELLS: Spell[] = [
+  { color: 'red',    shape: 'heart',    fill: 'solid' },
+  { color: 'blue',   shape: 'square',   fill: 'solid' },
+  { color: 'green',  shape: 'star',     fill: 'solid' },
+  { color: 'purple', shape: 'triangle', fill: 'solid' },
+  { color: 'red',    shape: 'star',     fill: 'vertical-stripe' },
+  { color: 'blue',   shape: 'triangle', fill: 'horizontal-stripe' },
+  { color: 'green',  shape: 'square',   fill: 'vertical-stripe' },
+  { color: 'purple', shape: 'heart',    fill: 'horizontal-stripe' },
+];
+
+function SpellPreviewSection() {
+  return (
+    <div className="mb-10 pt-6 border-t border-purple-800/40">
+      <p className="text-purple-400 text-sm font-semibold tracking-wide uppercase mb-1">✦ Spell system preview</p>
+      <p className="text-purple-600 text-xs mb-4">All 4 shapes · all 4 colors · both stripe fills</p>
+      <div className="flex flex-wrap gap-3">
+        {PREVIEW_SPELLS.map((spell, i) => (
+          <SpellCard key={i} spell={spell} size={80} />
+        ))}
+      </div>
     </div>
   );
 }

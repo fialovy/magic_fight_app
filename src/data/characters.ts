@@ -1,3 +1,19 @@
+import type { CharacterAffinity } from '../types/game';
+
+export const CHARACTER_AFFINITIES: Record<string, CharacterAffinity> = {
+  sandoval:      { primary: 'star',             secondary: 'blue'     },
+  winston:       { primary: 'blue',             secondary: 'square'   },
+  winfield:      { primary: 'triangle',         secondary: 'blue'     },
+  stella:        { primary: 'red',              secondary: 'star'     },
+  nora:          { primary: 'heart',            secondary: 'purple'   },
+  norm:          { primary: 'heart',            secondary: 'purple'   },
+  meadow_sprite: { primary: 'heart',            secondary: 'purple'   },
+  bastion:       { primary: 'square',           secondary: 'red'      },
+  adrian:        { primary: 'purple',           secondary: 'triangle' },
+  anton:         { primary: 'vertical-stripe',  secondary: 'star'     },
+  lucian:        { primary: 'green',            secondary: 'square'   },
+};
+
 export interface CharacterMeta {
   namePath: string;
   displayName: string;

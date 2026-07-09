@@ -1,6 +1,28 @@
 export type MagicType = 'dark' | 'light' | 'chaotic' | 'ordered' | 'hot' | 'cold';
 export const MAGIC_TYPES: MagicType[] = ['dark', 'light', 'chaotic', 'ordered', 'hot', 'cold'];
 
+// ── Spell system ──────────────────────────────────────────────────────────────
+export type SpellColor = 'red' | 'blue' | 'green' | 'purple';
+export type SpellShape = 'heart' | 'square' | 'star' | 'triangle';
+export type SpellFill  = 'solid' | 'vertical-stripe' | 'horizontal-stripe';
+export type SpellDimensionKey = SpellColor | SpellShape | SpellFill;
+
+export interface Spell {
+  color: SpellColor;
+  shape: SpellShape;
+  fill:  SpellFill;
+}
+
+export interface CharacterAffinity {
+  primary:   SpellDimensionKey; // power 3
+  secondary: SpellDimensionKey; // power 2
+  // everything else: power 1
+}
+
+export type PatternRule      = 'match-color' | 'match-shape' | 'match-fill';
+export type CollisionOutcome = 'decisive-win' | 'win' | 'neutral' | 'loss' | 'decisive-loss';
+export type TimerResult      = 'correct' | 'wrong' | 'timeout';
+
 export const GAME_LIFE = 15;
 export const OPPONENT_SPECIAL_CHANCE = 0.2;
 export const DEFAULT_EFFECT_TURNS = 3;
@@ -41,6 +63,7 @@ export interface Character {
   reactionsInfo: ReactionsInfo | null;
   bio: string;
   asciiArt: string | null;
+  affinity: CharacterAffinity;
   imageLeft: string;
   imageRight: string;
   hitImageLeft: string;
