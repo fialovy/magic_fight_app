@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import type { Character, CollisionOutcome, LogEntry, PatternRule, Spell, TimerResult } from '../types/game';
+import type { Character, CollisionOutcome, LogEntry, PatternRule, ReactionsInfo, Spell, TimerResult, TauntsInfo } from '../types/game';
 import { GAME_LIFE } from '../types/game';
 import { pickReaction, pickTaunt } from '../engine/combat';
 import { sampleDominantColor } from '../engine/colorSampler';
@@ -31,20 +31,26 @@ const ORB_SHAPES: { clipPath: string; borderRadius: string }[] = [
 const delay = (ms: number) => new Promise<void>(r => setTimeout(r, ms));
 
 const NORA_FORM_DEFS = [
-  { emoji: '♀️', prefix: 'nora'          },
-  { emoji: '♂️', prefix: 'norm'          },
-  { emoji: '🌿', prefix: 'meadow_sprite' },
+  { emoji: '♀️', prefix: 'nora',          path: 'nora',               displayName: 'Nora'          },
+  { emoji: '♂️', prefix: 'norm',          path: 'nora/norm',          displayName: 'Norm'          },
+  { emoji: '🌿', prefix: 'meadow_sprite', path: 'nora/meadow_sprite', displayName: 'Meadow Sprite' },
 ] as const;
 
 const NORA_NAME_PATHS = new Set(['nora', 'nora/norm', 'nora/meadow_sprite']);
 
 function isNora(c: Character) { return NORA_NAME_PATHS.has(c.namePath); }
 
-function applyNoraForm(c: Character, formIdx: number): Character {
-  const prefix = NORA_FORM_DEFS[formIdx].prefix;
-  const count  = BLAST_COUNTS[prefix] ?? 0;
+interface NoraFormOverride { tauntsInfo: TauntsInfo | null; reactionsInfo: ReactionsInfo | null; }
+
+function applyNoraForm(c: Character, formIdx: number, overrides?: NoraFormOverride[] | null): Character {
+  const { prefix, displayName } = NORA_FORM_DEFS[formIdx];
+  const count = BLAST_COUNTS[prefix] ?? 0;
+  const ov    = overrides?.[formIdx];
   return {
     ...c,
+    displayName,
+    tauntsInfo:    ov ? ov.tauntsInfo    : c.tauntsInfo,
+    reactionsInfo: ov ? ov.reactionsInfo : c.reactionsInfo,
     imageLeft:        `/images/characters/${prefix}_mf_face_left.png`,
     imageRight:       `/images/characters/${prefix}_mf_face_right.png`,
     hitImageLeft:     `/images/characters/on_impact/${prefix}_mf_hit_face_left.png`,
@@ -119,6 +125,7 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
   const playerBlastIdx   = useRef(0);
   const opponentBlastIdx = useRef(0);
   const noraFormIdxRef   = useRef(0);
+  const noraFormDataRef  = useRef<NoraFormOverride[] | null>(null);
 
   // Display state
   const [noraFormIdx, setNoraFormIdx]   = useState(0);
@@ -257,8 +264,8 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
     }
 
     // Collision visuals — use form-overridden images if Nora is fighting
-    const vP = isNora(p) ? applyNoraForm(p, noraFormIdxRef.current) : p;
-    const vO = isNora(o) ? applyNoraForm(o, noraFormIdxRef.current) : o;
+    const vP = isNora(p) ? applyNoraForm(p, noraFormIdxRef.current, noraFormDataRef.current) : p;
+    const vO = isNora(o) ? applyNoraForm(o, noraFormIdxRef.current, noraFormDataRef.current) : o;
     if (outcome === 'win' || outcome === 'decisive-win') {
       await showBlast(vP, 'player', vO);
     } else if (outcome === 'loss' || outcome === 'decisive-loss') {
@@ -296,8 +303,8 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
 
     await delay(800);
 
-    const finalP = isNora(newP) ? applyNoraForm(newP, noraFormIdxRef.current) : newP;
-    const finalO = isNora(newO) ? applyNoraForm(newO, noraFormIdxRef.current) : newO;
+    const finalP = isNora(newP) ? applyNoraForm(newP, noraFormIdxRef.current, noraFormDataRef.current) : newP;
+    const finalO = isNora(newO) ? applyNoraForm(newO, noraFormIdxRef.current, noraFormDataRef.current) : newO;
     if (newO.life <= 0) { onGameOver('player',   finalP, finalO); return; }
     if (newP.life <= 0) { onGameOver('opponent', finalP, finalO); return; }
 
@@ -313,6 +320,19 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { runTurn(); }, []);
+
+  useEffect(() => {
+    if (!isNora(initialPlayer) && !isNora(initialOpponent)) return;
+    Promise.all(
+      NORA_FORM_DEFS.map(async ({ path }) => {
+        const [taunts, reactions] = await Promise.all([
+          fetch(`/characters/${path}/taunts.json`).then(r => r.ok ? r.json() : null).catch(() => null),
+          fetch(`/characters/${path}/reactions.json`).then(r => r.ok ? r.json() : null).catch(() => null),
+        ]);
+        return { tauntsInfo: taunts, reactionsInfo: reactions } as NoraFormOverride;
+      })
+    ).then(data => { noraFormDataRef.current = data; });
+  }, []);
 
   const showOpponentSpell = opponentSpell && (phase === 'opponent-shown' || phase === 'resolving');
 
@@ -331,11 +351,11 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
       <div className="flex flex-col md:flex-row flex-1 gap-0">
         {/* Player */}
         <div className="flex flex-col items-center justify-center p-4 md:w-64 shrink-0">
-          {isNora(player) && <NoraSegmented formIdx={noraFormIdx} onChange={handleNoraFormChange} />}
           <CharacterPanel
-            character={isNora(player) ? applyNoraForm(player, noraFormIdx) : player} side="player"
+            character={isNora(player) ? applyNoraForm(player, noraFormIdx, noraFormDataRef.current) : player} side="player"
             blast={blast} hitAnim={hitAnim} taunt={null}
             portraitRef={playerPortraitRef}
+            shapeshiftControl={isNora(player) ? <NoraSegmented formIdx={noraFormIdx} onChange={handleNoraFormChange} /> : undefined}
           />
         </div>
 
@@ -396,11 +416,11 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
 
         {/* Opponent */}
         <div className="flex flex-col items-center justify-center p-4 md:w-64 shrink-0">
-          {isNora(opponent) && <NoraSegmented formIdx={noraFormIdx} onChange={handleNoraFormChange} />}
           <CharacterPanel
-            character={isNora(opponent) ? applyNoraForm(opponent, noraFormIdx) : opponent} side="opponent"
+            character={isNora(opponent) ? applyNoraForm(opponent, noraFormIdx, noraFormDataRef.current) : opponent} side="opponent"
             blast={blast} hitAnim={hitAnim} taunt={taunt}
             portraitRef={opponentPortraitRef}
+            shapeshiftControl={isNora(opponent) ? <NoraSegmented formIdx={noraFormIdx} onChange={handleNoraFormChange} /> : undefined}
           />
         </div>
       </div>
@@ -410,7 +430,7 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
 
 function NoraSegmented({ formIdx, onChange }: { formIdx: number; onChange: (i: number) => void }) {
   return (
-    <div className="flex rounded-lg border border-purple-700 overflow-hidden mb-2">
+    <div className="flex rounded-lg border border-purple-700 overflow-hidden">
       {NORA_FORM_DEFS.map((f, i) => (
         <button
           key={i}
@@ -431,7 +451,7 @@ function NoraSegmented({ formIdx, onChange }: { formIdx: number; onChange: (i: n
 }
 
 function CharacterPanel({
-  character, side, blast, hitAnim, taunt, portraitRef,
+  character, side, blast, hitAnim, taunt, portraitRef, shapeshiftControl,
 }: {
   character: Character;
   side: 'player' | 'opponent';
@@ -439,6 +459,7 @@ function CharacterPanel({
   hitAnim: BlastAnim | null;
   taunt: string | null;
   portraitRef?: React.RefObject<HTMLDivElement | null>;
+  shapeshiftControl?: React.ReactNode;
 }) {
   const isMyBlast = blast?.side === side;
   const isMyHit   = hitAnim?.side === side;
@@ -456,6 +477,7 @@ function CharacterPanel({
         )}
       </div>
 
+      {shapeshiftControl && <div className="mb-2">{shapeshiftControl}</div>}
       <div ref={portraitRef} className="relative w-44 h-44">
         <img src={img} alt={character.displayName} className="w-full h-full object-contain" />
         {isMyBlast && blast && (
