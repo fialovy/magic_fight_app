@@ -108,3 +108,14 @@ export function resolveCollision(
 export function randomPatternRule(): PatternRule {
   return pick(['match-color', 'match-shape', 'match-fill']);
 }
+
+/** Ensures at least one card in the hand matches the rule for the given opponent spell. Replaces a random card if not, preserving uniqueness. */
+export function guaranteeMatch(hand: Spell[], rule: PatternRule, oppSpell: Spell): Spell[] {
+  if (hand.some(s => checkPattern(rule, s, oppSpell))) return hand;
+  const result    = [...hand];
+  const replaceIdx = Math.floor(Math.random() * result.length);
+  const dim        = getContestedDimension(rule, oppSpell);
+  const seen       = new Set(result.filter((_, i) => i !== replaceIdx).map(spellKey));
+  result[replaceIdx] = uniqueSpell(() => applyDimension(randomSpell(), dim), seen);
+  return result;
+}

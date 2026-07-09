@@ -4,10 +4,11 @@ import { GAME_LIFE } from '../types/game';
 import { pickReaction, pickTaunt } from '../engine/combat';
 import { sampleDominantColor } from '../engine/colorSampler';
 import {
-  checkPattern, generateHand, OUTCOME_DAMAGE,
+  checkPattern, generateHand, guaranteeMatch, OUTCOME_DAMAGE,
   randomPatternRule, randomSpell, resolveCollision,
 } from '../data/spells';
 import SpellCard from './SpellCard';
+import { BLAST_COUNTS } from 'virtual:blast-counts';
 
 interface Props {
   initialPlayer: Character;
@@ -28,6 +29,30 @@ const ORB_SHAPES: { clipPath: string; borderRadius: string }[] = [
 ];
 
 const delay = (ms: number) => new Promise<void>(r => setTimeout(r, ms));
+
+const NORA_FORM_DEFS = [
+  { emoji: '♀️', prefix: 'nora'          },
+  { emoji: '♂️', prefix: 'norm'          },
+  { emoji: '🌿', prefix: 'meadow_sprite' },
+] as const;
+
+const NORA_NAME_PATHS = new Set(['nora', 'nora/norm', 'nora/meadow_sprite']);
+
+function isNora(c: Character) { return NORA_NAME_PATHS.has(c.namePath); }
+
+function applyNoraForm(c: Character, formIdx: number): Character {
+  const prefix = NORA_FORM_DEFS[formIdx].prefix;
+  const count  = BLAST_COUNTS[prefix] ?? 0;
+  return {
+    ...c,
+    imageLeft:        `/images/characters/${prefix}_mf_face_left.png`,
+    imageRight:       `/images/characters/${prefix}_mf_face_right.png`,
+    hitImageLeft:     `/images/characters/on_impact/${prefix}_mf_hit_face_left.png`,
+    hitImageRight:    `/images/characters/on_impact/${prefix}_mf_hit_face_right.png`,
+    blastImagesLeft:  Array.from({ length: count }, (_, i) => `/images/characters/on_cast/${prefix}_mf_blast_${i}_face_left.png`),
+    blastImagesRight: Array.from({ length: count }, (_, i) => `/images/characters/on_cast/${prefix}_mf_blast_${i}_face_right.png`),
+  };
+}
 
 let logCounter = 0;
 function makeLog(text: string, type: LogEntry['type']): LogEntry {
@@ -93,9 +118,10 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
   const cardClickRef     = useRef<((spell: Spell) => void) | null>(null);
   const playerBlastIdx   = useRef(0);
   const opponentBlastIdx = useRef(0);
+  const noraFormIdxRef   = useRef(0);
 
   // Display state
-  const [debugPattern, setDebugPattern] = useState(patternRef.current);
+  const [noraFormIdx, setNoraFormIdx]   = useState(0);
   const [player,       setPlayer]       = useState(initialPlayer);
   const [opponent,     setOpponent]     = useState(initialOpponent);
   const [log,          setLog]          = useState<LogEntry[]>([
@@ -118,6 +144,11 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
   useEffect(() => {
     logEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [log]);
+
+  function handleNoraFormChange(idx: number) {
+    noraFormIdxRef.current = idx;
+    setNoraFormIdx(idx);
+  }
 
   function handleCardClick(spell: Spell, idx: number) {
     if (!cardClickRef.current) return;
@@ -181,10 +212,11 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
     const o = liveOpponentRef.current;
     const { rule, turnsLeft } = patternRef.current;
 
-    setDebugPattern({ rule, turnsLeft });
+    // Generate opponent spell first so hand can guarantee at least one matching card
+    const oppSpell = randomSpell();
 
     // Phase 1: show hand
-    setHand(generateHand(p.affinity));
+    setHand(guaranteeMatch(generateHand(p.affinity), rule, oppSpell));
     setSelectedIdx(null);
     setLastOutcome(null);
     setOpponentSpell(null);
@@ -194,7 +226,6 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
     await delay(800);
 
     // Phase 2: opponent spell reveals, countdown begins
-    const oppSpell = randomSpell();
     setOpponentSpell(oppSpell);
     setPhase('opponent-shown');
 
@@ -225,11 +256,13 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
       newP = { ...newP, life: Math.max(0, newP.life - damage) };
     }
 
-    // Collision visuals — blast images still used for the winning side
+    // Collision visuals — use form-overridden images if Nora is fighting
+    const vP = isNora(p) ? applyNoraForm(p, noraFormIdxRef.current) : p;
+    const vO = isNora(o) ? applyNoraForm(o, noraFormIdxRef.current) : o;
     if (outcome === 'win' || outcome === 'decisive-win') {
-      await showBlast(p, 'player', newO);
+      await showBlast(vP, 'player', vO);
     } else if (outcome === 'loss' || outcome === 'decisive-loss') {
-      await showBlast(o, 'opponent', newP);
+      await showBlast(vO, 'opponent', vP);
     } else {
       await delay(800);
     }
@@ -263,15 +296,16 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
 
     await delay(800);
 
-    if (newO.life <= 0) { onGameOver('player', newP, newO); return; }
-    if (newP.life <= 0) { onGameOver('opponent', newP, newO); return; }
+    const finalP = isNora(newP) ? applyNoraForm(newP, noraFormIdxRef.current) : newP;
+    const finalO = isNora(newO) ? applyNoraForm(newO, noraFormIdxRef.current) : newO;
+    if (newO.life <= 0) { onGameOver('player',   finalP, finalO); return; }
+    if (newP.life <= 0) { onGameOver('opponent', finalP, finalO); return; }
 
     // Rotate pattern every 5 turns
     const newTurnsLeft = turnsLeft - 1;
     patternRef.current = newTurnsLeft <= 0
       ? { rule: randomPatternRule(), turnsLeft: 5 }
       : { rule, turnsLeft: newTurnsLeft };
-    setDebugPattern(patternRef.current);
 
     await delay(400);
     runTurn();
@@ -297,8 +331,9 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
       <div className="flex flex-col md:flex-row flex-1 gap-0">
         {/* Player */}
         <div className="flex flex-col items-center justify-center p-4 md:w-64 shrink-0">
+          {isNora(player) && <NoraSegmented formIdx={noraFormIdx} onChange={handleNoraFormChange} />}
           <CharacterPanel
-            character={player} side="player"
+            character={isNora(player) ? applyNoraForm(player, noraFormIdx) : player} side="player"
             blast={blast} hitAnim={hitAnim} taunt={null}
             portraitRef={playerPortraitRef}
           />
@@ -315,13 +350,6 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
               <p key={entry.id} className={logClass(entry.type)}>{entry.text}</p>
             ))}
             <div ref={logEndRef} />
-          </div>
-
-          {/* DEBUG: current pattern rule */}
-          <div className="flex justify-center">
-            <span className="text-xs font-mono bg-yellow-900/60 border border-yellow-600/50 text-yellow-300 rounded px-2 py-0.5">
-              🐛 rule: <strong>{debugPattern.rule}</strong> &nbsp;·&nbsp; rotates in {debugPattern.turnsLeft}
-            </span>
           </div>
 
           {/* Opponent spell */}
@@ -368,13 +396,36 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
 
         {/* Opponent */}
         <div className="flex flex-col items-center justify-center p-4 md:w-64 shrink-0">
+          {isNora(opponent) && <NoraSegmented formIdx={noraFormIdx} onChange={handleNoraFormChange} />}
           <CharacterPanel
-            character={opponent} side="opponent"
+            character={isNora(opponent) ? applyNoraForm(opponent, noraFormIdx) : opponent} side="opponent"
             blast={blast} hitAnim={hitAnim} taunt={taunt}
             portraitRef={opponentPortraitRef}
           />
         </div>
       </div>
+    </div>
+  );
+}
+
+function NoraSegmented({ formIdx, onChange }: { formIdx: number; onChange: (i: number) => void }) {
+  return (
+    <div className="flex rounded-lg border border-purple-700 overflow-hidden mb-2">
+      {NORA_FORM_DEFS.map((f, i) => (
+        <button
+          key={i}
+          onClick={() => onChange(i)}
+          className={[
+            'px-3 py-1 text-base transition-colors',
+            i === formIdx
+              ? 'bg-amber-500 text-amber-100'
+              : 'bg-purple-900/60 text-purple-300 hover:bg-purple-800',
+            i > 0 ? 'border-l border-purple-700' : '',
+          ].join(' ')}
+        >
+          {f.emoji}
+        </button>
+      ))}
     </div>
   );
 }
