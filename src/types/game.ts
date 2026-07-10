@@ -23,7 +23,7 @@ export type PatternRule      = 'match-color' | 'match-shape' | 'match-fill';
 export type CollisionOutcome = 'decisive-win' | 'win' | 'neutral' | 'loss' | 'decisive-loss';
 export type TimerResult      = 'correct' | 'wrong' | 'timeout';
 
-export const GAME_LIFE = 15;
+export const GAME_LIFE = 10;
 export const OPPONENT_SPECIAL_CHANCE = 0.2;
 export const DEFAULT_EFFECT_TURNS = 3;
 
