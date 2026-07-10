@@ -9,6 +9,8 @@ import {
 } from '../data/spells';
 import SpellCard from './SpellCard';
 import { BLAST_COUNTS } from 'virtual:blast-counts';
+import { tsParticles } from '@tsparticles/engine';
+import type { Container } from '@tsparticles/engine';
 
 interface Props {
   initialPlayer: Character;
@@ -145,14 +147,53 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
   const [transitionAnim, setTransitionAnim] = useState<BlastAnim | null>(null);
   const [taunt,          setTaunt]          = useState<string | null>(null);
 
+  const particlesContainerRef = useRef<Container | null>(null);
+
   const logEndRef           = useRef<HTMLDivElement>(null);
   const playerPortraitRef   = useRef<HTMLDivElement>(null);
   const opponentPortraitRef = useRef<HTMLDivElement>(null);
   const projectileRef       = useRef<HTMLDivElement>(null);
+  const projectile2Ref      = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     logEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [log]);
+
+  useEffect(() => {
+    let c: Container | undefined;
+    tsParticles.load({
+      id: 'fight-particles',
+      options: {
+        fullScreen:    { enable: true, zIndex: 99 },
+        fpsLimit:      120,
+        detectRetina:  true,
+        background:    { color: { value: 'transparent' } },
+        particles:     { number: { value: 0 } },
+        interactivity: { events: { onClick: { enable: false }, onHover: { enable: false } } },
+      },
+    }).then(container => {
+      if (container && !container.destroyed) { c = container; particlesContainerRef.current = container; }
+    });
+    return () => { c?.destroy(); particlesContainerRef.current = null; };
+  }, []);
+
+  function fireBurst(targetEl: HTMLElement, colors: string[], count: number) {
+    const container = particlesContainerRef.current;
+    if (!container) return;
+    const rect = targetEl.getBoundingClientRect();
+    container.particles.push(count, { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }, {
+      color:   { value: colors },
+      shape:   { type: 'star' },
+      opacity: { value: { min: 0.7, max: 1 } },
+      size:    { value: { min: 3, max: 8 } },
+      life:    { count: 1, duration: { value: { min: 0.4, max: 0.9 } } },
+      move: {
+        enable: true, speed: { min: 4, max: 12 }, decay: 0.12,
+        direction: 'none', outModes: { default: 'destroy' },
+      },
+      rotate: { value: { min: 0, max: 360 }, animation: { enable: true, speed: 20 } },
+    });
+  }
 
   async function showTransitionEffect(fromIdx: number, toIdx: number) {
     const isSprite = fromIdx === 2 || toIdx === 2;
@@ -183,10 +224,10 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
     cb(spell);
   }
 
-  function fireProjectile(imageUrl: string, fromSide: 'player' | 'opponent') {
+  function fireProjectile(imageUrl: string, fromSide: 'player' | 'opponent', orbEl?: HTMLDivElement | null) {
     const fromEl = fromSide === 'player' ? playerPortraitRef.current : opponentPortraitRef.current;
     const toEl   = fromSide === 'player' ? opponentPortraitRef.current : playerPortraitRef.current;
-    const el = projectileRef.current;
+    const el = orbEl !== undefined ? orbEl : projectileRef.current;
     if (!fromEl || !toEl || !el || typeof el.animate !== 'function') return;
 
     const S = 36;
@@ -212,24 +253,80 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
     });
   }
 
-  async function showBlast(caster: Character, casterSide: 'player' | 'opponent', recipient: Character) {
+  async function showBlast(caster: Character, casterSide: 'player' | 'opponent', recipient: Character, outcome: CollisionOutcome) {
     const images = casterSide === 'player' ? caster.blastImagesRight : caster.blastImagesLeft;
     const recipientSide: 'player' | 'opponent' = casterSide === 'player' ? 'opponent' : 'player';
-    const hitUrl = recipientSide === 'player' ? recipient.hitImageRight : recipient.hitImageLeft;
+    const hitUrl      = recipientSide === 'player' ? recipient.hitImageRight : recipient.hitImageLeft;
+    const recipientEl = (recipientSide === 'player' ? playerPortraitRef : opponentPortraitRef).current;
+    const decisive    = outcome === 'decisive-win' || outcome === 'decisive-loss';
+
+    let colorPromise: Promise<string> | null = null;
+    let blastImages  = images;
 
     if (images.length > 0) {
       const idxRef = casterSide === 'player' ? playerBlastIdx : opponentBlastIdx;
       const url = images[idxRef.current % images.length];
       idxRef.current++;
+      colorPromise = sampleDominantColor(url);
       fireProjectile(url, casterSide);
       setBlast({ url, key: Date.now(), side: casterSide });
     }
 
     await delay(836);
+    const sampled = colorPromise ? await colorPromise : '#fbbf24';
+    const colors  = [sampled, sampled, '#ffffff'];
+
     setHitAnim({ url: hitUrl, key: Date.now(), side: recipientSide });
-    await delay(1364);
+    if (recipientEl) fireBurst(recipientEl, colors, decisive ? 60 : 35);
+
+    if (decisive) {
+      await delay(700);
+      if (blastImages.length > 0) {
+        const idxRef = casterSide === 'player' ? playerBlastIdx : opponentBlastIdx;
+        const url = blastImages[idxRef.current % blastImages.length];
+        idxRef.current++;
+        fireProjectile(url, casterSide);
+      }
+      setHitAnim({ url: hitUrl, key: Date.now(), side: recipientSide });
+      if (recipientEl) fireBurst(recipientEl, colors, 30);
+      await delay(664);
+    } else {
+      await delay(1364);
+    }
+
     setBlast(null);
     setHitAnim(null);
+  }
+
+  async function showNeutralClash(vP: Character, vO: Character) {
+    const pImages = vP.blastImagesRight;
+    const oImages = vO.blastImagesLeft;
+
+    let pColorPromise: Promise<string> | null = null;
+    let oColorPromise: Promise<string> | null = null;
+
+    if (pImages.length > 0) {
+      const url = pImages[playerBlastIdx.current % pImages.length];
+      playerBlastIdx.current++;
+      pColorPromise = sampleDominantColor(url);
+      fireProjectile(url, 'player');
+    }
+    if (oImages.length > 0) {
+      const url = oImages[opponentBlastIdx.current % oImages.length];
+      opponentBlastIdx.current++;
+      oColorPromise = sampleDominantColor(url);
+      fireProjectile(url, 'opponent', projectile2Ref.current);
+    }
+
+    await delay(800);
+    const pColor = pColorPromise ? await pColorPromise : '#a855f7';
+    const oColor = oColorPromise ? await oColorPromise : '#a855f7';
+
+    const pEl = playerPortraitRef.current;
+    const oEl = opponentPortraitRef.current;
+    if (pEl) fireBurst(pEl, [pColor, pColor, '#ffffff'], 25);
+    if (oEl) fireBurst(oEl, [oColor, oColor, '#ffffff'], 25);
+    await delay(400);
   }
 
   async function runTurn() {
@@ -293,11 +390,11 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
     const vP = isNora(p) ? applyNoraForm(p, noraFormIdxRef.current, noraFormDataRef.current) : p;
     const vO = isNora(o) ? applyNoraForm(o, noraFormIdxRef.current, noraFormDataRef.current) : o;
     if (outcome === 'win' || outcome === 'decisive-win') {
-      await showBlast(vP, 'player', vO);
+      await showBlast(vP, 'player', vO, outcome);
     } else if (outcome === 'loss' || outcome === 'decisive-loss') {
-      await showBlast(vO, 'opponent', vP);
+      await showBlast(vO, 'opponent', vP, outcome);
     } else {
-      await delay(800);
+      await showNeutralClash(vP, vO);
     }
 
     // Commit state
@@ -364,11 +461,8 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-purple-950 to-slate-900 flex flex-col">
-      <div
-        ref={projectileRef}
-        className="fixed top-0 left-0 pointer-events-none"
-        style={{ width: 36, height: 36, zIndex: 100, opacity: 0 }}
-      />
+      <div ref={projectileRef}  className="fixed top-0 left-0 pointer-events-none" style={{ width: 36, height: 36, zIndex: 100, opacity: 0 }} />
+      <div ref={projectile2Ref} className="fixed top-0 left-0 pointer-events-none" style={{ width: 36, height: 36, zIndex: 100, opacity: 0 }} />
 
       <div className="text-center py-3 border-b border-purple-800">
         <span className="text-purple-400 text-sm tracking-widest uppercase">Magic Fight</span>
