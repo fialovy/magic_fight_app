@@ -126,6 +126,7 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
   const opponentBlastIdx = useRef(0);
   const noraFormIdxRef   = useRef(0);
   const noraFormDataRef  = useRef<NoraFormOverride[] | null>(null);
+  const restartTimerRef  = useRef<(() => void) | null>(null);
 
   // Display state
   const [noraFormIdx, setNoraFormIdx]   = useState(0);
@@ -139,9 +140,10 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
   const [opponentSpell, setOpponentSpell] = useState<Spell | null>(null);
   const [selectedIdx,  setSelectedIdx]  = useState<number | null>(null);
   const [lastOutcome,  setLastOutcome]  = useState<CollisionOutcome | null>(null);
-  const [blast,        setBlast]        = useState<BlastAnim | null>(null);
-  const [hitAnim,      setHitAnim]      = useState<BlastAnim | null>(null);
-  const [taunt,        setTaunt]        = useState<string | null>(null);
+  const [blast,          setBlast]          = useState<BlastAnim | null>(null);
+  const [hitAnim,        setHitAnim]        = useState<BlastAnim | null>(null);
+  const [transitionAnim, setTransitionAnim] = useState<BlastAnim | null>(null);
+  const [taunt,          setTaunt]          = useState<string | null>(null);
 
   const logEndRef           = useRef<HTMLDivElement>(null);
   const playerPortraitRef   = useRef<HTMLDivElement>(null);
@@ -152,9 +154,25 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
     logEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [log]);
 
+  async function showTransitionEffect(fromIdx: number, toIdx: number) {
+    const isSprite = fromIdx === 2 || toIdx === 2;
+    const suffix   = isSprite ? 'sprite_to_humanoid_or_humanoid_to_sprite' : 'humanoid_to_humanoid';
+    const side     = isNora(initialPlayer) ? 'player' : 'opponent';
+    const dir      = side === 'player' ? 'right' : 'left';
+    const url      = `/images/characters/ability_transitions/nora_mf_splat_${suffix}_face_${dir}.png`;
+    setTransitionAnim({ url, key: Date.now(), side });
+    await delay(1800);
+    setNoraFormIdx(toIdx);   // switch portrait only after animation completes
+    setTransitionAnim(null);
+  }
+
   function handleNoraFormChange(idx: number) {
-    noraFormIdxRef.current = idx;
-    setNoraFormIdx(idx);
+    const prev = noraFormIdxRef.current;
+    if (idx === prev) return;
+    noraFormIdxRef.current = idx;  // update ref immediately so turn logic uses new form
+    // setNoraFormIdx is called inside showTransitionEffect after the animation
+    showTransitionEffect(prev, idx);
+    restartTimerRef.current?.();
   }
 
   function handleCardClick(spell: Spell, idx: number) {
@@ -238,10 +256,18 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
 
     const selectedSpell = await new Promise<Spell | null>(resolve => {
       cardClickRef.current = resolve;
-      setTimeout(() => {
-        if (cardClickRef.current) { cardClickRef.current = null; resolve(null); }
-      }, 3000);
+      let timeoutId: ReturnType<typeof setTimeout>;
+      const arm = () => {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+          if (cardClickRef.current) { cardClickRef.current = null; resolve(null); }
+          restartTimerRef.current = null;
+        }, 3000);
+      };
+      restartTimerRef.current = arm;
+      arm();
     });
+    restartTimerRef.current = null;
 
     setPhase('resolving');
 
@@ -353,7 +379,7 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
         <div className="flex flex-col items-center justify-center p-4 md:w-64 shrink-0">
           <CharacterPanel
             character={isNora(player) ? applyNoraForm(player, noraFormIdx, noraFormDataRef.current) : player} side="player"
-            blast={blast} hitAnim={hitAnim} taunt={null}
+            blast={blast} hitAnim={hitAnim} transitionAnim={transitionAnim} taunt={null}
             portraitRef={playerPortraitRef}
             shapeshiftControl={isNora(player) ? <NoraSegmented formIdx={noraFormIdx} onChange={handleNoraFormChange} /> : undefined}
           />
@@ -418,7 +444,7 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
         <div className="flex flex-col items-center justify-center p-4 md:w-64 shrink-0">
           <CharacterPanel
             character={isNora(opponent) ? applyNoraForm(opponent, noraFormIdx, noraFormDataRef.current) : opponent} side="opponent"
-            blast={blast} hitAnim={hitAnim} taunt={taunt}
+            blast={blast} hitAnim={hitAnim} transitionAnim={transitionAnim} taunt={taunt}
             portraitRef={opponentPortraitRef}
             shapeshiftControl={isNora(opponent) ? <NoraSegmented formIdx={noraFormIdx} onChange={handleNoraFormChange} /> : undefined}
           />
@@ -451,18 +477,20 @@ function NoraSegmented({ formIdx, onChange }: { formIdx: number; onChange: (i: n
 }
 
 function CharacterPanel({
-  character, side, blast, hitAnim, taunt, portraitRef, shapeshiftControl,
+  character, side, blast, hitAnim, transitionAnim, taunt, portraitRef, shapeshiftControl,
 }: {
   character: Character;
   side: 'player' | 'opponent';
   blast: BlastAnim | null;
   hitAnim: BlastAnim | null;
+  transitionAnim: BlastAnim | null;
   taunt: string | null;
   portraitRef?: React.RefObject<HTMLDivElement | null>;
   shapeshiftControl?: React.ReactNode;
 }) {
-  const isMyBlast = blast?.side === side;
-  const isMyHit   = hitAnim?.side === side;
+  const isMyBlast      = blast?.side === side;
+  const isMyHit        = hitAnim?.side === side;
+  const isMyTransition = transitionAnim?.side === side;
   const img = side === 'player' ? character.imageRight : character.imageLeft;
   const pct = Math.max(0, (character.life / GAME_LIFE) * 100);
   const barColor = pct > 60 ? 'bg-emerald-500' : pct > 30 ? 'bg-amber-500' : 'bg-rose-500';
@@ -485,6 +513,9 @@ function CharacterPanel({
         )}
         {isMyHit && hitAnim && (
           <img key={hitAnim.key} src={hitAnim.url} alt="" className="absolute inset-0 w-full h-full object-contain hit-animate" />
+        )}
+        {isMyTransition && transitionAnim && (
+          <img key={transitionAnim.key} src={transitionAnim.url} alt="" className="absolute inset-0 w-full h-full object-contain blast-animate" />
         )}
       </div>
 
