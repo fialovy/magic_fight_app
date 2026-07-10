@@ -177,16 +177,21 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
     return () => { c?.destroy(); particlesContainerRef.current = null; };
   }, []);
 
+  function toHex(rgb: string): string {
+    const m = rgb.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+    if (!m) return rgb; // already hex or unrecognised — pass through
+    return '#' + [m[1], m[2], m[3]].map(n => parseInt(n).toString(16).padStart(2, '0')).join('');
+  }
+
   function fireBurst(targetEl: HTMLElement, colors: string[], count: number) {
     const container = particlesContainerRef.current;
     if (!container) return;
     const rect = targetEl.getBoundingClientRect();
     container.particles.push(count, { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }, {
-      color:   { value: colors },
-      shape:   { type: 'star' },
-      opacity: { value: { min: 0.7, max: 1 } },
-      size:    { value: { min: 3, max: 8 } },
-      life:    { count: 1, duration: { value: { min: 0.4, max: 0.9 } } },
+      paint:  { color: { value: colors }, fill: { enable: true, opacity: 1 } },
+      shape:  { type: 'star' },
+      size:   { value: { min: 3, max: 8 } },
+      life:   { count: 1, duration: { value: { min: 0.4, max: 0.9 } } },
       move: {
         enable: true, speed: { min: 4, max: 12 }, decay: 0.12,
         direction: 'none', outModes: { default: 'destroy' },
@@ -282,8 +287,8 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
       await delay(836);
     }
 
-    const sampled = colorPromise ? await colorPromise : '#fbbf24';
-    const colors  = [sampled, sampled, '#ffffff'];
+    const hex    = toHex(colorPromise ? await colorPromise : '#fbbf24');
+    const colors = [hex, hex, '#ffffff'];
 
     // First hit at t=836
     setHitAnim({ url: hitUrl, key: Date.now(), side: recipientSide });
@@ -324,8 +329,8 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
     }
 
     await delay(800);
-    const pColor = pColorPromise ? await pColorPromise : '#a855f7';
-    const oColor = oColorPromise ? await oColorPromise : '#a855f7';
+    const pColor = toHex(pColorPromise ? await pColorPromise : '#a855f7');
+    const oColor = toHex(oColorPromise ? await oColorPromise : '#a855f7');
 
     const pEl = playerPortraitRef.current;
     const oEl = opponentPortraitRef.current;
@@ -595,7 +600,7 @@ function CharacterPanel({
   const barColor = pct > 60 ? 'bg-emerald-500' : pct > 30 ? 'bg-amber-500' : 'bg-rose-500';
 
   return (
-    <div className="flex flex-col items-center w-52">
+    <div className="flex flex-col items-center w-56">
       <div className="h-20 w-full flex items-center justify-center mb-2">
         {side === 'opponent' && taunt && (
           <div className="text-xs bg-white/10 border border-purple-600 text-purple-200 rounded-xl px-3 py-1.5 text-center max-w-full overflow-hidden line-clamp-4">
@@ -605,7 +610,7 @@ function CharacterPanel({
       </div>
 
       {shapeshiftControl && <div className="mb-2">{shapeshiftControl}</div>}
-      <div ref={portraitRef} className="relative w-44 h-44">
+      <div ref={portraitRef} className="relative w-52 h-52">
         <img src={img} alt={character.displayName} className="w-full h-full object-contain" />
         {isMyBlast && blast && (
           <img key={blast.key} src={blast.url} alt="" className="absolute inset-0 w-full h-full object-contain blast-animate" />

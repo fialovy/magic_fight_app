@@ -44,10 +44,9 @@ export default function GameOverScreen({ winner, player, opponent, onNewGame }: 
       container.particles.push(70,
         { x: window.innerWidth / 2, y: window.innerHeight * 0.2 },
         {
-          color:   { value: ['#fbbf24', '#f59e0b', '#a855f7', '#ec4899', '#38bdf8', '#4ade80', '#f87171', '#fb923c'] },
-          shape:   { type: ['star', 'circle', 'square'] },
-          opacity: { value: { min: 0.6, max: 1 } },
-          size:    { value: { min: 5, max: 12 } },
+          paint:  { color: { value: ['#fbbf24', '#f59e0b', '#a855f7', '#ec4899', '#38bdf8', '#4ade80', '#f87171', '#fb923c'] }, fill: { enable: true, opacity: 1 } },
+          shape:  { type: ['star', 'circle', 'square'] },
+          size:   { value: { min: 5, max: 12 } },
           life:    { count: 1, duration: { value: { min: 1.5, max: 3 } } },
           move: {
             enable:    true,
