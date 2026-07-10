@@ -130,8 +130,8 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
   const noraFormDataRef  = useRef<NoraFormOverride[] | null>(null);
   const restartTimerRef  = useRef<(() => void) | null>(null);
 
-  // Display state
-  const [noraFormIdx, setNoraFormIdx]   = useState(0);
+  // Display state — noraForm combines idx + transition overlay so they always update in one render
+  const [noraForm, setNoraForm] = useState<{ idx: number; anim: BlastAnim | null }>({ idx: 0, anim: null });
   const [player,       setPlayer]       = useState(initialPlayer);
   const [opponent,     setOpponent]     = useState(initialOpponent);
   const [log,          setLog]          = useState<LogEntry[]>([
@@ -142,10 +142,9 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
   const [opponentSpell, setOpponentSpell] = useState<Spell | null>(null);
   const [selectedIdx,  setSelectedIdx]  = useState<number | null>(null);
   const [lastOutcome,  setLastOutcome]  = useState<CollisionOutcome | null>(null);
-  const [blast,          setBlast]          = useState<BlastAnim | null>(null);
-  const [hitAnim,        setHitAnim]        = useState<BlastAnim | null>(null);
-  const [transitionAnim, setTransitionAnim] = useState<BlastAnim | null>(null);
-  const [taunt,          setTaunt]          = useState<string | null>(null);
+  const [blast,   setBlast]   = useState<BlastAnim | null>(null);
+  const [hitAnim, setHitAnim] = useState<BlastAnim | null>(null);
+  const [taunt,   setTaunt]   = useState<string | null>(null);
 
   const particlesContainerRef = useRef<Container | null>(null);
 
@@ -206,10 +205,17 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
     const side     = isNora(initialPlayer) ? 'player' : 'opponent';
     const dir      = side === 'player' ? 'right' : 'left';
     const url      = `/images/characters/ability_transitions/nora_mf_splat_${suffix}_face_${dir}.png`;
-    setTransitionAnim({ url, key: Date.now(), side });
-    await delay(1800);
-    setNoraFormIdx(toIdx);   // switch portrait only after animation completes
-    setTransitionAnim(null);
+
+    // Show overlay (transition-flash: opacity 1→1→0 over 1800ms, fade starts at 80%=1440ms)
+    setNoraForm(v => ({ ...v, anim: { url, key: Date.now(), side } }));
+
+    // At 1440ms the overlay is still fully opaque — safe to swap portrait underneath
+    await delay(1440);
+    setNoraForm(v => ({ ...v, idx: toIdx }));
+
+    // At 1800ms the CSS fade reaches opacity:0 (forwards fill keeps it there) — safe to remove
+    await delay(400);
+    setNoraForm(v => ({ ...v, anim: null }));
   }
 
   function handleNoraFormChange(idx: number) {
@@ -482,10 +488,10 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
         {/* Player */}
         <div className="flex flex-col items-center justify-center p-4 md:w-64 shrink-0">
           <CharacterPanel
-            character={isNora(player) ? applyNoraForm(player, noraFormIdx, noraFormDataRef.current) : player} side="player"
-            blast={blast} hitAnim={hitAnim} transitionAnim={transitionAnim} taunt={null}
+            character={isNora(player) ? applyNoraForm(player, noraForm.idx, noraFormDataRef.current) : player} side="player"
+            blast={blast} hitAnim={hitAnim} transitionAnim={noraForm.anim} taunt={null}
             portraitRef={playerPortraitRef}
-            shapeshiftControl={isNora(player) ? <NoraSegmented formIdx={noraFormIdx} onChange={handleNoraFormChange} /> : undefined}
+            shapeshiftControl={isNora(player) ? <NoraSegmented formIdx={noraForm.idx} onChange={handleNoraFormChange} /> : undefined}
           />
         </div>
 
@@ -547,10 +553,10 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
         {/* Opponent */}
         <div className="flex flex-col items-center justify-center p-4 md:w-64 shrink-0">
           <CharacterPanel
-            character={isNora(opponent) ? applyNoraForm(opponent, noraFormIdx, noraFormDataRef.current) : opponent} side="opponent"
-            blast={blast} hitAnim={hitAnim} transitionAnim={transitionAnim} taunt={taunt}
+            character={isNora(opponent) ? applyNoraForm(opponent, noraForm.idx, noraFormDataRef.current) : opponent} side="opponent"
+            blast={blast} hitAnim={hitAnim} transitionAnim={noraForm.anim} taunt={taunt}
             portraitRef={opponentPortraitRef}
-            shapeshiftControl={isNora(opponent) ? <NoraSegmented formIdx={noraFormIdx} onChange={handleNoraFormChange} /> : undefined}
+            shapeshiftControl={isNora(opponent) ? <NoraSegmented formIdx={noraForm.idx} onChange={handleNoraFormChange} /> : undefined}
           />
         </div>
       </div>
@@ -619,7 +625,7 @@ function CharacterPanel({
           <img key={hitAnim.key} src={hitAnim.url} alt="" className="absolute inset-0 w-full h-full object-contain hit-animate" />
         )}
         {isMyTransition && transitionAnim && (
-          <img key={transitionAnim.key} src={transitionAnim.url} alt="" className="absolute inset-0 w-full h-full object-contain blast-animate" />
+          <img key={transitionAnim.key} src={transitionAnim.url} alt="" className="absolute inset-0 w-full h-full object-contain transition-animate" />
         )}
       </div>
 

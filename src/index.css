@@ -30,6 +30,16 @@ body {
   animation: hit-flash 1.1s ease-in-out forwards;
 }
 
+@keyframes transition-flash {
+  0%   { opacity: 1; }
+  80%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.transition-animate {
+  animation: transition-flash 1.8s ease-in-out forwards;
+}
+
 @keyframes fade-in {
   from { opacity: 0; transform: translateY(-4px); }
   to   { opacity: 1; transform: translateY(0); }
