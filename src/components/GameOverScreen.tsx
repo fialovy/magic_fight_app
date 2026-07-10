@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { Character } from '../types/game';
+import { tsParticles } from '@tsparticles/engine';
+import type { Container } from '@tsparticles/engine';
 
 interface Props {
   winner: 'player' | 'opponent';
@@ -22,6 +24,44 @@ async function downloadImage(url: string, filename: string) {
 export default function GameOverScreen({ winner, player, opponent, onNewGame }: Props) {
   const playerWon = winner === 'player';
   const [previewIdx, setPreviewIdx] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!playerWon) return;
+    let c: Container | undefined;
+    tsParticles.load({
+      id: 'gameover-confetti',
+      options: {
+        fullScreen:    { enable: true, zIndex: 50 },
+        fpsLimit:      120,
+        detectRetina:  true,
+        background:    { color: { value: 'transparent' } },
+        particles:     { number: { value: 0, limit: { value: 0 } } },
+        interactivity: { events: { onClick: { enable: false }, onHover: { enable: false } } },
+      },
+    }).then(container => {
+      if (!container || container.destroyed) return;
+      c = container;
+      container.particles.push(70,
+        { x: window.innerWidth / 2, y: window.innerHeight * 0.2 },
+        {
+          color:   { value: ['#fbbf24', '#f59e0b', '#a855f7', '#ec4899', '#38bdf8', '#4ade80', '#f87171', '#fb923c'] },
+          shape:   { type: ['star', 'circle', 'square'] },
+          opacity: { value: { min: 0.6, max: 1 } },
+          size:    { value: { min: 5, max: 12 } },
+          life:    { count: 1, duration: { value: { min: 1.5, max: 3 } } },
+          move: {
+            enable:    true,
+            speed:     { min: 5, max: 15 },
+            direction: 'none',
+            outModes:  { default: 'destroy' },
+            gravity:   { enable: true, acceleration: 2.5 },
+          },
+          rotate: { value: { min: 0, max: 360 }, animation: { enable: true, speed: 10 } },
+        },
+      );
+    });
+    return () => c?.destroy();
+  }, [playerWon]);
 
   const previewUrl  = previewIdx !== null ? player.blastImagesRight[previewIdx] : null;
   const previewName = `${player.displayName.toLowerCase().replace(/\s+/g, '_')}_combat_${previewIdx}.png`;
@@ -102,29 +142,25 @@ export default function GameOverScreen({ winner, player, opponent, onNewGame }: 
               className="max-h-[60vh] max-w-full object-contain rounded-lg"
             />
 
-            <div className="flex gap-3">
-              {previewIdx! > 0 && (
-                <button
-                  onClick={() => setPreviewIdx(i => i! - 1)}
-                  className="px-4 py-2 rounded-lg border border-purple-600 text-purple-300 hover:bg-purple-800 text-sm transition-colors"
-                >
-                  ← Prev
-                </button>
-              )}
+            <div className="flex gap-3 items-center">
+              <button
+                onClick={() => setPreviewIdx(i => i! - 1)}
+                className={`px-4 py-2 rounded-lg border border-purple-600 text-purple-300 hover:bg-purple-800 text-sm transition-colors ${previewIdx! > 0 ? '' : 'invisible'}`}
+              >
+                ← Prev
+              </button>
               <button
                 onClick={() => downloadImage(previewUrl, previewName)}
                 className="px-5 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-semibold text-sm border border-amber-400 transition-colors"
               >
                 ⬇ Download
               </button>
-              {previewIdx! < player.blastImagesRight.length - 1 && (
-                <button
-                  onClick={() => setPreviewIdx(i => i! + 1)}
-                  className="px-4 py-2 rounded-lg border border-purple-600 text-purple-300 hover:bg-purple-800 text-sm transition-colors"
-                >
-                  Next →
-                </button>
-              )}
+              <button
+                onClick={() => setPreviewIdx(i => i! + 1)}
+                className={`px-4 py-2 rounded-lg border border-purple-600 text-purple-300 hover:bg-purple-800 text-sm transition-colors ${previewIdx! < player.blastImagesRight.length - 1 ? '' : 'invisible'}`}
+              >
+                Next →
+              </button>
             </div>
           </div>
         </div>

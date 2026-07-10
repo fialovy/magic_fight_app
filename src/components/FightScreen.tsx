@@ -168,7 +168,7 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
         fpsLimit:      120,
         detectRetina:  true,
         background:    { color: { value: 'transparent' } },
-        particles:     { number: { value: 0 } },
+        particles:     { number: { value: 0, limit: { value: 0 } } },
         interactivity: { events: { onClick: { enable: false }, onHover: { enable: false } } },
       },
     }).then(container => {
@@ -254,17 +254,17 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
   }
 
   async function showBlast(caster: Character, casterSide: 'player' | 'opponent', recipient: Character, outcome: CollisionOutcome) {
-    const images = casterSide === 'player' ? caster.blastImagesRight : caster.blastImagesLeft;
+    const images      = casterSide === 'player' ? caster.blastImagesRight : caster.blastImagesLeft;
     const recipientSide: 'player' | 'opponent' = casterSide === 'player' ? 'opponent' : 'player';
     const hitUrl      = recipientSide === 'player' ? recipient.hitImageRight : recipient.hitImageLeft;
     const recipientEl = (recipientSide === 'player' ? playerPortraitRef : opponentPortraitRef).current;
     const decisive    = outcome === 'decisive-win' || outcome === 'decisive-loss';
+    const idxRef      = casterSide === 'player' ? playerBlastIdx : opponentBlastIdx;
 
     let colorPromise: Promise<string> | null = null;
-    let blastImages  = images;
 
+    // First orb fires at t=0
     if (images.length > 0) {
-      const idxRef = casterSide === 'player' ? playerBlastIdx : opponentBlastIdx;
       const url = images[idxRef.current % images.length];
       idxRef.current++;
       colorPromise = sampleDominantColor(url);
@@ -272,24 +272,29 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
       setBlast({ url, key: Date.now(), side: casterSide });
     }
 
-    await delay(836);
+    if (decisive && images.length > 0) {
+      // Second orb fires at t=300 — both in flight simultaneously
+      await delay(300);
+      fireProjectile(images[idxRef.current % images.length], casterSide, projectile2Ref.current);
+      idxRef.current++;
+      await delay(536); // 300+536 = 836 → first orb arrives
+    } else {
+      await delay(836);
+    }
+
     const sampled = colorPromise ? await colorPromise : '#fbbf24';
     const colors  = [sampled, sampled, '#ffffff'];
 
+    // First hit at t=836
     setHitAnim({ url: hitUrl, key: Date.now(), side: recipientSide });
-    if (recipientEl) fireBurst(recipientEl, colors, decisive ? 60 : 35);
+    if (recipientEl) fireBurst(recipientEl, colors, decisive ? 50 : 35);
 
     if (decisive) {
-      await delay(700);
-      if (blastImages.length > 0) {
-        const idxRef = casterSide === 'player' ? playerBlastIdx : opponentBlastIdx;
-        const url = blastImages[idxRef.current % blastImages.length];
-        idxRef.current++;
-        fireProjectile(url, casterSide);
-      }
+      // Second orb arrives at t=300+836=1136 → wait 1136−836=300ms after first hit
+      await delay(300);
       setHitAnim({ url: hitUrl, key: Date.now(), side: recipientSide });
       if (recipientEl) fireBurst(recipientEl, colors, 30);
-      await delay(664);
+      await delay(700);
     } else {
       await delay(1364);
     }
