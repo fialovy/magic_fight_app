@@ -219,9 +219,6 @@ function BlastGrid({
             className="max-w-full max-h-full object-contain"
             onError={e => { (e.target as HTMLImageElement).style.opacity = '0.2'; }}
           />
-          <span className="absolute bottom-1 right-2 text-xs text-purple-500 group-hover:text-purple-300">
-            blast {i}
-          </span>
         </div>
       ))}
     </div>
