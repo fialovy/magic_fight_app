@@ -19,7 +19,7 @@ export interface CharacterAffinity {
   // everything else: power 1
 }
 
-export type PatternRule      = 'match-color' | 'match-shape' | 'match-fill';
+export type PatternRule      = 'match-color' | 'match-shape' | 'match-fill' | 'avoid-color' | 'avoid-shape' | 'avoid-fill';
 export type CollisionOutcome = 'decisive-win' | 'win' | 'neutral' | 'loss' | 'decisive-loss';
 export type TimerResult      = 'correct' | 'wrong' | 'timeout';
 

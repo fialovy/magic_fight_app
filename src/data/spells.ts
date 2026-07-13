@@ -65,11 +65,9 @@ export function getDimensionPower(dim: SpellDimensionKey, affinity: CharacterAff
 }
 
 export function getContestedDimension(rule: PatternRule, opponentSpell: Spell): SpellDimensionKey {
-  switch (rule) {
-    case 'match-color': return opponentSpell.color;
-    case 'match-shape': return opponentSpell.shape;
-    case 'match-fill':  return opponentSpell.fill;
-  }
+  if (rule === 'match-color' || rule === 'avoid-color') return opponentSpell.color;
+  if (rule === 'match-shape' || rule === 'avoid-shape') return opponentSpell.shape;
+  return opponentSpell.fill;
 }
 
 export function checkPattern(rule: PatternRule, playerSpell: Spell, opponentSpell: Spell): boolean {
@@ -77,6 +75,9 @@ export function checkPattern(rule: PatternRule, playerSpell: Spell, opponentSpel
     case 'match-color': return playerSpell.color === opponentSpell.color;
     case 'match-shape': return playerSpell.shape === opponentSpell.shape;
     case 'match-fill':  return playerSpell.fill  === opponentSpell.fill;
+    case 'avoid-color': return playerSpell.color !== opponentSpell.color;
+    case 'avoid-shape': return playerSpell.shape !== opponentSpell.shape;
+    case 'avoid-fill':  return playerSpell.fill  !== opponentSpell.fill;
   }
 }
 
@@ -106,16 +107,36 @@ export function resolveCollision(
 }
 
 export function randomPatternRule(): PatternRule {
-  return pick(['match-color', 'match-shape', 'match-fill']);
+  return pick(['match-color', 'match-shape', 'match-fill', 'avoid-color', 'avoid-shape', 'avoid-fill']);
 }
 
-/** Ensures at least one card in the hand matches the rule for the given opponent spell. Replaces a random card if not, preserving uniqueness. */
+function forceAvoid(spell: Spell, rule: PatternRule, oppSpell: Spell): Spell {
+  if (rule === 'avoid-color' && spell.color === oppSpell.color) {
+    const others = SPELL_COLORS.filter(c => c !== oppSpell.color);
+    return { ...spell, color: pick(others) };
+  }
+  if (rule === 'avoid-shape' && spell.shape === oppSpell.shape) {
+    const others = SPELL_SHAPES.filter(s => s !== oppSpell.shape);
+    return { ...spell, shape: pick(others) };
+  }
+  if (rule === 'avoid-fill' && spell.fill === oppSpell.fill) {
+    const others = SPELL_FILLS.filter(f => f !== oppSpell.fill);
+    return { ...spell, fill: pick(others) };
+  }
+  return spell;
+}
+
+/** Ensures at least one card satisfies the rule for the given opponent spell. Replaces a random card if not, preserving uniqueness. */
 export function guaranteeMatch(hand: Spell[], rule: PatternRule, oppSpell: Spell): Spell[] {
   if (hand.some(s => checkPattern(rule, s, oppSpell))) return hand;
-  const result    = [...hand];
+  const result     = [...hand];
   const replaceIdx = Math.floor(Math.random() * result.length);
-  const dim        = getContestedDimension(rule, oppSpell);
   const seen       = new Set(result.filter((_, i) => i !== replaceIdx).map(spellKey));
-  result[replaceIdx] = uniqueSpell(() => applyDimension(randomSpell(), dim), seen);
+  if (rule.startsWith('avoid-')) {
+    result[replaceIdx] = uniqueSpell(() => forceAvoid(randomSpell(), rule, oppSpell), seen);
+  } else {
+    const dim = getContestedDimension(rule, oppSpell);
+    result[replaceIdx] = uniqueSpell(() => applyDimension(randomSpell(), dim), seen);
+  }
   return result;
 }

@@ -144,7 +144,9 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
   const [lastOutcome,  setLastOutcome]  = useState<CollisionOutcome | null>(null);
   const [blast,   setBlast]   = useState<BlastAnim | null>(null);
   const [hitAnim, setHitAnim] = useState<BlastAnim | null>(null);
-  const [taunt,   setTaunt]   = useState<string | null>(null);
+  const [taunt,        setTaunt]        = useState<string | null>(null);
+  const [currentRule,  setCurrentRule]  = useState<PatternRule>(patternRef.current.rule);
+  const [ruleAnnounce, setRuleAnnounce] = useState<{ mode: 'match' | 'avoid'; key: number } | null>(null);
 
   const particlesContainerRef = useRef<Container | null>(null);
 
@@ -449,9 +451,16 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
 
     // Rotate pattern every 5 turns
     const newTurnsLeft = turnsLeft - 1;
-    patternRef.current = newTurnsLeft <= 0
-      ? { rule: randomPatternRule(), turnsLeft: 5 }
-      : { rule, turnsLeft: newTurnsLeft };
+    if (newTurnsLeft <= 0) {
+      const newRule = randomPatternRule();
+      patternRef.current = { rule: newRule, turnsLeft: 5 };
+      setCurrentRule(newRule);
+      const oldMode = rule.startsWith('avoid') ? 'avoid' : 'match';
+      const newMode = newRule.startsWith('avoid') ? 'avoid' : 'match';
+      if (oldMode !== newMode) setRuleAnnounce({ mode: newMode, key: Date.now() });
+    } else {
+      patternRef.current = { rule, turnsLeft: newTurnsLeft };
+    }
 
     await delay(400);
     runTurn();
@@ -479,6 +488,18 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
     <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-purple-950 to-slate-900 flex flex-col">
       <div ref={projectileRef}  className="fixed top-0 left-0 pointer-events-none" style={{ width: 36, height: 36, zIndex: 100, opacity: 0 }} />
       <div ref={projectile2Ref} className="fixed top-0 left-0 pointer-events-none" style={{ width: 36, height: 36, zIndex: 100, opacity: 0 }} />
+
+      {ruleAnnounce && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+          <span
+            key={ruleAnnounce.key}
+            className={`text-7xl font-extrabold tracking-widest uppercase rule-pulse select-none ${ruleAnnounce.mode === 'avoid' ? 'text-rose-400' : 'text-blue-300'}`}
+            onAnimationEnd={() => setRuleAnnounce(null)}
+          >
+            {ruleAnnounce.mode === 'avoid' ? 'AVOID' : 'MATCH'}
+          </span>
+        </div>
+      )}
 
       <div className="text-center py-3 border-b border-purple-800">
         <span className="text-purple-400 text-sm tracking-widest uppercase">Magic Fight</span>
@@ -510,6 +531,11 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
 
           {/* Opponent spell */}
           <div className="flex flex-col items-center gap-1">
+            <div className="flex items-center h-5">
+              <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${currentRule.startsWith('avoid') ? 'text-rose-300 border-rose-700 bg-rose-950/50' : 'text-blue-300 border-blue-700 bg-blue-950/50'}`}>
+                {currentRule.startsWith('avoid') ? 'AVOID' : 'MATCH'}
+              </span>
+            </div>
             <span className="text-purple-500 text-xs uppercase tracking-widest h-4">
               {showOpponentSpell ? "Opponent's spell" : ''}
             </span>
