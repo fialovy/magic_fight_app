@@ -428,14 +428,14 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
     ];
 
     if ((outcome === 'loss' || outcome === 'decisive-loss') && damage > 0) {
-      const reaction = pickReaction(newP);
-      if (reaction) entries.push(makeLog(`${newP.displayName}: "${reaction}"`, 'taunt'));
+      const reaction = pickReaction(vP);
+      if (reaction) entries.push(makeLog(`${vP.displayName}: "${reaction}"`, 'taunt'));
     }
 
-    const newTaunt = pickTaunt(o);
+    const newTaunt = pickTaunt(vO);
     if (newTaunt) {
       setTaunt(newTaunt);
-      entries.push(makeLog(`${o.displayName}: "${newTaunt}"`, 'taunt'));
+      entries.push(makeLog(`${vO.displayName}: "${newTaunt}"`, 'taunt'));
     }
 
     setLog(prev => [...prev, ...entries].slice(-60));
