@@ -127,6 +127,7 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
   const playerBlastIdx   = useRef(0);
   const opponentBlastIdx = useRef(0);
   const noraFormIdxRef   = useRef(0);
+  const timerDurationRef = useRef(3000);
   const noraFormDataRef  = useRef<NoraFormOverride[] | null>(null);
   const restartTimerRef  = useRef<(() => void) | null>(null);
 
@@ -377,7 +378,7 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
         timeoutId = setTimeout(() => {
           if (cardClickRef.current) { cardClickRef.current = null; resolve(null); }
           restartTimerRef.current = null;
-        }, 3000);
+        }, timerDurationRef.current);
       };
       restartTimerRef.current = arm;
       arm();
@@ -454,6 +455,7 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
     if (newTurnsLeft <= 0) {
       const newRule = randomPatternRule();
       patternRef.current = { rule: newRule, turnsLeft: 5 };
+      timerDurationRef.current = Math.max(1400, timerDurationRef.current - 200);
       setCurrentRule(newRule);
       const oldMode = rule.startsWith('avoid') ? 'avoid' : 'match';
       const newMode = newRule.startsWith('avoid') ? 'avoid' : 'match';

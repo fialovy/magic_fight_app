@@ -19,11 +19,13 @@ export interface CharacterAffinity {
   // everything else: power 1
 }
 
-export type PatternRule      = 'match-color' | 'match-shape' | 'match-fill' | 'avoid-color' | 'avoid-shape' | 'avoid-fill';
+export type PatternRule      = 'match-color' | 'match-shape' | 'match-fill' | 'avoid-color' | 'avoid-shape' | 'avoid-fill'
+                             | 'match-color+shape' | 'match-color+fill' | 'match-shape+fill'
+                             | 'avoid-color+shape' | 'avoid-color+fill' | 'avoid-shape+fill';
 export type CollisionOutcome = 'decisive-win' | 'win' | 'neutral' | 'loss' | 'decisive-loss';
 export type TimerResult      = 'correct' | 'wrong' | 'timeout';
 
-export const GAME_LIFE = 10;
+export const GAME_LIFE = 20;
 export const OPPONENT_SPECIAL_CHANCE = 0.2;
 export const DEFAULT_EFFECT_TURNS = 3;
 
