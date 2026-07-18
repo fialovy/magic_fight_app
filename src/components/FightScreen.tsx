@@ -147,7 +147,7 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
   const [hitAnim, setHitAnim] = useState<BlastAnim | null>(null);
   const [taunt,        setTaunt]        = useState<string | null>(null);
   const [currentRule,  setCurrentRule]  = useState<PatternRule>(patternRef.current.rule);
-  const [ruleAnnounce, setRuleAnnounce] = useState<{ rule: PatternRule; key: number } | null>(null);
+  const [ruleAnnounce, setRuleAnnounce] = useState<{ rule: PatternRule; key: number } | null>({ rule: patternRef.current.rule, key: Date.now() });
 
   const particlesContainerRef = useRef<Container | null>(null);
 
