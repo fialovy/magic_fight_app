@@ -498,7 +498,8 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
             className={`text-7xl font-extrabold tracking-widest uppercase rule-pulse select-none ${ruleAnnounce.mode === 'avoid' ? 'text-rose-400' : 'text-blue-300'}`}
             onAnimationEnd={() => setRuleAnnounce(null)}
           >
-            {ruleAnnounce.mode === 'avoid' ? 'AVOID' : 'MATCH'}
+            {ruleAnnounce.mode === 'avoid' ? (currentRule.includes('+') ? 'AVOID (x2)' : 'AVOID (x1)') : (
+            currentRule.includes('+') ? 'MATCH (x2)' : 'MATCH (x1)')}
           </span>
         </div>
       )}
