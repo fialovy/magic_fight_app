@@ -71,6 +71,21 @@ export default function SpellCard({ spell, onClick, selected, disabled, glowing,
               <rect x="0" y="8" width="16" height="8"  fill={color} fillOpacity="0.2" />
             </pattern>
           )}
+          {spell.fill === 'crosshatch' && (
+            <pattern id={fillId} x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
+              <rect x="0" y="0" width="16" height="16" fill={color} fillOpacity="0.15" />
+              <rect x="0" y="0" width="7"  height="7"  fill={color} />
+              <rect x="9" y="0" width="7"  height="7"  fill={color} />
+              <rect x="0" y="9" width="7"  height="7"  fill={color} />
+              <rect x="9" y="9" width="7"  height="7"  fill={color} />
+            </pattern>
+          )}
+          {spell.fill === 'dots' && (
+            <pattern id={fillId} x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
+              <rect x="0" y="0" width="16" height="16" fill={color} fillOpacity="0.15" />
+              <circle cx="8" cy="8" r="5.5" fill={color} />
+            </pattern>
+          )}
         </defs>
         <ShapePath
           shape={spell.shape}

@@ -3,6 +3,7 @@ import { CHARACTER_REGISTRY } from '../data/characters';
 import type { CharacterMeta } from '../data/characters';
 import { BLAST_COUNTS } from 'virtual:blast-counts';
 import type { Spell } from '../types/game';
+import { SPELL_COLORS, SPELL_FILLS, SPELL_SHAPES } from '../data/spells';
 import SpellCard from './SpellCard';
 
 interface Props {
@@ -225,26 +226,33 @@ function BlastGrid({
   );
 }
 
-const PREVIEW_SPELLS: Spell[] = [
-  { color: 'red',    shape: 'heart',    fill: 'solid' },
-  { color: 'blue',   shape: 'square',   fill: 'solid' },
-  { color: 'green',  shape: 'star',     fill: 'solid' },
-  { color: 'purple', shape: 'triangle', fill: 'solid' },
-  { color: 'red',    shape: 'star',     fill: 'vertical-stripe' },
-  { color: 'blue',   shape: 'triangle', fill: 'horizontal-stripe' },
-  { color: 'green',  shape: 'square',   fill: 'vertical-stripe' },
-  { color: 'purple', shape: 'heart',    fill: 'horizontal-stripe' },
-];
+// One card per shape (solid, cycling colors) + one per non-solid fill (cycling shapes/colors).
+// Automatically includes any new shapes or fills added to the spell system.
+const SHAPE_PREVIEWS: Spell[] = SPELL_SHAPES.map((shape, i) => ({
+  color: SPELL_COLORS[i % SPELL_COLORS.length],
+  shape,
+  fill: 'solid',
+}));
+
+const FILL_PREVIEWS: Spell[] = SPELL_FILLS
+  .filter(f => f !== 'solid')
+  .map((fill, i) => ({
+    color: SPELL_COLORS[(i + 1) % SPELL_COLORS.length],
+    shape: SPELL_SHAPES[i % SPELL_SHAPES.length],
+    fill,
+  }));
 
 function SpellPreviewSection() {
   return (
     <div className="mb-10 pt-6 border-t border-purple-800/40">
       <p className="text-purple-400 text-sm font-semibold tracking-wide uppercase mb-1">✦ Spell system preview</p>
-      <p className="text-purple-600 text-xs mb-4">All 4 shapes · all 4 colors · both stripe fills</p>
+      <p className="text-purple-600 text-xs mb-4">
+        {SPELL_SHAPES.length} shapes · {SPELL_COLORS.length} colors · {SPELL_FILLS.length} fills
+      </p>
       <div className="flex flex-wrap gap-3">
-        {PREVIEW_SPELLS.map((spell, i) => (
-          <SpellCard key={i} spell={spell} size={80} />
-        ))}
+        {SHAPE_PREVIEWS.map((spell, i) => <SpellCard key={`shape-${i}`} spell={spell} size={80} />)}
+        <div className="w-px bg-purple-800/40 mx-1" />
+        {FILL_PREVIEWS.map((spell, i) => <SpellCard key={`fill-${i}`} spell={spell} size={80} />)}
       </div>
     </div>
   );

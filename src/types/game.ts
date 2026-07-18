@@ -1,7 +1,7 @@
 // ── Spell system ──────────────────────────────────────────────────────────────
 export type SpellColor = 'red' | 'blue' | 'green' | 'purple';
 export type SpellShape = 'heart' | 'square' | 'star' | 'triangle';
-export type SpellFill  = 'solid' | 'vertical-stripe' | 'horizontal-stripe';
+export type SpellFill  = 'solid' | 'vertical-stripe' | 'horizontal-stripe' | 'crosshatch' | 'dots';
 export type SpellDimensionKey = SpellColor | SpellShape | SpellFill;
 
 export interface Spell {

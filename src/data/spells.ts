@@ -5,7 +5,7 @@ import type {
 
 export const SPELL_COLORS: SpellColor[] = ['red', 'blue', 'green', 'purple'];
 export const SPELL_SHAPES: SpellShape[] = ['heart', 'square', 'star', 'triangle'];
-export const SPELL_FILLS:  SpellFill[]  = ['solid', 'vertical-stripe', 'horizontal-stripe'];
+export const SPELL_FILLS:  SpellFill[]  = ['solid', 'vertical-stripe', 'horizontal-stripe', 'crosshatch', 'dots'];
 
 export const OUTCOME_DAMAGE: Record<CollisionOutcome, number> = {
   'decisive-win':  4,
