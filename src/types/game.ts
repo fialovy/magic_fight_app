@@ -23,7 +23,7 @@ export type CollisionOutcome = 'decisive-win' | 'win' | 'neutral' | 'loss' | 'de
 export type TimerResult      = 'correct' | 'wrong' | 'timeout';
 
 export const GAME_LIFE       = 20;
-export const PATTERN_TURNS   = 5;
+export const PATTERN_TURNS   = 4;
 export const TIMER_START_MS  = 2500;
 export const TIMER_STEP_MS   = 250;
 export const TIMER_FLOOR_MS  = 1100;
