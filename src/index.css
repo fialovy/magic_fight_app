@@ -40,6 +40,16 @@ body {
   animation: transition-flash 1.8s ease-in-out forwards;
 }
 
+@keyframes spin-cw  { to { transform: rotate( 360deg); } }
+@keyframes spin-ccw { to { transform: rotate(-360deg); } }
+
+.spell-spin-cw, .spell-spin-ccw {
+  transform-box: view-box;
+  transform-origin: center;
+}
+.spell-spin-cw  { animation: spin-cw  2s linear infinite; }
+.spell-spin-ccw { animation: spin-ccw 2s linear infinite; }
+
 @keyframes rule-pulse {
   0%   { opacity: 0; transform: scale(0.7); }
   18%  { opacity: 1; transform: scale(1.06); }

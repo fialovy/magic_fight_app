@@ -3,7 +3,7 @@ import { CHARACTER_REGISTRY } from '../data/characters';
 import type { CharacterMeta } from '../data/characters';
 import { BLAST_COUNTS } from 'virtual:blast-counts';
 import type { Spell } from '../types/game';
-import { SPELL_COLORS, SPELL_FILLS, SPELL_SHAPES } from '../data/spells';
+import { SPELL_COLORS, SPELL_FILLS, SPELL_ROTATIONS, SPELL_SHAPES } from '../data/spells';
 import SpellCard from './SpellCard';
 
 interface Props {
@@ -229,9 +229,7 @@ function BlastGrid({
 // One card per shape (solid, cycling colors) + one per non-solid fill (cycling shapes/colors).
 // Automatically includes any new shapes or fills added to the spell system.
 const SHAPE_PREVIEWS: Spell[] = SPELL_SHAPES.map((shape, i) => ({
-  color: SPELL_COLORS[i % SPELL_COLORS.length],
-  shape,
-  fill: 'solid',
+  color: SPELL_COLORS[i % SPELL_COLORS.length], shape, fill: 'solid', rotation: 'clockwise',
 }));
 
 const FILL_PREVIEWS: Spell[] = SPELL_FILLS
@@ -239,20 +237,27 @@ const FILL_PREVIEWS: Spell[] = SPELL_FILLS
   .map((fill, i) => ({
     color: SPELL_COLORS[(i + 1) % SPELL_COLORS.length],
     shape: SPELL_SHAPES[i % SPELL_SHAPES.length],
-    fill,
+    fill, rotation: 'clockwise',
   }));
+
+const ROTATION_PREVIEWS: Spell[] = SPELL_ROTATIONS.map((rotation, i) => ({
+  color: SPELL_COLORS[i % SPELL_COLORS.length],
+  shape: 'heart', fill: 'vertical-stripe', rotation,
+}));
 
 function SpellPreviewSection() {
   return (
     <div className="mb-10 pt-6 border-t border-purple-800/40">
       <p className="text-purple-400 text-sm font-semibold tracking-wide uppercase mb-1">✦ Spell system preview</p>
       <p className="text-purple-600 text-xs mb-4">
-        {SPELL_SHAPES.length} shapes · {SPELL_COLORS.length} colors · {SPELL_FILLS.length} fills
+        {SPELL_SHAPES.length} shapes · {SPELL_COLORS.length} colors · {SPELL_FILLS.length} fills · {SPELL_ROTATIONS.length} rotations
       </p>
       <div className="flex flex-wrap gap-3">
         {SHAPE_PREVIEWS.map((spell, i) => <SpellCard key={`shape-${i}`} spell={spell} size={80} />)}
         <div className="w-px bg-purple-800/40 mx-1" />
         {FILL_PREVIEWS.map((spell, i) => <SpellCard key={`fill-${i}`} spell={spell} size={80} />)}
+        <div className="w-px bg-purple-800/40 mx-1" />
+        {ROTATION_PREVIEWS.map((spell, i) => <SpellCard key={`rot-${i}`} spell={spell} size={80} />)}
       </div>
     </div>
   );

@@ -48,7 +48,7 @@ export default function SpellCard({ spell, onClick, selected, disabled, glowing,
     <button
       onClick={onClick}
       disabled={disabled}
-      aria-label={`${spell.color} ${spell.shape} ${spell.fill}`}
+      aria-label={`${spell.color} ${spell.shape} ${spell.fill} ${spell.rotation}`}
       className={[
         'rounded-xl border-2 bg-purple-950/60 flex items-center justify-center',
         'transition-all duration-150 select-none',
@@ -63,12 +63,6 @@ export default function SpellCard({ spell, onClick, selected, disabled, glowing,
             <pattern id={fillId} x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
               <rect x="0" y="0" width="8"  height="16" fill={color} />
               <rect x="8" y="0" width="8"  height="16" fill={color} fillOpacity="0.2" />
-            </pattern>
-          )}
-          {spell.fill === 'horizontal-stripe' && (
-            <pattern id={fillId} x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
-              <rect x="0" y="0" width="16" height="8"  fill={color} />
-              <rect x="0" y="8" width="16" height="8"  fill={color} fillOpacity="0.2" />
             </pattern>
           )}
           {spell.fill === 'crosshatch' && (
@@ -87,10 +81,12 @@ export default function SpellCard({ spell, onClick, selected, disabled, glowing,
             </pattern>
           )}
         </defs>
-        <ShapePath
-          shape={spell.shape}
-          fill={spell.fill === 'solid' ? color : `url(#${fillId})`}
-        />
+        <g className={spell.rotation === 'clockwise' ? 'spell-spin-cw' : 'spell-spin-ccw'}>
+          <ShapePath
+            shape={spell.shape}
+            fill={spell.fill === 'solid' ? color : `url(#${fillId})`}
+          />
+        </g>
       </svg>
     </button>
   );

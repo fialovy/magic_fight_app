@@ -1,13 +1,15 @@
 // ── Spell system ──────────────────────────────────────────────────────────────
-export type SpellColor = 'red' | 'blue' | 'green' | 'purple';
-export type SpellShape = 'heart' | 'square' | 'star' | 'triangle';
-export type SpellFill  = 'solid' | 'vertical-stripe' | 'horizontal-stripe' | 'crosshatch' | 'dots';
-export type SpellDimensionKey = SpellColor | SpellShape | SpellFill;
+export type SpellColor    = 'red' | 'blue' | 'green' | 'purple';
+export type SpellShape    = 'heart' | 'square' | 'star' | 'triangle';
+export type SpellFill     = 'solid' | 'vertical-stripe' | 'crosshatch' | 'dots';
+export type SpellRotation = 'clockwise' | 'counter-clockwise';
+export type SpellDimensionKey = SpellColor | SpellShape | SpellFill | SpellRotation;
 
 export interface Spell {
-  color: SpellColor;
-  shape: SpellShape;
-  fill:  SpellFill;
+  color:    SpellColor;
+  shape:    SpellShape;
+  fill:     SpellFill;
+  rotation: SpellRotation;
 }
 
 export interface CharacterAffinity {
@@ -16,9 +18,12 @@ export interface CharacterAffinity {
   // everything else: power 1
 }
 
-export type PatternRule      = 'match-color' | 'match-shape' | 'match-fill' | 'avoid-color' | 'avoid-shape' | 'avoid-fill'
+export type PatternRule      = 'match-color' | 'match-shape' | 'match-fill' | 'match-rotation'
+                             | 'avoid-color' | 'avoid-shape' | 'avoid-fill' | 'avoid-rotation'
                              | 'match-color+shape' | 'match-color+fill' | 'match-shape+fill'
-                             | 'avoid-color+shape' | 'avoid-color+fill' | 'avoid-shape+fill';
+                             | 'match-color+rotation' | 'match-shape+rotation' | 'match-fill+rotation'
+                             | 'avoid-color+shape' | 'avoid-color+fill' | 'avoid-shape+fill'
+                             | 'avoid-color+rotation' | 'avoid-shape+rotation' | 'avoid-fill+rotation';
 export type CollisionOutcome = 'decisive-win' | 'win' | 'neutral' | 'loss' | 'decisive-loss';
 export type TimerResult      = 'correct' | 'wrong' | 'timeout';
 
