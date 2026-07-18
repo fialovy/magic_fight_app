@@ -1,4 +1,4 @@
-import type { Character, MagicInfo, SpecialAbilityDef, TauntsInfo, ReactionsInfo } from '../types/game';
+import type { Character, TauntsInfo, ReactionsInfo } from '../types/game';
 import { GAME_LIFE } from '../types/game';
 import { findMeta, CHARACTER_AFFINITIES } from '../data/characters';
 import { BLAST_COUNTS } from 'virtual:blast-counts';
@@ -18,58 +18,31 @@ async function fetchJSON<T>(path: string): Promise<T | null> {
   }
 }
 
-async function fetchText(path: string): Promise<string | null> {
-  try {
-    const res = await fetch(path);
-    if (!res.ok) return null;
-    return res.text();
-  } catch {
-    return null;
-  }
-}
-
 export async function loadCharacter(namePath: string, inheritLife?: number): Promise<Character> {
   const meta = findMeta(namePath);
   if (!meta) throw new Error(`Unknown character: ${namePath}`);
 
+  const { imagePrefix } = meta;
   const base = `${DATA_BASE}${namePath}/`;
-  const { imagePrefix, hasDrunkSpecial } = meta;
   const blastCount = BLAST_COUNTS[imagePrefix] ?? 0;
 
-  const [magicInfo, tauntsInfo, reactionsInfo, specialAbilities, drunkSpecialAbilities, bio, asciiArt] =
-    await Promise.all([
-      fetchJSON<MagicInfo>(`${base}magic.json`),
-      fetchJSON<TauntsInfo>(`${base}taunts.json`),
-      fetchJSON<ReactionsInfo>(`${base}reactions.json`),
-      fetchJSON<Record<string, SpecialAbilityDef>>(`${base}special.json`),
-      hasDrunkSpecial
-        ? fetchJSON<Record<string, SpecialAbilityDef>>(`${base}drunk_special.json`)
-        : Promise.resolve(null),
-      fetchText(`${base}bio.txt`),
-      fetchText(`${base}ascii_art.txt`),
-    ]);
+  const [tauntsInfo, reactionsInfo] = await Promise.all([
+    fetchJSON<TauntsInfo>(`${base}taunts.json`),
+    fetchJSON<ReactionsInfo>(`${base}reactions.json`),
+  ]);
 
   return {
     namePath,
-    displayName: meta.displayName,
-    life: inheritLife ?? GAME_LIFE,
-    magicInfo: magicInfo!,
-    specialAbilities: specialAbilities ?? {},
-    drunkSpecialAbilities: drunkSpecialAbilities ?? {},
-    tauntsInfo: tauntsInfo ?? null,
-    reactionsInfo: reactionsInfo ?? null,
-    bio: bio?.trim() ?? '',
-    asciiArt: asciiArt?.trim() ?? null,
-    affinity: CHARACTER_AFFINITIES[imagePrefix]!,
+    displayName:    meta.displayName,
+    life:           inheritLife ?? GAME_LIFE,
+    tauntsInfo:     tauntsInfo ?? null,
+    reactionsInfo:  reactionsInfo ?? null,
+    affinity:       CHARACTER_AFFINITIES[imagePrefix]!,
     imageLeft:      `${IMG_BASE}${imagePrefix}_mf_face_left.png`,
     imageRight:     `${IMG_BASE}${imagePrefix}_mf_face_right.png`,
     hitImageLeft:   `${ON_IMPACT}${imagePrefix}_mf_hit_face_left.png`,
     hitImageRight:  `${ON_IMPACT}${imagePrefix}_mf_hit_face_right.png`,
     blastImagesLeft:  Array.from({ length: blastCount }, (_, i) => `${ON_CAST}${imagePrefix}_mf_blast_${i}_face_left.png`),
     blastImagesRight: Array.from({ length: blastCount }, (_, i) => `${ON_CAST}${imagePrefix}_mf_blast_${i}_face_right.png`),
-    affectedBy: {},
-    savedMagicInfo: null,
-    savedTauntsInfo: null,
-    isDrunk: false,
   };
 }

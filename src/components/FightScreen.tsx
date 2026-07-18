@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Character, CollisionOutcome, LogEntry, PatternRule, ReactionsInfo, Spell, TimerResult, TauntsInfo } from '../types/game';
-import { GAME_LIFE } from '../types/game';
+import { GAME_LIFE, PATTERN_TURNS, TIMER_FLOOR_MS, TIMER_START_MS, TIMER_STEP_MS } from '../types/game';
 import { pickReaction, pickTaunt } from '../engine/combat';
 import { sampleDominantColor } from '../engine/colorSampler';
 import {
@@ -122,12 +122,12 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
   // Refs hold live values read by async turn logic — avoids stale closures
   const livePlayerRef    = useRef(initialPlayer);
   const liveOpponentRef  = useRef(initialOpponent);
-  const patternRef       = useRef({ rule: randomPatternRule() as PatternRule, turnsLeft: 5 });
+  const patternRef       = useRef({ rule: randomPatternRule() as PatternRule, turnsLeft: PATTERN_TURNS });
   const cardClickRef     = useRef<((spell: Spell) => void) | null>(null);
   const playerBlastIdx   = useRef(0);
   const opponentBlastIdx = useRef(0);
   const noraFormIdxRef   = useRef(0);
-  const timerDurationRef = useRef(3000);
+  const timerDurationRef = useRef(TIMER_START_MS);
   const noraFormDataRef  = useRef<NoraFormOverride[] | null>(null);
   const restartTimerRef  = useRef<(() => void) | null>(null);
 
@@ -147,7 +147,7 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
   const [hitAnim, setHitAnim] = useState<BlastAnim | null>(null);
   const [taunt,        setTaunt]        = useState<string | null>(null);
   const [currentRule,  setCurrentRule]  = useState<PatternRule>(patternRef.current.rule);
-  const [ruleAnnounce, setRuleAnnounce] = useState<{ mode: 'match' | 'avoid'; key: number } | null>(null);
+  const [ruleAnnounce, setRuleAnnounce] = useState<{ rule: PatternRule; key: number } | null>(null);
 
   const particlesContainerRef = useRef<Container | null>(null);
 
@@ -454,12 +454,12 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
     const newTurnsLeft = turnsLeft - 1;
     if (newTurnsLeft <= 0) {
       const newRule = randomPatternRule();
-      patternRef.current = { rule: newRule, turnsLeft: 5 };
-      timerDurationRef.current = Math.max(1400, timerDurationRef.current - 200);
+      patternRef.current = { rule: newRule, turnsLeft: PATTERN_TURNS };
+      timerDurationRef.current = Math.max(TIMER_FLOOR_MS, timerDurationRef.current - TIMER_STEP_MS);
       setCurrentRule(newRule);
       const oldMode = rule.startsWith('avoid') ? 'avoid' : 'match';
       const newMode = newRule.startsWith('avoid') ? 'avoid' : 'match';
-      if (oldMode !== newMode) setRuleAnnounce({ mode: newMode, key: Date.now() });
+      if (oldMode !== newMode) setRuleAnnounce({ rule: newRule, key: Date.now() });
     } else {
       patternRef.current = { rule, turnsLeft: newTurnsLeft };
     }
@@ -495,11 +495,11 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
         <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
           <span
             key={ruleAnnounce.key}
-            className={`text-7xl font-extrabold tracking-widest uppercase rule-pulse select-none ${ruleAnnounce.mode === 'avoid' ? 'text-rose-400' : 'text-blue-300'}`}
+            className={`text-7xl font-extrabold tracking-widest uppercase rule-pulse select-none ${ruleAnnounce.rule.startsWith('avoid') ? 'text-rose-400' : 'text-blue-300'}`}
             onAnimationEnd={() => setRuleAnnounce(null)}
           >
-            {ruleAnnounce.mode === 'avoid' ? (currentRule.includes('+') ? 'AVOID (x2)' : 'AVOID (x1)') : (
-            currentRule.includes('+') ? 'MATCH (x2)' : 'MATCH (x1)')}
+            {ruleAnnounce.rule.startsWith('avoid') ? 'AVOID' : 'MATCH'}{' '}
+            <span className="text-4xl">({ruleAnnounce.rule.includes('+') ? 'x2' : 'x1'})</span>
           </span>
         </div>
       )}
