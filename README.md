@@ -11,3 +11,26 @@ and convert my original game (and art) into a web app. With, like, fancy JavaScr
 
 ![Character art](readme_image.png)
 
+### Running locally
+
+**Requirements:** Node.js 18+ (tested on v24)
+
+#### 1. Clone the repo
+```bash
+git clone <repo-url>
+cd magic_fight_app
+```
+
+#### 2. Install dependencies
+
+```bash
+npm install
+```
+
+#### 3. Start the dev server
+```bash
+npm run dev
+```
+
+Then open the URL printed in your terminal (usually `http://localhost:5173`).
+
