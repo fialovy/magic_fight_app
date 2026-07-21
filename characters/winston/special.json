@@ -1,0 +1,6 @@
+{
+    "Drink potion": {
+        "description": "Give in to your potion dependency and have a drink. It might really help you, it might kinda hurt you, and it will DEFINITELY make you dizzy.",
+        "effect": "potionify"
+    }
+}

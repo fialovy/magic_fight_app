@@ -1,0 +1,6 @@
+{
+    "Drink shady, additional potion": {
+        "description": "Drink another potion that claims to sober you up immediately.",
+        "effect": "attempt_sobering"
+    }
+}

@@ -1,0 +1,10 @@
+{
+    "Shapeshift - Nora": {
+        "description": "At the cost of 1 life point, take on a human female form.",
+        "effect": "change_to_nora"
+    },
+    "Shapeshift - Norman": {
+        "description": "At the cost of 1 life point, take on a human male form.",
+        "effect": "change_to_norm"
+    }
+}
