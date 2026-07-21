@@ -6,6 +6,7 @@ export const SPELL_COLOR_HEX: Record<string, string> = {
   blue:   '#60a5fa',
   green:  '#4ade80',
   purple: '#c084fc',
+  orange: '#fbbf24',
 };
 
 const HEART_PATH =

@@ -3,7 +3,7 @@ import type {
   CharacterAffinity, PatternRule, CollisionOutcome, TimerResult,
 } from '../types/game';
 
-export const SPELL_COLORS:    SpellColor[]    = ['red', 'blue', 'green', 'purple'];
+export const SPELL_COLORS:    SpellColor[]    = ['red', 'blue', 'green', 'purple', 'orange'];
 export const SPELL_SHAPES:    SpellShape[]    = ['heart', 'square', 'star', 'triangle'];
 export const SPELL_FILLS:     SpellFill[]     = ['solid', 'vertical-stripe', 'crosshatch', 'dots'];
 export const SPELL_ROTATIONS: SpellRotation[] = ['clockwise', 'counter-clockwise'];

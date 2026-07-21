@@ -1,5 +1,5 @@
 // ── Spell system ──────────────────────────────────────────────────────────────
-export type SpellColor    = 'red' | 'blue' | 'green' | 'purple';
+export type SpellColor    = 'red' | 'blue' | 'green' | 'purple' | 'orange';
 export type SpellShape    = 'heart' | 'square' | 'star' | 'triangle';
 export type SpellFill     = 'solid' | 'vertical-stripe' | 'crosshatch' | 'dots';
 export type SpellRotation = 'clockwise' | 'counter-clockwise';
