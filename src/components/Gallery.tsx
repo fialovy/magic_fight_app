@@ -68,7 +68,7 @@ export default function Gallery({ onBack }: Props) {
 function useBlastImages(imagePrefix: string, showLeft: boolean) {
   const blastCount = BLAST_COUNTS[imagePrefix] ?? 0;
   return Array.from({ length: blastCount }, (_, i) => ({
-    url: `/images/characters/on_cast/${imagePrefix}_mf_blast_${i}_face_${showLeft ? 'left' : 'right'}.png`,
+    url: `${import.meta.env.BASE_URL}images/characters/on_cast/${imagePrefix}_mf_blast_${i}_face_${showLeft ? 'left' : 'right'}.png`,
   }));
 }
 
@@ -85,7 +85,7 @@ function NoraGallerySection() {
     <div className="mb-10">
       <div className="flex items-center gap-3 mb-4 flex-wrap">
         <img
-          src={`/images/characters/${meta.imagePrefix}_mf_face_right.png`}
+          src={`${import.meta.env.BASE_URL}images/characters/${meta.imagePrefix}_mf_face_right.png`}
           alt={meta.displayName}
           className="w-10 h-10 object-contain shrink-0"
         />
@@ -148,7 +148,7 @@ function NoraGallerySection() {
               className="aspect-square bg-purple-950/60 border border-rose-900/40 rounded-xl p-2 flex items-center justify-center relative group"
             >
               <img
-                src={`/images/characters/secret/${prefix}_secret_${num}.png`}
+                src={`${import.meta.env.BASE_URL}images/characters/secret/${prefix}_secret_${num}.png`}
                 alt={`${prefix} secret ${num}`}
                 className="max-w-full max-h-full object-contain"
                 onError={e => { (e.target as HTMLImageElement).style.opacity = '0.2'; }}
@@ -174,7 +174,7 @@ function CharacterGallerySection({ meta }: { meta: CharacterMeta }) {
     <div className="mb-10">
       <div className="flex items-center gap-3 mb-4">
         <img
-          src={`/images/characters/${meta.imagePrefix}_mf_face_right.png`}
+          src={`${import.meta.env.BASE_URL}images/characters/${meta.imagePrefix}_mf_face_right.png`}
           alt={meta.displayName}
           className="w-10 h-10 object-contain"
         />
@@ -204,7 +204,7 @@ function BlastGrid({
     <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
       <div className="aspect-square bg-purple-950/60 border border-purple-800 rounded-xl p-2 flex items-center justify-center">
         <img
-          src={`/images/characters/${meta.imagePrefix}_mf_face_${showLeft ? 'left' : 'right'}.png`}
+          src={`${import.meta.env.BASE_URL}images/characters/${meta.imagePrefix}_mf_face_${showLeft ? 'left' : 'right'}.png`}
           alt={`${meta.displayName} portrait`}
           className="max-w-full max-h-full object-contain"
         />

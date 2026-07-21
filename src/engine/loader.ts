@@ -3,10 +3,11 @@ import { GAME_LIFE } from '../types/game';
 import { findMeta, CHARACTER_AFFINITIES } from '../data/characters';
 import { BLAST_COUNTS } from 'virtual:blast-counts';
 
-const IMG_BASE  = '/images/characters/';
+const BASE      = import.meta.env.BASE_URL;
+const IMG_BASE  = `${BASE}images/characters/`;
 const ON_CAST   = `${IMG_BASE}on_cast/`;
 const ON_IMPACT = `${IMG_BASE}on_impact/`;
-const DATA_BASE = '/characters/';
+const DATA_BASE = `${BASE}characters/`;
 
 async function fetchJSON<T>(path: string): Promise<T | null> {
   try {

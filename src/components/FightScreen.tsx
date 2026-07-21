@@ -53,12 +53,12 @@ function applyNoraForm(c: Character, formIdx: number, overrides?: NoraFormOverri
     displayName,
     tauntsInfo:    ov ? ov.tauntsInfo    : c.tauntsInfo,
     reactionsInfo: ov ? ov.reactionsInfo : c.reactionsInfo,
-    imageLeft:        `/images/characters/${prefix}_mf_face_left.png`,
-    imageRight:       `/images/characters/${prefix}_mf_face_right.png`,
-    hitImageLeft:     `/images/characters/on_impact/${prefix}_mf_hit_face_left.png`,
-    hitImageRight:    `/images/characters/on_impact/${prefix}_mf_hit_face_right.png`,
-    blastImagesLeft:  Array.from({ length: count }, (_, i) => `/images/characters/on_cast/${prefix}_mf_blast_${i}_face_left.png`),
-    blastImagesRight: Array.from({ length: count }, (_, i) => `/images/characters/on_cast/${prefix}_mf_blast_${i}_face_right.png`),
+    imageLeft:        `${import.meta.env.BASE_URL}images/characters/${prefix}_mf_face_left.png`,
+    imageRight:       `${import.meta.env.BASE_URL}images/characters/${prefix}_mf_face_right.png`,
+    hitImageLeft:     `${import.meta.env.BASE_URL}images/characters/on_impact/${prefix}_mf_hit_face_left.png`,
+    hitImageRight:    `${import.meta.env.BASE_URL}images/characters/on_impact/${prefix}_mf_hit_face_right.png`,
+    blastImagesLeft:  Array.from({ length: count }, (_, i) => `${import.meta.env.BASE_URL}images/characters/on_cast/${prefix}_mf_blast_${i}_face_left.png`),
+    blastImagesRight: Array.from({ length: count }, (_, i) => `${import.meta.env.BASE_URL}images/characters/on_cast/${prefix}_mf_blast_${i}_face_right.png`),
   };
 }
 
@@ -207,7 +207,7 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
     const suffix   = isSprite ? 'sprite_to_humanoid_or_humanoid_to_sprite' : 'humanoid_to_humanoid';
     const side     = isNora(initialPlayer) ? 'player' : 'opponent';
     const dir      = side === 'player' ? 'right' : 'left';
-    const url      = `/images/characters/ability_transitions/nora_mf_splat_${suffix}_face_${dir}.png`;
+    const url      = `${import.meta.env.BASE_URL}images/characters/ability_transitions/nora_mf_splat_${suffix}_face_${dir}.png`;
 
     // Show overlay (transition-flash: opacity 1→1→0 over 1800ms, fade starts at 80%=1440ms)
     setNoraForm(v => ({ ...v, anim: { url, key: Date.now(), side } }));
@@ -476,8 +476,8 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
     Promise.all(
       NORA_FORM_DEFS.map(async ({ path }) => {
         const [taunts, reactions] = await Promise.all([
-          fetch(`/characters/${path}/taunts.json`).then(r => r.ok ? r.json() : null).catch(() => null),
-          fetch(`/characters/${path}/reactions.json`).then(r => r.ok ? r.json() : null).catch(() => null),
+          fetch(`${import.meta.env.BASE_URL}characters/${path}/taunts.json`).then(r => r.ok ? r.json() : null).catch(() => null),
+          fetch(`${import.meta.env.BASE_URL}characters/${path}/reactions.json`).then(r => r.ok ? r.json() : null).catch(() => null),
         ]);
         return { tauntsInfo: taunts, reactionsInfo: reactions } as NoraFormOverride;
       })

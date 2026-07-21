@@ -53,7 +53,7 @@ export default function CharacterSelectScreen({ mode, disabledPath, onSelect, lo
             >
               <div className="relative w-24 h-24 mb-2">
                 <img
-                  src={`/images/characters/${meta.imagePrefix}_mf_face_${mode === 'player' ? 'right' : 'left'}.png`}
+                  src={`${import.meta.env.BASE_URL}images/characters/${meta.imagePrefix}_mf_face_${mode === 'player' ? 'right' : 'left'}.png`}
                   alt={meta.displayName}
                   className="w-full h-full object-contain"
                 />
@@ -89,7 +89,7 @@ function BioPreview({ namePath }: { namePath: string }) {
 
   useEffect(() => {
     setBio(null);
-    fetch(`/characters/${namePath}/bio.txt`)
+    fetch(`${import.meta.env.BASE_URL}characters/${namePath}/bio.txt`)
       .then(r => r.text())
       .then(t => setBio(t.trim()))
       .catch(() => setBio(''));
