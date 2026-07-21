@@ -10,7 +10,7 @@ export default function TitleScreen({ onStart, onGallery }: Props) {
         <h1 className="text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-300 via-amber-300 to-purple-300 tracking-widest uppercase mb-2">
           Magic Fight
         </h1>
-        <p className="text-purple-400 text-lg">Cast a spell!</p>
+        <p className="text-purple-400 text-lg">See the pattern; cast a spell!</p>
       </div>
 
       <div className="flex gap-4 mt-4">
@@ -27,10 +27,6 @@ export default function TitleScreen({ onStart, onGallery }: Props) {
           🎨 Gallery
         </button>
       </div>
-
-      <p className="text-purple-600 text-xs mt-8 max-w-sm text-center">
-        Find the pattern. Learn your strengths. Choose wisely - and choose fast.
-      </p>
     </div>
   );
 }
