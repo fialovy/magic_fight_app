@@ -62,13 +62,6 @@ function applyNoraForm(c: Character, formIdx: number, overrides?: NoraFormOverri
   };
 }
 
-let logCounter = 0;
-function makeLog(text: string, type: LogEntry['type']): LogEntry {
-  return { id: logCounter++, text, type };
-}
-
-function cap(s: string) { return s.charAt(0).toUpperCase() + s.slice(1); }
-
 function outcomeLabel(outcome: CollisionOutcome): string {
   switch (outcome) {
     case 'decisive-win':  return '✦ Decisive!';
@@ -327,8 +320,6 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
     setSelectedIdx(null);
     setLastOutcome(null);
     setOpponentSpell(null);
-    setPlayerSpeech(null);
-    setOpponentSpeech(null);
     setPhase('hand-shown');
 
     await delay(800);
@@ -352,6 +343,8 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
     });
     restartTimerRef.current = null;
 
+    setPlayerSpeech(null);
+    setOpponentSpeech(null);
     setPhase('resolving');
 
     // Determine outcome
@@ -626,7 +619,7 @@ function CharacterPanel({
       </div>
 
       {/* Name and HP always visible below */}
-      <span className="shrink-0 text-purple-200 text-sm font-semibold mt-2">{character.displayName}</span>
+      <span className="shrink-0 text-purple-200 text-lg font-semibold mt-2">{character.displayName}</span>
       <div className="shrink-0 w-full bg-slate-800 rounded-full h-3 border border-slate-700 mt-2">
         <div className={`h-full rounded-full transition-all duration-500 ${barColor}`} style={{ width: `${pct}%` }} />
       </div>
