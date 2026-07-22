@@ -59,9 +59,3 @@ export interface Character {
 }
 
 export type GameScreen = 'title' | 'character-select' | 'opponent-select' | 'fight' | 'game-over' | 'gallery';
-
-export interface LogEntry {
-  id: number;
-  text: string;
-  type: 'player' | 'opponent' | 'system' | 'taunt';
-}

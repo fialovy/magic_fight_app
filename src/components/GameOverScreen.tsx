@@ -95,7 +95,7 @@ export default function GameOverScreen({ winner, player, opponent, onNewGame }: 
         <div className="mt-10 text-center max-w-xl">
           <p className="text-amber-300 text-sm font-semibold tracking-wide uppercase mb-1">✦ Trophy cabinet</p>
           <p className="text-purple-400 text-xs mb-4">Click any combat portrait for a closer look.</p>
-          <div className="flex flex-wrap justify-center gap-3">
+          <div className="flex flex-nowrap justify-center gap-3 overflow-x-auto pb-1">
             {player.blastImagesRight.map((url, i) => (
               <button
                 key={i}
@@ -171,7 +171,7 @@ export default function GameOverScreen({ winner, player, opponent, onNewGame }: 
 function CharacterDisplay({ character, side, won }: { character: Character; side: 'player' | 'opponent'; won: boolean }) {
   return (
     <div className="flex flex-col items-center gap-2">
-      <div className={`w-32 h-32 rounded-xl border-2 p-1 ${won ? 'border-amber-400 shadow-lg shadow-amber-500/30' : 'border-rose-800 opacity-60'}`}>
+      <div className={`w-52 h-52 rounded-xl border-2 p-1 ${won ? 'border-amber-400 shadow-lg shadow-amber-500/30' : 'border-rose-800 opacity-60'}`}>
         <img
           src={side === 'player' ? character.imageRight : character.imageLeft}
           alt={character.displayName}

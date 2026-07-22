@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import type { Character, CollisionOutcome, LogEntry, PatternRule, ReactionsInfo, Spell, TimerResult, TauntsInfo } from '../types/game';
+import type { Character, CollisionOutcome, PatternRule, ReactionsInfo, Spell, TimerResult, TauntsInfo } from '../types/game';
 import { GAME_LIFE, PATTERN_TURNS, TIMER_FLOOR_MS, TIMER_START_MS, TIMER_STEP_MS } from '../types/game';
 import { pickReaction, pickTaunt } from '../engine/combat';
 import { sampleDominantColor } from '../engine/colorSampler';
@@ -67,36 +67,7 @@ function makeLog(text: string, type: LogEntry['type']): LogEntry {
   return { id: logCounter++, text, type };
 }
 
-function logClass(type: LogEntry['type']): string {
-  switch (type) {
-    case 'player':   return 'text-blue-300';
-    case 'opponent': return 'text-rose-300';
-    case 'taunt':    return 'text-amber-300 italic';
-    case 'system':   return 'text-purple-400';
-  }
-}
-
 function cap(s: string) { return s.charAt(0).toUpperCase() + s.slice(1); }
-
-function buildLog(
-  timerResult: TimerResult,
-  outcome: CollisionOutcome,
-  playerSpell: Spell | null,
-  oppSpell: Spell,
-  damage: number,
-  opponentName: string,
-): string {
-  const you  = playerSpell ? `your ${playerSpell.color} ${playerSpell.shape}` : 'nothing';
-  const them = `${opponentName}'s ${oppSpell.color} ${oppSpell.shape}`;
-  const slow = timerResult === 'timeout' ? ' (too slow)' : '';
-  switch (outcome) {
-    case 'decisive-win':  return `${cap(you)} blew straight through ${them}!${slow} −${damage} HP`;
-    case 'win':           return `${cap(you)} overpowered ${them}.${slow} −${damage} HP`;
-    case 'neutral':       return `${cap(you)} and ${them} cancelled out.${slow}`;
-    case 'loss':          return `${them} overpowered ${you}.${slow} −${damage} HP`;
-    case 'decisive-loss': return `${them} blew straight through${slow}! −${damage} HP`;
-  }
-}
 
 function outcomeLabel(outcome: CollisionOutcome): string {
   switch (outcome) {
@@ -135,9 +106,6 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
   const [noraForm, setNoraForm] = useState<{ idx: number; anim: BlastAnim | null }>({ idx: 0, anim: null });
   const [player,       setPlayer]       = useState(initialPlayer);
   const [opponent,     setOpponent]     = useState(initialOpponent);
-  const [log,          setLog]          = useState<LogEntry[]>([
-    makeLog(`⚔️  ${initialPlayer.displayName} vs ${initialOpponent.displayName} — begin!`, 'system'),
-  ]);
   const [phase,        setPhase]        = useState<TurnPhase>('between-turns');
   const [hand,         setHand]         = useState<Spell[]>([]);
   const [opponentSpell, setOpponentSpell] = useState<Spell | null>(null);
@@ -145,21 +113,19 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
   const [lastOutcome,  setLastOutcome]  = useState<CollisionOutcome | null>(null);
   const [blast,   setBlast]   = useState<BlastAnim | null>(null);
   const [hitAnim, setHitAnim] = useState<BlastAnim | null>(null);
-  const [taunt,        setTaunt]        = useState<string | null>(null);
+  const [playerSpeech,   setPlayerSpeech]   = useState<string | null>(null);
+  const [opponentSpeech, setOpponentSpeech] = useState<string | null>(null);
+  const [playerDmgFloat,   setPlayerDmgFloat]   = useState<{ text: string; key: number } | null>(null);
+  const [opponentDmgFloat, setOpponentDmgFloat] = useState<{ text: string; key: number } | null>(null);
   const [currentRule,  setCurrentRule]  = useState<PatternRule>(patternRef.current.rule);
   const [ruleAnnounce, setRuleAnnounce] = useState<{ rule: PatternRule; key: number } | null>({ rule: patternRef.current.rule, key: Date.now() });
 
   const particlesContainerRef = useRef<Container | null>(null);
 
-  const logEndRef           = useRef<HTMLDivElement>(null);
   const playerPortraitRef   = useRef<HTMLDivElement>(null);
   const opponentPortraitRef = useRef<HTMLDivElement>(null);
   const projectileRef       = useRef<HTMLDivElement>(null);
   const projectile2Ref      = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    logEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [log]);
 
   useEffect(() => {
     let c: Container | undefined;
@@ -361,7 +327,8 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
     setSelectedIdx(null);
     setLastOutcome(null);
     setOpponentSpell(null);
-    setTaunt(null);
+    setPlayerSpeech(null);
+    setOpponentSpeech(null);
     setPhase('hand-shown');
 
     await delay(800);
@@ -422,26 +389,20 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
     livePlayerRef.current  = newP;
     liveOpponentRef.current = newO;
 
-    const logType: LogEntry['type'] =
-      (outcome === 'win' || outcome === 'decisive-win') ? 'player' :
-      (outcome === 'loss' || outcome === 'decisive-loss') ? 'opponent' : 'system';
+    // Floating damage number over the hit character's portrait
+    if (damage > 0) {
+      const float = { text: `−${damage}`, key: Date.now() };
+      if (outcome === 'win' || outcome === 'decisive-win') setOpponentDmgFloat(float);
+      else if (outcome === 'loss' || outcome === 'decisive-loss') setPlayerDmgFloat(float);
+    }
 
-    const entries: LogEntry[] = [
-      makeLog(buildLog(timerResult, outcome, selectedSpell, oppSpell, damage, o.displayName), logType),
-    ];
-
+    // Speech bubbles
     if ((outcome === 'loss' || outcome === 'decisive-loss') && damage > 0) {
       const reaction = pickReaction(vP);
-      if (reaction) entries.push(makeLog(`${vP.displayName}: "${reaction}"`, 'taunt'));
+      if (reaction) setPlayerSpeech(reaction);
     }
-
     const newTaunt = pickTaunt(vO);
-    if (newTaunt) {
-      setTaunt(newTaunt);
-      entries.push(makeLog(`${vO.displayName}: "${newTaunt}"`, 'taunt'));
-    }
-
-    setLog(prev => [...prev, ...entries].slice(-60));
+    if (newTaunt) setOpponentSpeech(newTaunt);
 
     await delay(800);
 
@@ -508,86 +469,69 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
         <span className="text-purple-400 text-sm tracking-widest uppercase">Magic Fight</span>
       </div>
 
-      <div className="flex flex-col md:flex-row flex-1 gap-0">
+      {/* Arena row: portraits + center controls */}
+      <div className="flex flex-1 min-h-0">
         {/* Player */}
-        <div className="flex flex-col items-center justify-center p-4 md:w-64 shrink-0">
+        <div className="flex flex-col items-center p-4 w-72 xl:w-96 shrink-0">
           <CharacterPanel
             character={isNora(player) ? applyNoraForm(player, noraForm.idx, noraFormDataRef.current) : player} side="player"
-            blast={blast} hitAnim={hitAnim} transitionAnim={noraForm.anim} taunt={null}
+            blast={blast} hitAnim={hitAnim} transitionAnim={noraForm.anim}
+            speech={playerSpeech}
+            dmgFloat={playerDmgFloat} onDmgFloatEnd={() => setPlayerDmgFloat(null)}
             portraitRef={playerPortraitRef}
             shapeshiftControl={isNora(player) ? <NoraSegmented formIdx={noraForm.idx} onChange={handleNoraFormChange} /> : undefined}
           />
         </div>
 
         {/* Center */}
-        <div className="flex-1 flex flex-col px-2 py-4 min-h-48 md:min-h-0 gap-3">
-          {/* Combat log */}
-          <div
-            className="flex-1 overflow-y-auto rounded-xl bg-black/30 border border-purple-900 p-3 text-sm space-y-1.5"
-            style={{ maxHeight: '200px' }}
-          >
-            {log.map(entry => (
-              <p key={entry.id} className={logClass(entry.type)}>{entry.text}</p>
-            ))}
-            <div ref={logEndRef} />
-          </div>
-
-          {/* Opponent spell */}
-          <div className="flex flex-col items-center gap-1">
-            <div className="flex items-center h-5">
-              <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${currentRule.startsWith('avoid') ? 'text-rose-300 border-rose-700 bg-rose-950/50' : 'text-blue-300 border-blue-700 bg-blue-950/50'}`}>
-                {currentRule.startsWith('avoid') ? 'AVOID' : 'MATCH'}
+        <div className="flex-1 flex flex-col items-center justify-center gap-4 px-4">
+          <span className={`text-lg font-bold tracking-widest px-5 py-2 rounded-full border-2 ${currentRule.startsWith('avoid') ? 'text-rose-300 border-rose-600 bg-rose-950/60' : 'text-blue-300 border-blue-600 bg-blue-950/60'}`}>
+            {currentRule.startsWith('avoid') ? 'AVOID' : 'MATCH'}
+          </span>
+          <span className={`text-purple-500 text-xs uppercase tracking-widest ${showOpponentSpell ? '' : 'invisible'}`}>
+            Opponent's spell
+          </span>
+          {showOpponentSpell ? (
+            <SpellCard spell={opponentSpell!} size={150} glowing={phase === 'opponent-shown'} />
+          ) : (
+            <div className="w-36 h-36 rounded-xl border-2 border-purple-800/20 bg-purple-950/20 flex items-center justify-center">
+              <span className="text-purple-800 text-4xl select-none">?</span>
+            </div>
+          )}
+          <div className="h-5 flex items-center justify-center">
+            {phase === 'resolving' && lastOutcome && (
+              <span className={`text-sm font-bold ${outcomeColor(lastOutcome)}`}>
+                {outcomeLabel(lastOutcome)}
               </span>
-            </div>
-            <span className="text-purple-500 text-xs uppercase tracking-widest h-4">
-              {showOpponentSpell ? "Opponent's spell" : ''}
-            </span>
-            <div className="h-32 flex items-center justify-center">
-              {showOpponentSpell ? (
-                <SpellCard
-                  spell={opponentSpell!}
-                  size={110}
-                  glowing={phase === 'opponent-shown'}
-                />
-              ) : (
-                <div className="w-28 h-28 rounded-xl border-2 border-purple-800/20 bg-purple-950/20 flex items-center justify-center">
-                  <span className="text-purple-800 text-3xl select-none">?</span>
-                </div>
-              )}
-            </div>
-            <div className="h-5 flex items-center justify-center">
-              {phase === 'resolving' && lastOutcome && (
-                <span className={`text-sm font-bold ${outcomeColor(lastOutcome)}`}>
-                  {outcomeLabel(lastOutcome)}
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* Player hand */}
-          <div className="flex gap-2 justify-center">
-            {hand.map((spell, i) => (
-              <SpellCard
-                key={i}
-                spell={spell}
-                size={80}
-                onClick={() => handleCardClick(spell, i)}
-                selected={selectedIdx === i}
-                disabled={phase !== 'opponent-shown'}
-              />
-            ))}
+            )}
           </div>
         </div>
 
         {/* Opponent */}
-        <div className="flex flex-col items-center justify-center p-4 md:w-64 shrink-0">
+        <div className="flex flex-col items-center p-4 w-72 xl:w-96 shrink-0">
           <CharacterPanel
             character={isNora(opponent) ? applyNoraForm(opponent, noraForm.idx, noraFormDataRef.current) : opponent} side="opponent"
-            blast={blast} hitAnim={hitAnim} transitionAnim={noraForm.anim} taunt={taunt}
+            blast={blast} hitAnim={hitAnim} transitionAnim={noraForm.anim}
+            speech={opponentSpeech}
+            dmgFloat={opponentDmgFloat} onDmgFloatEnd={() => setOpponentDmgFloat(null)}
             portraitRef={opponentPortraitRef}
             shapeshiftControl={isNora(opponent) ? <NoraSegmented formIdx={noraForm.idx} onChange={handleNoraFormChange} /> : undefined}
           />
         </div>
+      </div>
+
+      {/* Hand row — sticky so spell choices are always visible */}
+      <div className="sticky bottom-0 z-20 py-5 flex justify-center gap-4 border-t border-purple-800/30 bg-indigo-950/90 backdrop-blur-sm">
+        {hand.map((spell, i) => (
+          <SpellCard
+            key={i}
+            spell={spell}
+            size={100}
+            onClick={() => handleCardClick(spell, i)}
+            selected={selectedIdx === i}
+            disabled={phase !== 'opponent-shown'}
+          />
+        ))}
       </div>
     </div>
   );
@@ -616,14 +560,16 @@ function NoraSegmented({ formIdx, onChange }: { formIdx: number; onChange: (i: n
 }
 
 function CharacterPanel({
-  character, side, blast, hitAnim, transitionAnim, taunt, portraitRef, shapeshiftControl,
+  character, side, blast, hitAnim, transitionAnim, speech, dmgFloat, onDmgFloatEnd, portraitRef, shapeshiftControl,
 }: {
   character: Character;
   side: 'player' | 'opponent';
   blast: BlastAnim | null;
   hitAnim: BlastAnim | null;
   transitionAnim: BlastAnim | null;
-  taunt: string | null;
+  speech: string | null;
+  dmgFloat: { text: string; key: number } | null;
+  onDmgFloatEnd: () => void;
   portraitRef?: React.RefObject<HTMLDivElement | null>;
   shapeshiftControl?: React.ReactNode;
 }) {
@@ -633,20 +579,31 @@ function CharacterPanel({
   const img = side === 'player' ? character.imageRight : character.imageLeft;
   const pct = Math.max(0, (character.life / GAME_LIFE) * 100);
   const barColor = pct > 60 ? 'bg-emerald-500' : pct > 30 ? 'bg-amber-500' : 'bg-rose-500';
+  const dmgColor = side === 'player' ? 'text-rose-400' : 'text-amber-300';
 
   return (
-    <div className="flex flex-col items-center w-56">
-      <div className="h-20 w-full flex items-center justify-center mb-2">
-        {side === 'opponent' && taunt && (
-          <div className="text-xs bg-white/10 border border-purple-600 text-purple-200 rounded-xl px-3 py-1.5 text-center max-w-full overflow-hidden line-clamp-4">
-            &ldquo;{taunt}&rdquo;
+    <div className="flex flex-col items-center w-full flex-1 min-h-0 relative">
+      {/* Speech bubble — absolutely outside the panel, never affects portrait size */}
+      {speech && (
+        <div className={`absolute top-1/4 z-20 w-36 ${side === 'player' ? 'left-full ml-3' : 'right-full mr-3'}`}>
+          <div className="relative bg-purple-950/90 border border-purple-500 rounded-xl px-3 py-2 text-sm text-purple-100 text-center break-words animate-fade-in">
+            &ldquo;{speech}&rdquo;
+            <div className={`absolute top-3 w-3 h-3 bg-purple-950/90 rotate-45
+              ${side === 'player'
+                ? '-left-1.5 border-l border-b border-purple-500'
+                : '-right-1.5 border-r border-t border-purple-500'
+              }`}
+            />
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
-      {shapeshiftControl && <div className="mb-2">{shapeshiftControl}</div>}
-      <div ref={portraitRef} className="relative w-52 h-52">
+      {shapeshiftControl && <div className="shrink-0 mb-2">{shapeshiftControl}</div>}
+
+      {/* Portrait always fills full panel width */}
+      <div ref={portraitRef} className="relative w-full flex-1 min-h-20">
         <img src={img} alt={character.displayName} className="w-full h-full object-contain" />
+
         {isMyBlast && blast && (
           <img key={blast.key} src={blast.url} alt="" className="absolute inset-0 w-full h-full object-contain blast-animate" />
         )}
@@ -656,15 +613,24 @@ function CharacterPanel({
         {isMyTransition && transitionAnim && (
           <img key={transitionAnim.key} src={transitionAnim.url} alt="" className="absolute inset-0 w-full h-full object-contain transition-animate" />
         )}
+        {dmgFloat && (
+          <div
+            key={dmgFloat.key}
+            className={`absolute left-1/2 top-1/4 damage-float text-6xl font-black select-none z-10 ${dmgColor}`}
+            style={{ textShadow: '0 2px 8px rgba(0,0,0,0.9), 0 0 20px rgba(0,0,0,0.6)' }}
+            onAnimationEnd={onDmgFloatEnd}
+          >
+            {dmgFloat.text}
+          </div>
+        )}
       </div>
 
-      <span className="text-purple-200 text-sm font-semibold mt-2">{character.displayName}</span>
-      <div className="h-5" />
-
-      <div className="w-full bg-slate-800 rounded-full h-3 border border-slate-700">
+      {/* Name and HP always visible below */}
+      <span className="shrink-0 text-purple-200 text-sm font-semibold mt-2">{character.displayName}</span>
+      <div className="shrink-0 w-full bg-slate-800 rounded-full h-3 border border-slate-700 mt-2">
         <div className={`h-full rounded-full transition-all duration-500 ${barColor}`} style={{ width: `${pct}%` }} />
       </div>
-      <span className="text-xs text-purple-400 tabular-nums mt-1">{character.life} / {GAME_LIFE} HP</span>
+      <span className="shrink-0 text-xs text-purple-400 tabular-nums mt-1">{character.life} / {GAME_LIFE} HP</span>
     </div>
   );
 }
