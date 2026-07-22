@@ -128,12 +128,6 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
   const projectile2Ref      = useRef<HTMLDivElement>(null);
 
 
-  function toHex(rgb: string): string {
-    const m = rgb.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
-    if (!m) return rgb; // already hex or unrecognised — pass through
-    return '#' + [m[1], m[2], m[3]].map(n => parseInt(n).toString(16).padStart(2, '0')).join('');
-  }
-
   function fireBurst(targetEl: HTMLElement, colors: string[], count: number, emoji?: string) {
     const rect = targetEl.getBoundingClientRect();
     const origin = {
@@ -246,7 +240,7 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
       await delay(836);
     }
 
-    const hex    = toHex(colorPromise ? await colorPromise : '#fbbf24');
+    const hex    = colorPromise ? await colorPromise : '#fbbf24';
     const colors = [hex, hex, '#ffffff'];
 
     // First hit at t=836
@@ -289,8 +283,8 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
     }
 
     await delay(800);
-    const pColor = toHex(pColorPromise ? await pColorPromise : '#a855f7');
-    const oColor = toHex(oColorPromise ? await oColorPromise : '#a855f7');
+    const pColor = pColorPromise ? await pColorPromise : '#a855f7';
+    const oColor = oColorPromise ? await oColorPromise : '#a855f7';
 
     const pEl = playerPortraitRef.current;
     const oEl = opponentPortraitRef.current;

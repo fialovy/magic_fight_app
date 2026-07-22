@@ -1,5 +1,5 @@
 const cache = new Map<string, string>();
-const FALLBACK = 'rgb(180, 100, 255)';
+const FALLBACK = '#b464ff';
 
 export async function sampleDominantColor(imageUrl: string): Promise<string> {
   if (cache.has(imageUrl)) return cache.get(imageUrl)!;
@@ -32,8 +32,9 @@ export async function sampleDominantColor(imageUrl: string): Promise<string> {
           totalSat += sat;
         }
 
+        const toHex = (n: number) => Math.round(n).toString(16).padStart(2, '0');
         const color = totalSat === 0 ? FALLBACK
-          : `rgb(${Math.round(sumR / totalSat)}, ${Math.round(sumG / totalSat)}, ${Math.round(sumB / totalSat)})`;
+          : `#${toHex(sumR / totalSat)}${toHex(sumG / totalSat)}${toHex(sumB / totalSat)}`;
         cache.set(imageUrl, color);
         resolve(color);
       } catch {

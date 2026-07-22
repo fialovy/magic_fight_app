@@ -65,11 +65,11 @@ export default function Gallery({ onBack }: Props) {
   );
 }
 
-function useBlastImages(imagePrefix: string, showLeft: boolean) {
+function useBlastImages(imagePrefix: string, showLeft: boolean): string[] {
   const blastCount = BLAST_COUNTS[imagePrefix] ?? 0;
-  return Array.from({ length: blastCount }, (_, i) => ({
-    url: `${import.meta.env.BASE_URL}images/characters/on_cast/${imagePrefix}_mf_blast_${i}_face_${showLeft ? 'left' : 'right'}.png`,
-  }));
+  return Array.from({ length: blastCount }, (_, i) =>
+    `${import.meta.env.BASE_URL}images/characters/on_cast/${imagePrefix}_mf_blast_${i}_face_${showLeft ? 'left' : 'right'}.png`
+  );
 }
 
 function NoraGallerySection() {
@@ -197,7 +197,7 @@ function BlastGrid({
   showLeft,
 }: {
   meta: CharacterMeta;
-  blastImages: { url: string }[];
+  blastImages: string[];
   showLeft: boolean;
 }) {
   return (
@@ -209,13 +209,13 @@ function BlastGrid({
           className="max-w-full max-h-full object-contain"
         />
       </div>
-      {blastImages.map((img, i) => (
+      {blastImages.map((url, i) => (
         <div
           key={i}
           className="aspect-square bg-purple-950/60 border border-purple-800 rounded-xl p-2 flex items-center justify-center relative group"
         >
           <img
-            src={img.url}
+            src={url}
             alt={`${meta.displayName} blast ${i}`}
             className="max-w-full max-h-full object-contain"
             onError={e => { (e.target as HTMLImageElement).style.opacity = '0.2'; }}

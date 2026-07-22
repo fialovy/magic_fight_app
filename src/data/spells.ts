@@ -2,6 +2,7 @@ import type {
   Spell, SpellColor, SpellShape, SpellFill, SpellRotation, SpellDimensionKey,
   CharacterAffinity, PatternRule, CollisionOutcome, TimerResult,
 } from '../types/game';
+import { pick } from '../engine/random';
 
 export const SPELL_COLORS:    SpellColor[]    = ['red', 'blue', 'green', 'purple', 'orange'];
 export const SPELL_SHAPES:    SpellShape[]    = ['heart', 'square', 'star', 'triangle'];
@@ -15,10 +16,6 @@ export const OUTCOME_DAMAGE: Record<CollisionOutcome, number> = {
   'loss':          2,
   'decisive-loss': 4,
 };
-
-function pick<T>(arr: T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)];
-}
 
 export function randomSpell(): Spell {
   return { color: pick(SPELL_COLORS), shape: pick(SPELL_SHAPES), fill: pick(SPELL_FILLS), rotation: pick(SPELL_ROTATIONS) };
