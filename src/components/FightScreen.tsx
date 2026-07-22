@@ -219,6 +219,7 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
 
     let colorPromise: Promise<string> | null = null;
     let firstBlastUrl: string | undefined;
+    const hitColorPromise = sampleDominantColor(hitUrl);
 
     // First orb fires at t=0
     if (images.length > 0) {
@@ -240,8 +241,9 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
       await delay(836);
     }
 
-    const hex    = colorPromise ? await colorPromise : '#fbbf24';
-    const colors = [hex, hex, '#ffffff'];
+    const hex     = colorPromise ? await colorPromise : '#fbbf24';
+    const hitHex  = await hitColorPromise;
+    const colors  = [hex, hitHex];
 
     // First hit at t=836
     const burstEmoji = firstBlastUrl ? blastEmojiFor(firstBlastUrl) : undefined;
@@ -288,8 +290,8 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
 
     const pEl = playerPortraitRef.current;
     const oEl = opponentPortraitRef.current;
-    if (pEl) fireBurst(pEl, [pColor, pColor, '#ffffff'], 25);
-    if (oEl) fireBurst(oEl, [oColor, oColor, '#ffffff'], 25);
+    if (pEl) fireBurst(pEl, [pColor, oColor], 25);
+    if (oEl) fireBurst(oEl, [oColor, pColor], 25);
     await delay(400);
   }
 
