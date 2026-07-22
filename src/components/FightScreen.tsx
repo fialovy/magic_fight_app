@@ -9,8 +9,7 @@ import {
 } from '../data/spells';
 import SpellCard from './SpellCard';
 import { BLAST_COUNTS } from 'virtual:blast-counts';
-import { tsParticles } from '@tsparticles/engine';
-import type { Container } from '@tsparticles/engine';
+import confetti from 'canvas-confetti';
 
 interface Props {
   initialPlayer: Character;
@@ -21,6 +20,16 @@ interface Props {
 type TurnPhase = 'between-turns' | 'hand-shown' | 'opponent-shown' | 'resolving';
 
 interface BlastAnim { url: string; key: number; side: 'player' | 'opponent'; }
+
+// Emoji burst for specific blast images — add any image stem here (without _face_left/right.png)
+const BLAST_EMOJI: Record<string, string> = {
+  winston_mf_blast_0: '🚂',
+};
+
+function blastEmojiFor(url: string): string | undefined {
+  const stem = (url.split('/').pop() ?? '').replace(/_face_(left|right)\.png$/, '');
+  return BLAST_EMOJI[stem];
+}
 
 const ORB_SHAPES: { clipPath: string; borderRadius: string }[] = [
   { clipPath: 'none',                                                                                                                                                       borderRadius: '50%' },
@@ -113,30 +122,11 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
   const [currentRule,  setCurrentRule]  = useState<PatternRule>(patternRef.current.rule);
   const [ruleAnnounce, setRuleAnnounce] = useState<{ rule: PatternRule; key: number } | null>({ rule: patternRef.current.rule, key: Date.now() });
 
-  const particlesContainerRef = useRef<Container | null>(null);
-
   const playerPortraitRef   = useRef<HTMLDivElement>(null);
   const opponentPortraitRef = useRef<HTMLDivElement>(null);
   const projectileRef       = useRef<HTMLDivElement>(null);
   const projectile2Ref      = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    let c: Container | undefined;
-    tsParticles.load({
-      id: 'fight-particles',
-      options: {
-        fullScreen:    { enable: true, zIndex: 99 },
-        fpsLimit:      120,
-        detectRetina:  true,
-        background:    { color: { value: 'transparent' } },
-        particles:     { number: { value: 0, limit: { value: 0 } } },
-        interactivity: { events: { onClick: { enable: false }, onHover: { enable: false } } },
-      },
-    }).then(container => {
-      if (container && !container.destroyed) { c = container; particlesContainerRef.current = container; }
-    });
-    return () => { c?.destroy(); particlesContainerRef.current = null; };
-  }, []);
 
   function toHex(rgb: string): string {
     const m = rgb.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
@@ -144,21 +134,20 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
     return '#' + [m[1], m[2], m[3]].map(n => parseInt(n).toString(16).padStart(2, '0')).join('');
   }
 
-  function fireBurst(targetEl: HTMLElement, colors: string[], count: number) {
-    const container = particlesContainerRef.current;
-    if (!container) return;
+  function fireBurst(targetEl: HTMLElement, colors: string[], count: number, emoji?: string) {
     const rect = targetEl.getBoundingClientRect();
-    container.particles.push(count, { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }, {
-      paint:  { color: { value: colors }, fill: { enable: true, opacity: 1 } },
-      shape:  { type: 'star' },
-      size:   { value: { min: 3, max: 8 } },
-      life:   { count: 1, duration: { value: { min: 0.4, max: 0.9 } } },
-      move: {
-        enable: true, speed: { min: 4, max: 12 }, decay: 0.12,
-        direction: 'none', outModes: { default: 'destroy' },
-      },
-      rotate: { value: { min: 0, max: 360 }, animation: { enable: true, speed: 20 } },
-    });
+    const origin = {
+      x: (rect.left + rect.width  / 2) / window.innerWidth,
+      y: (rect.top  + rect.height / 2) / window.innerHeight,
+    };
+    if (emoji) {
+      const shape = confetti.shapeFromText({ text: emoji, scalar: 2 });
+      confetti({ particleCount: count, spread: 70, origin, shapes: [shape], scalar: 2.5,
+        startVelocity: 22, gravity: 0.9, decay: 0.88 });
+    } else {
+      confetti({ particleCount: count, spread: 60, origin, colors,
+        shapes: ['star', 'circle'], startVelocity: 20, gravity: 0.8, decay: 0.9 });
+    }
   }
 
   async function showTransitionEffect(fromIdx: number, toIdx: number) {
@@ -235,10 +224,12 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
     const idxRef      = casterSide === 'player' ? playerBlastIdx : opponentBlastIdx;
 
     let colorPromise: Promise<string> | null = null;
+    let firstBlastUrl: string | undefined;
 
     // First orb fires at t=0
     if (images.length > 0) {
       const url = images[idxRef.current % images.length];
+      firstBlastUrl = url;
       idxRef.current++;
       colorPromise = sampleDominantColor(url);
       fireProjectile(url, casterSide);
@@ -259,14 +250,15 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
     const colors = [hex, hex, '#ffffff'];
 
     // First hit at t=836
+    const burstEmoji = firstBlastUrl ? blastEmojiFor(firstBlastUrl) : undefined;
     setHitAnim({ url: hitUrl, key: Date.now(), side: recipientSide });
-    if (recipientEl) fireBurst(recipientEl, colors, decisive ? 50 : 35);
+    if (recipientEl) fireBurst(recipientEl, colors, decisive ? 50 : 35, burstEmoji);
 
     if (decisive) {
       // Second orb arrives at t=300+836=1136 → wait 1136−836=300ms after first hit
       await delay(300);
       setHitAnim({ url: hitUrl, key: Date.now(), side: recipientSide });
-      if (recipientEl) fireBurst(recipientEl, colors, 30);
+      if (recipientEl) fireBurst(recipientEl, colors, 30, burstEmoji);
       await delay(700);
     } else {
       await delay(1364);

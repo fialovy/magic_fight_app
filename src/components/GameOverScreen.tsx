@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { Character } from '../types/game';
-import { tsParticles } from '@tsparticles/engine';
-import type { Container } from '@tsparticles/engine';
+import confetti from 'canvas-confetti';
 
 interface Props {
   winner: 'player' | 'opponent';
@@ -27,39 +26,19 @@ export default function GameOverScreen({ winner, player, opponent, onNewGame }: 
 
   useEffect(() => {
     if (!playerWon) return;
-    let c: Container | undefined;
-    tsParticles.load({
-      id: 'gameover-confetti',
-      options: {
-        fullScreen:    { enable: true, zIndex: 50 },
-        fpsLimit:      120,
-        detectRetina:  true,
-        background:    { color: { value: 'transparent' } },
-        particles:     { number: { value: 0, limit: { value: 0 } } },
-        interactivity: { events: { onClick: { enable: false }, onHover: { enable: false } } },
-      },
-    }).then(container => {
-      if (!container || container.destroyed) return;
-      c = container;
-      container.particles.push(70,
-        { x: window.innerWidth / 2, y: window.innerHeight * 0.2 },
-        {
-          paint:  { color: { value: ['#fbbf24', '#f59e0b', '#a855f7', '#ec4899', '#38bdf8', '#4ade80', '#f87171', '#fb923c'] }, fill: { enable: true, opacity: 1 } },
-          shape:  { type: ['star', 'circle', 'square'] },
-          size:   { value: { min: 5, max: 12 } },
-          life:    { count: 1, duration: { value: { min: 1.5, max: 3 } } },
-          move: {
-            enable:    true,
-            speed:     { min: 5, max: 15 },
-            direction: 'none',
-            outModes:  { default: 'destroy' },
-            gravity:   { enable: true, acceleration: 2.5 },
-          },
-          rotate: { value: { min: 0, max: 360 }, animation: { enable: true, speed: 10 } },
-        },
-      );
+    const colors = ['#fbbf24', '#f59e0b', '#a855f7', '#ec4899', '#38bdf8', '#4ade80', '#f87171', '#fb923c'];
+    confetti({
+      particleCount: 80,
+      spread: 100,
+      origin: { x: 0.5, y: 0.15 },
+      colors,
+      shapes: ['star', 'circle', 'square'],
+      startVelocity: 35,
+      gravity: 0.8,
+      decay: 0.92,
+      scalar: 1.1,
+      zIndex: 50,
     });
-    return () => c?.destroy();
   }, [playerWon]);
 
   const previewUrl  = previewIdx !== null ? player.blastImagesRight[previewIdx] : null;
