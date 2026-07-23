@@ -1,11 +1,11 @@
 {
-    "chance": 0.5,
-    "reactions": [
-        "*It blinks at you*",
-        "*It twitches its wings*",
-        "*disembodied voice from above that is definitely not the sprite* 🌿 Do you really want to bring harm to the guardian of the meadow? 🌿",
-        "*It pouts*",
-        "chirp",
-        "chirp"
-    ]
+  "chance": 0.5,
+  "general": [
+    "*It blinks at you*",
+    "*It twitches its wings*",
+    "*disembodied voice from above that is definitely not the sprite* 🌿 Do you really want to bring harm to the guardian of the meadow? 🌿",
+    "*It pouts*",
+    "chirp",
+    "chirp"
+  ]
 }

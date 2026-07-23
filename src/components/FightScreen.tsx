@@ -54,11 +54,12 @@ function isNora(c: Character) { return NORA_NAME_PATHS.has(c.namePath); }
 interface NoraFormOverride { tauntsInfo: TauntsInfo | null; reactionsInfo: ReactionsInfo | null; }
 
 function applyNoraForm(c: Character, formIdx: number, overrides?: NoraFormOverride[] | null): Character {
-  const { prefix, displayName } = NORA_FORM_DEFS[formIdx];
+  const { prefix, path, displayName } = NORA_FORM_DEFS[formIdx];
   const count = BLAST_COUNTS[prefix] ?? 0;
   const ov    = overrides?.[formIdx];
   return {
     ...c,
+    namePath: path,
     displayName,
     tauntsInfo:    ov ? ov.tauntsInfo    : c.tauntsInfo,
     reactionsInfo: ov ? ov.reactionsInfo : c.reactionsInfo,
@@ -384,7 +385,7 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
       const reaction = pickReaction(vP);
       if (reaction) setPlayerSpeech(reaction);
     }
-    const newTaunt = pickTaunt(vO);
+    const newTaunt = pickTaunt(vO, vP.namePath);
     if (newTaunt) setOpponentSpeech(newTaunt);
 
     await delay(800);

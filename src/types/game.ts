@@ -35,12 +35,13 @@ export const TIMER_FLOOR_MS  = 1100;
 
 export interface TauntsInfo {
   chance: number;
-  taunts: string[];
+  general: string[];
+  opponents?: Record<string, string[]>;
 }
 
 export interface ReactionsInfo {
   chance: number;
-  reactions: string[];
+  general: string[];
 }
 
 export interface Character {

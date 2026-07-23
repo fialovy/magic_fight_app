@@ -1,10 +1,10 @@
 {
-    "chance": 0.5,
-    "taunts": [
-        "chirp",
-        "chirp",
-        "chirp",
-        "*territorial clicks*",
-        "chirp"
-    ]
+  "chance": 0.5,
+  "general": [
+    "chirp",
+    "chirp",
+    "chirp",
+    "*territorial clicks*",
+    "chirp"
+  ]
 }

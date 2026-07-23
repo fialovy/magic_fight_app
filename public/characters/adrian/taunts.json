@@ -1,22 +1,76 @@
 {
-    "chance": 0.85,
-    "taunts": [
-        "I'm UTTERLY terrified.",
-        "Atrocious.",
-        "Sloppy.",
-        "Hideous form.",
-        "While we're at it, your outfit today is a disaster.",
-        "Can we get this over with?",
-        "Die, if you would.",
-        "Can I go home now?",
-        "Are we finished yet?",
-        "I have better things to do.",
-        "Sad.",
-        "Disappointing.",
-        "Disgraceful form.",
-        "You should come by my shop some time. Your magic may not have potential, but your wardrobe might!",
-        "Pshaw.",
-        "Pfffft.",
-        "*scowls*"
+  "chance": 0.85,
+  "general": [
+    "I'm UTTERLY terrified.",
+    "Atrocious.",
+    "Sloppy.",
+    "Hideous form.",
+    "While we're at it, your outfit today is a disaster.",
+    "Can we get this over with?",
+    "Die, if you would.",
+    "Can I go home now?",
+    "Are we finished yet?",
+    "I have better things to do.",
+    "Sad.",
+    "Questionable.",
+    "Devastating.",
+    "Disappointing.",
+    "Disgraceful form.",
+    "You should come by my shop some time. Your magic may not have potential, but your wardrobe might!",
+    "Pshaw.",
+    "Pfffft.",
+    "*scowls*",
+    "🙄"
+  ],
+  "opponents": {
+    "bastion": [
+      "Baz, really.",
+      "My brother, how far you have fallen."
+    ],
+    "winston": [
+      "Tell your shapeshifter I said hello. And good riddance!",
+      "Let me guess. There's a math problem for this."
+    ],
+    "winfield": [
+      "Surely you have other sweaters.",
+      "Argyle? After Labor Day?",
+      "I've seen better orbs.",
+      "Stop speaking German at me!"
+    ],
+    "sandoval": [
+      "Oh, my poor, dear cousin!",
+      "I'm not making you another pointy hat.",
+      "You're hopeless.",
+      "Let me guess: late for the mage council again."
+    ],
+    "stella": [
+      "Oh, my poor, dear cousin."
+    ],
+    "lucian": [
+      "You'll understand some day, cousin.",
+      "Oh, my poor, dear cousin."
+    ],
+    "anton": [
+      "Stop smiling.",
+      "What are you smiling about?",
+      "You have a calm about you that I find rather unsettling.",
+      "Do you have matcha this week? Or frozen yogurt perhaps?"
+    ],
+    "nora": [
+      "Put your tongue back in your mouth, you little twit!",
+      "Girl, did you see the latest Modern Banshee?",
+      "Ugh! THIS form again!"
+    ],
+    "norm": [
+      "Well, if it isn't the blockhead.",
+      "Dense.",
+      "Ah, yes. The teal klutz: but make it bigger."
+    ],
+    "meadow_sprite": [
+      "I don't even know what to do with you.",
+      "Would you stop that INCESSANT chirping?!?",
+      "Can you say anything other than CHIRP?!",
+      "What are you screeching about?"
     ]
+  }
 }
