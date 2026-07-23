@@ -1,16 +1,38 @@
 {
-    "chance": 0.1,
-    "taunts": [
-        "Unfortunate.",
-        "Luulen nähneeni parempaa.",
-        "Hmm.",
-        "Ich bin nicht beeindruckt.",
-        "Fascinating.",
-        "Oh.",
-        "You know, I envy the substrates. How are they so solitary without the loneliness?",
-        "I'd rather be roller skating.",
-        "In the likely event that I break your wand, sword, staff, mace, or other sub-par magical object, feel free to visit my artifact shop after the match.",
-        "Just a little something I learned in Minneapolis...",
-        "The orbs of disorder are not yours to know. Honestly, I'm only pretending that I know what they're doing half the time..."
-    ]
+  "chance": 0.1,
+  "general": [
+    "Unfortunate.",
+    "Luulen nähneeni parempaa.",
+    "Hmm.",
+    "Ich bin nicht beeindruckt.",
+    "Fascinating.",
+    "Oh.",
+    "You know, I envy the substrates. How are they so solitary without the loneliness?",
+    "I'd rather be roller skating.",
+    "In the likely event that I break your wand, sword, staff, mace, or other sub-par magical object, feel free to visit my artifact shop after the match.",
+    "Just a little something I learned in Minneapolis...",
+    "The orbs of disorder are not yours to know. Honestly, I'm only pretending that I know what they're doing half the time..."
+  ],
+  "opponents": {
+    "adrian": [
+      "You'll ruin the effectiveness of your scythes if you keep decorating them like that."
+    ],
+    "winston": [
+      "I'd like to see the train collection, if you don't mind.",
+      "Minnesota is and always will be superior to Wisconsin.",
+      "Please tell Norm to stop breaking his mace."
+    ],
+    "stella": [],
+    "nora": [],
+    "sandoval": [
+      "Voi ei. I thought I fixed your staff last week."
+    ],
+    "bastion": [],
+    "anton": [
+      "May I ask if blue moon will be available this week?"
+    ],
+    "lucian": [],
+    "norm": [],
+    "meadow_sprite": []
+  }
 }

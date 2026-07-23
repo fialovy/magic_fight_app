@@ -1,19 +1,51 @@
 {
-    "chance": 0.5,
-    "taunts": [
-        "You wanna piece of me, punk?!??",
-        "COME AT ME!",
-        "Every moment I spend dealing with you I spend away from a slice of cake.",
-        "Don't listen to Norm; he's an idiot!",
-        "My hand flapping looks better than THAT form, nerd!",
-        "EAT THIS!",
-        "WHY I OUGHTA",
-        "BOOOOOOM!",
-        "YEAH, OKAY!",
-        "NYAH NYAH",
-        "Norm couldn't do THIS!",
-        "Why are humans obsessed with their chromosomes?",
-        ":P",
-        "Not my species, not my prahblem, punk!"
+  "chance": 0.5,
+  "general": [
+    "You wanna piece of me, punk?!??",
+    "COME AT ME!",
+    "Every moment I spend dealing with you I spend away from a slice of cake.",
+    "Don't listen to Norm; he's an idiot!",
+    "My hand flapping looks better than THAT form, nerd!",
+    "EAT THIS!",
+    "WHY I OUGHTA",
+    "BOOOOOOM!",
+    "YEAH, OKAY!",
+    "NYAH NYAH",
+    "Norm couldn't do THIS!",
+    "Why are humans obsessed with their chromosomes? If you were wondering, I don't have any.",
+    ":P",
+    "Not my species, not my prahblem, punk!"
+  ],
+  "opponents": {
+    "adrian": [
+      "I'M THE ONLY CRAZY B**** ALLOWED UP IN HERE, PUNK!"
+    ],
+    "winston": [
+      "You're buying Potion Haus tonight 😜",
+      "* blows kiss *",
+      "You're worth a few minutes of eye contact <3",
+      "OKAY I LOVE YOU, PUNK! BUT I AM STLLL GONNA WIN!!!"
+    ],
+    "winfield": [],
+    "sandoval": [
+      "* blushes in substrate yellow *",
+      "I don't care about your 'holiday rush' - my cake orders come FIRST, ya hear?"
+    ],
+    "stella": [
+      "Girl."
+    ],
+    "bastion": [],
+    "anton": [
+      "IF YOU RUN OUTTA COOKIE DOUGH AGAIN..."
+    ],
+    "lucian": [
+      "YOU LITTLE GREEN TWIT!"
+    ],
+    "norm": [
+      "If I could taunt myself I would!"
+    ],
+    "meadow_sprite": [
+      "Uh, chirp?"
     ]
+  }
 }

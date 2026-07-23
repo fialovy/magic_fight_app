@@ -1,15 +1,39 @@
 {
-    "chance": 0.5,
-    "taunts": [
-        "I'm shaking in my brand new boots.",
-        "Come at me! Hehe!",
-        "BORING!",
-        "BWAHHH HA HA HA HA HA HA!",
-        "There's more where that came from!",
-        "Righteous!",
-        "Haha!",
-        "Boo-yah!",
-        "I swear, I can't get my hair to stay down.",
-        "HAH!"
-    ]
+  "chance": 0.5,
+  "general": [
+    "I'm shaking in my brand new boots.",
+    "Come at me! Hehe!",
+    "BORING!",
+    "BWAHHH HA HA HA HA HA HA!",
+    "There's more where that came from!",
+    "Righteous!",
+    "Haha!",
+    "Boo-yah!",
+    "I swear, I can't get my hair to stay down.",
+    "HAH!",
+    "ZOINK!"
+  ],
+  "opponents": {
+    "adrian": [
+      "WHADDUP, CUZ?!",
+      "You wanna fix my hair so badly, don't you?"
+    ],
+    "winston": [],
+    "winfield": [],
+    "sandoval": [
+      "WHADDUP, CUZ?!"
+    ],
+    "stella": [
+      "WHADDUP, CUZ?!"
+    ],
+    "bastion": [
+      "WHADDUP, CUZ?!"
+    ],
+    "anton": [
+      "Come on: peanut butter swirl! Please have peanut butter swirl this week!"
+    ],
+    "nora": [],
+    "norm": [],
+    "meadow_sprite": []
+  }
 }

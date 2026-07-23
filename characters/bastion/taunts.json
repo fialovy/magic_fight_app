@@ -1,16 +1,36 @@
 {
-    "chance": 0.35,
-    "taunts": [
-        "Oh...um. Sorry.",
-        "You okay, friend?",
-        "Why must we use magic for violence? :'(",
-        "Wow! You're really doing well!",
-        "Do you wanna get potions after this?",
-        "I...um...er...s-sorry",
-        "FOR MUSIC AND PEACE!",
-        "This is a little harder than I thought!",
-        "Could we play a board game instead?",
-        "Sorry!",
-        ":'("
+  "chance": 0.35,
+  "general": [
+    "Oh...um. Sorry.",
+    "You okay, friend?",
+    "Why must we use magic for violence? :'(",
+    "Wow! You're really doing well!",
+    "Do you wanna get potions after this?",
+    "I...um...er...s-sorry",
+    "FOR MUSIC AND PEACE!",
+    "This is a little harder than I thought!",
+    "Could we play a board game instead?",
+    "Sorry!",
+    ":'(",
+    "I don't think I wanna do this anymore."
+  ],
+  "opponents": {
+    "adrian": [
+      "I'm sorry, brother.",
+      "Oh, come on, A. Life's not so bad."
+    ],
+    "winston": [],
+    "winfield": [],
+    "sandoval": [],
+    "stella": [],
+    "lucian": [],
+    "anton": [
+      "I hope you have vanilla soft serve this week! 🍦"
+    ],
+    "nora": [],
+    "norm": [],
+    "meadow_sprite": [
+      "Oh, hey little guy! Or gal! Um...I'm not sure about this one."
     ]
+  }
 }

@@ -1,18 +1,43 @@
 {
-    "chance": 0.75,
-    "taunts": [
-        "I need some Dunkies. Is that what they call it?",
-        "Goin' hahd, ah we?",
-        "No suh!",
-        "they call me normageddon",
-        "I don't understand humans. Put on my favorite dress as Nora and they look at me like I'm lunch. Put it on as myself and they look at me like I stole THEIR lunch right outta the work fridge!",
-        "All I wanna do is go home and make myself a fluffahnuttah.",
-        "Whatever Nora says, she's LYIN'!",
-        "Nora's no fun.",
-        "BOOOOOOM, BABY!",
-        "YEEEEEAAAAAH! POW!",
-        "BAM!",
-        "COME AT ME!",
-        "Wicked good shot!"
-    ]
+  "chance": 0.75,
+  "general": [
+    "I need some Dunkies. Is that what they call it?",
+    "Goin' hahd, ah we?",
+    "No suh!",
+    "C'MON!",
+    "they call me normageddon",
+    "I don't understand humans. Put on my favorite dress as Nora and they look at me like I'm lunch. Put it on as myself and they look at me like I stole THEIR lunch right outta the work fridge!",
+    "All I wanna do is go home and make myself a fluffahnuttah.",
+    "Whatever Nora says, she's LYIN'!",
+    "Nora's no fun.",
+    "BOOOOOOM, BABY!",
+    "YEEEEEAAAAAH! POW!",
+    "BAM!",
+    "COME AT ME!",
+    "Wicked good shot!"
+  ],
+  "opponents": {
+    "adrian": [],
+    "winfield": [],
+    "winston": [
+      "Now hear me out: tonight, what if we-",
+      "Dammit, I love you!",
+      "I swear, I have no idea where your track pieces went!"
+    ],
+    "stella": [
+      "Girl. Same."
+    ],
+    "sandoval": [
+      "Alright, I'll talk to Winston for ya!"
+    ],
+    "bastion": [],
+    "anton": [
+      "You have strawberry this week, right?"
+    ],
+    "lucian": [],
+    "nora": [
+      "I'm way cuter this way. Or am I...?"
+    ],
+    "meadow_sprite": []
+  }
 }

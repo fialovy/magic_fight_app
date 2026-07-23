@@ -1,17 +1,49 @@
 {
-    "chance": 0.5,
-    "taunts": [
-        "Neat!",
-        "Huh.",
-        "Neato!",
-        "Huh; interesting.",
-        "Hehe!",
-        "Okay, hear me out: pistachio ice cream, but it's like, that electric green pudding flavor. And no nuts! And cookie dough pieces and a fudge swirl.",
-        "Okay, next ice cream idea: peanut butter road. It's like rocky road, but the base is peanut butter! And the swirl is peanut butter! Oh...I guess we can keep the marshmallow.",
-        "Nora once told me that she doesn't like chocolate ice cream. I thought it would resolve with a form change, but Norm is just as crazy!",
-        "NEAT!",
-        "oops 😄",
-        "I just thought of a new ice cream flavor!",
-        "There's a neat old Entropaean saying: If you ascribe a basic human flaw to an aspect of someone’s identity, then you do not see that person as human, because you are not allowing them basic humanity.."
+  "chance": 0.5,
+  "general": [
+    "Neat!",
+    "Huh.",
+    "N E A T!",
+    "Neat!",
+    "Very neat!",
+    "SUPER neat!",
+    "Neato!",
+    "Huh; interesting.",
+    "Hehe!",
+    "Okay, hear me out: pistachio ice cream, but it's like, that electric green pudding flavor. And no nuts! And cookie dough pieces and a fudge swirl.",
+    "Okay, next ice cream idea: peanut butter road. It's like rocky road, but the base is peanut butter! And the swirl is peanut butter! Oh...I guess we can keep the marshmallow.",
+    "Nora once told me that she doesn't like chocolate ice cream. I thought it would resolve with a form change, but Norm is just as crazy!",
+    "NEAT!",
+    "oops 😄",
+    "I just thought of a new ice cream flavor!",
+    "You look like you could use some ice cream.",
+    "There's a neat old Entropaean saying: If you ascribe a basic human flaw to an aspect of someone’s identity, then you do not see that person as human, because you are not allowing them basic humanity.."
+  ],
+  "opponents": {
+    "bastion": [],
+    "winston": [
+      "Just a heads up: I'm out of rocky road this week!"
+    ],
+    "winfield": [],
+    "sandoval": [
+      "We should do an ice cream cake collaboration!",
+      "Where do you order your eggs, my dude?"
+    ],
+    "stella": [],
+    "lucian": [
+      "Don't worry; the peanut butter swirl is in stock this week! I think."
+    ],
+    "adrian": [
+      "What are you frowning about? 😄"
+    ],
+    "nora": [
+      "HI NORA!"
+    ],
+    "norm": [
+      "HI NORM!"
+    ],
+    "meadow_sprite": [
+      "CHIRP yourself! 😄"
     ]
+  }
 }

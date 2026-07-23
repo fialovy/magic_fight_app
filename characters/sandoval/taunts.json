@@ -1,24 +1,48 @@
 {
-    "chance": 0.6,
-    "taunts": [
-        "YEAH! Frosty's on his GAME!",
-        "Whoooa, hey man! Slow down!",
-        "Feel the chill, my friend.",
-        "Pretty good, man!",
-        "YEAH! POW! BOOM BABY!",
-        "RIGHT ON!",
-        "My dude.",
-        "Is it Wednesday, my dude?",
-        "LET'S GO!",
-        "*whispers* ....snowflakesssss",
-        "Uh, hey. Have you seen my pointy hat?",
-        "SHEBAAMMMM!",
-        "I honestly have no idea what happened to my pointy hat.",
-        "Blizaaaaard!",
-        "KAPOOOWWW! WHOOOOOOO!",
-        "Duuuuuude",
-        "Aren't meadow sprites just the cutest? Problem is, you never know when one's a shapeshifter...",
-        "Oh, man. I'm late again and Winston's gonna kill me!",
-        "I'm totally not nervous, I'm totally not nervous, I'm totally not nervous..."
+  "chance": 0.6,
+  "general": [
+    "YEAH! Frosty's on his GAME!",
+    "Whoooa, hey man! Slow down!",
+    "Feel the chill, my friend.",
+    "Pretty good, man!",
+    "YEAH! POW! BOOM BABY!",
+    "RIGHT ON!",
+    "My dude.",
+    "Is it Wednesday, my dude?",
+    "LET'S GO!",
+    "*whispers* ....snowflakesssss",
+    "Uh, hey. Have you seen my pointy hat?",
+    "SHEBAAMMMM!",
+    "I honestly have no idea what happened to my pointy hat.",
+    "Blizaaaaard!",
+    "KAPOOOWWW! WHOOOOOOO!",
+    "Duuuuuude",
+    "Aren't meadow sprites just the cutest? Problem is, you never know when one's a shapeshifter...",
+    "Oh, man. I'm late again and Winston's gonna kill me!",
+    "I'm totally not nervous, I'm totally not nervous, I'm totally not nervous..."
+  ],
+  "opponents": {
+    "adrian": [
+      "Oh my god...not that stare again. PLEASE DON'T HURT ME, ADRIAN!!! 😭"
+    ],
+    "winston": [
+      "I swear, I won't be late again!"
+    ],
+    "winfield": [],
+    "nora": [],
+    "stella": [
+      "Stel. DUDE.",
+      "SISTERRRRR!!!"
+    ],
+    "bastion": [],
+    "anton": [
+      "I'm tellin' you, man: real. local. chickens. None of those conjured eggs.",
+      "Oh, man! I hope you have mint chip this week!"
+    ],
+    "lucian": [],
+    "norm": [],
+    "meadow_sprite": [
+      "Oh. My. God. THAT IS THE CUTEST FORM EVER!!! 😍"
     ]
+  }
 }
