@@ -59,3 +59,9 @@ export interface Character {
 }
 
 export type GameScreen = 'title' | 'character-select' | 'opponent-select' | 'fight' | 'game-over' | 'gallery';
+
+export interface TurnRecord {
+  rule:        PatternRule;
+  timerResult: TimerResult;
+  outcome:     CollisionOutcome;
+}

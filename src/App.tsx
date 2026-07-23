@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { Character, GameScreen } from './types/game';
+import type { Character, GameScreen, TurnRecord } from './types/game';
 import { loadCharacter } from './engine/loader';
 import TitleScreen from './components/TitleScreen';
 import CharacterSelectScreen from './components/CharacterSelectScreen';
@@ -14,6 +14,7 @@ export default function App() {
   const [winner, setWinner] = useState<'player' | 'opponent' | null>(null);
   const [finalPlayer, setFinalPlayer] = useState<Character | null>(null);
   const [finalOpponent, setFinalOpponent] = useState<Character | null>(null);
+  const [turnHistory, setTurnHistory] = useState<TurnRecord[]>([]);
 
   function handlePlayerSelected(char: Character) {
     setPlayer(char);
@@ -25,10 +26,11 @@ export default function App() {
     setScreen('fight');
   }
 
-  function handleGameOver(w: 'player' | 'opponent', p: Character, o: Character) {
+  function handleGameOver(w: 'player' | 'opponent', p: Character, o: Character, history: TurnRecord[]) {
     setWinner(w);
     setFinalPlayer(p);
     setFinalOpponent(o);
+    setTurnHistory(history);
     setScreen('game-over');
   }
 
@@ -38,6 +40,7 @@ export default function App() {
     setWinner(null);
     setFinalPlayer(null);
     setFinalOpponent(null);
+    setTurnHistory([]);
     setScreen('title');
   }
 
@@ -79,6 +82,7 @@ export default function App() {
           winner={winner}
           player={finalPlayer}
           opponent={finalOpponent}
+          turnHistory={turnHistory}
           onNewGame={resetGame}
         />
       ) : null;

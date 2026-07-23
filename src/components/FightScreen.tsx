@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import type { Character, CollisionOutcome, PatternRule, ReactionsInfo, Spell, TimerResult, TauntsInfo } from '../types/game';
+import type { Character, CollisionOutcome, PatternRule, ReactionsInfo, Spell, TimerResult, TauntsInfo, TurnRecord } from '../types/game';
 import { GAME_LIFE, PATTERN_TURNS, TIMER_FLOOR_MS, TIMER_START_MS, TIMER_STEP_MS } from '../types/game';
 import { pickReaction, pickTaunt } from '../engine/combat';
 import { sampleDominantColor } from '../engine/colorSampler';
@@ -14,7 +14,7 @@ import confetti from 'canvas-confetti';
 interface Props {
   initialPlayer: Character;
   initialOpponent: Character;
-  onGameOver: (winner: 'player' | 'opponent', player: Character, opponent: Character) => void;
+  onGameOver: (winner: 'player' | 'opponent', player: Character, opponent: Character, history: TurnRecord[]) => void;
 }
 
 type TurnPhase = 'between-turns' | 'hand-shown' | 'opponent-shown' | 'resolving';
@@ -103,6 +103,7 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
   const timerDurationRef = useRef(TIMER_START_MS);
   const noraFormDataRef  = useRef<NoraFormOverride[] | null>(null);
   const restartTimerRef  = useRef<(() => void) | null>(null);
+  const turnHistoryRef   = useRef<TurnRecord[]>([]);
 
   // Display state — noraForm combines idx + transition overlay so they always update in one render
   const [noraForm, setNoraForm] = useState<{ idx: number; anim: BlastAnim | null }>({ idx: 0, anim: null });
@@ -342,6 +343,7 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
       : checkPattern(rule, selectedSpell, oppSpell) ? 'correct' : 'wrong';
 
     const outcome = resolveCollision(rule, p.affinity, oppSpell, o.affinity, timerResult);
+    turnHistoryRef.current.push({ rule, timerResult, outcome });
     setLastOutcome(outcome);
 
     const damage = OUTCOME_DAMAGE[outcome];
@@ -389,8 +391,8 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
 
     const finalP = isNora(newP) ? applyNoraForm(newP, noraFormIdxRef.current, noraFormDataRef.current) : newP;
     const finalO = isNora(newO) ? applyNoraForm(newO, noraFormIdxRef.current, noraFormDataRef.current) : newO;
-    if (newO.life <= 0) { onGameOver('player',   finalP, finalO); return; }
-    if (newP.life <= 0) { onGameOver('opponent', finalP, finalO); return; }
+    if (newO.life <= 0) { onGameOver('player',   finalP, finalO, turnHistoryRef.current); return; }
+    if (newP.life <= 0) { onGameOver('opponent', finalP, finalO, turnHistoryRef.current); return; }
 
     // Rotate pattern every 5 turns
     const newTurnsLeft = turnsLeft - 1;

@@ -81,3 +81,12 @@ body {
   animation: float-up 1.5s ease-out forwards;
   pointer-events: none;
 }
+
+@keyframes border-beam {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.border-beam {
+  animation: border-beam 1.6s linear forwards;
+}
