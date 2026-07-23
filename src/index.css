@@ -4,6 +4,10 @@
   box-sizing: border-box;
 }
 
+.app-bg {
+  background-image: linear-gradient(to bottom right, #0e0938, #2e1065, #0f172a);
+}
+
 body {
   margin: 0;
 }

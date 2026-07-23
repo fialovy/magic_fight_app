@@ -431,7 +431,7 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
   const showOpponentSpell = opponentSpell && (phase === 'opponent-shown' || phase === 'resolving');
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-purple-950 to-slate-900 flex flex-col">
+    <div className="min-h-screen app-bg flex flex-col">
       <div ref={projectileRef}  className="fixed top-0 left-0 pointer-events-none" style={{ width: 36, height: 36, zIndex: 100, opacity: 0 }} />
       <div ref={projectile2Ref} className="fixed top-0 left-0 pointer-events-none" style={{ width: 36, height: 36, zIndex: 100, opacity: 0 }} />
 

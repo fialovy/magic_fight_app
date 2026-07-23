@@ -5,7 +5,7 @@ interface Props {
 
 export default function TitleScreen({ onStart, onGallery }: Props) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-purple-950 to-slate-900 flex flex-col items-center justify-center gap-6 px-4">
+    <div className="min-h-screen app-bg flex flex-col items-center justify-center gap-6 px-4">
       <div className="text-center">
         <h1 className="text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-300 via-amber-300 to-purple-300 tracking-widest uppercase mb-2">
           Magic Fight

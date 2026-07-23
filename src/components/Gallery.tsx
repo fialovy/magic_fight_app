@@ -36,7 +36,7 @@ const SECRET_IMAGES: { num: number; prefix: 'norm' | 'nora' }[] = [
 
 export default function Gallery({ onBack }: Props) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-purple-950 to-slate-900 px-4 py-8">
+    <div className="min-h-screen app-bg px-4 py-8">
       <div className="max-w-5xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div>
