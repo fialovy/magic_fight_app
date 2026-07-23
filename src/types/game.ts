@@ -42,6 +42,7 @@ export interface TauntsInfo {
 export interface ReactionsInfo {
   chance: number;
   general: string[];
+  opponents?: Record<string, string[]>;
 }
 
 export interface Character {

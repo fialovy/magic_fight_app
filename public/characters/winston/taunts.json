@@ -14,28 +14,46 @@
     "Can I show you my model trains?",
     "Are you sure you don't want to see my model trains?",
     "I am partial to the N scale (1:160) myself, but there are many model train paradigms to choose from.",
-    "I'm running out of room in the spire for my model train sets. Soon, I'll have to use Norm's room.",
-    "Win-ston? I think you mean 'wins a ton!'",
-    "Nora keeps hiding my train track pieces."
+    "Win-ston? I think you mean 'wins a ton!'"
   ],
   "opponents": {
     "adrian": [
-      "I dunno; I suppose I just like this jacket."
+      "I dunno; I suppose I just like this jacket.",
+      "Nora keeps hiding my train track pieces.",
+      "I'm running out of room in the spire for my model train sets. Soon, I'll have to use Norm's room."
     ],
     "winfield": [
-      "Now hold on, just because your state has a couple hundred lakes doesn't mean-"
+      "Now hold on, just because your state has a couple hundred lakes doesn't mean-",
+      "Nora keeps hiding my train track pieces.",
+      "I'm running out of room in the spire for my model train sets. Soon, I'll have to use Norm's room.",
+      "Did you catch the hockey game last night?"
     ],
-    "stella": [],
+    "stella": [
+      "Nora keeps hiding my train track pieces.",
+      "I'm running out of room in the spire for my model train sets. Soon, I'll have to use Norm's room."
+    ],
     "nora": [
       "The purple hair looked good on you.",
       "I love you but I must defeat you."
     ],
-    "sandoval": [],
-    "bastion": [],
-    "anton": [
-      "Do you have rocky road this week? Or that cookie sandwich thing?"
+    "sandoval": [
+      "Nora keeps hiding my train track pieces.",
+      "I'm running out of room in the spire for my model train sets. Soon, I'll have to use Norm's room.",
+      "Did you catch the hockey game last night?"
     ],
-    "lucian": [],
+    "bastion": [
+      "Nora keeps hiding my train track pieces.",
+      "I'm running out of room in the spire for my model train sets. Soon, I'll have to use Norm's room."
+    ],
+    "anton": [
+      "Do you have rocky road this week? Or that cookie sandwich thing?",
+      "Nora keeps hiding my train track pieces.",
+      "I'm running out of room in the spire for my model train sets. Soon, I'll have to use Norm's room."
+    ],
+    "lucian": [
+      "Nora keeps hiding my train track pieces.",
+      "I'm running out of room in the spire for my model train sets. Soon, I'll have to use Norm's room."
+    ],
     "norm": [
       "No way. We're not doing that tonight.",
       "I love you but I must defeat you."

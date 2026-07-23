@@ -24,6 +24,13 @@ interface BlastAnim { url: string; key: number; side: 'player' | 'opponent'; }
 // Emoji burst for specific blast images — add any image stem here (without _face_left/right.png)
 const BLAST_EMOJI: Record<string, string> = {
   winston_mf_blast_0: '🚂',
+  sandoval_mf_blast_2: '❄️',
+  winfield_mf_blast_1: '🤪',
+  bastion_mf_blast_0: '🌸',
+  bastion_mf_blast_4: '🥞',
+  lucian_mf_blast_3: '💖',
+  meadow_sprite_mf_blast_0: '🌿',
+  nora_mf_blast_5: '🌈'
 };
 
 function blastEmojiFor(url: string): string | undefined {
@@ -382,7 +389,7 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
 
     // Speech bubbles
     if ((outcome === 'loss' || outcome === 'decisive-loss') && damage > 0) {
-      const reaction = pickReaction(vP);
+      const reaction = pickReaction(vP, vO.namePath);
       if (reaction) setPlayerSpeech(reaction);
     }
     const newTaunt = pickTaunt(vO, vP.namePath);
