@@ -189,7 +189,7 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
     cb(spell);
   }
 
-  function fireProjectile(imageUrl: string, fromSide: 'player' | 'opponent', orbEl?: HTMLDivElement | null) {
+  function fireProjectile(color: string, fromSide: 'player' | 'opponent', orbEl?: HTMLDivElement | null) {
     const fromEl = fromSide === 'player' ? playerPortraitRef.current : opponentPortraitRef.current;
     const toEl   = fromSide === 'player' ? opponentPortraitRef.current : playerPortraitRef.current;
     const el = orbEl !== undefined ? orbEl : projectileRef.current;
@@ -205,17 +205,14 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
     const shape = ORB_SHAPES[Math.floor(Math.random() * ORB_SHAPES.length)];
     el.style.clipPath     = shape.clipPath;
     el.style.borderRadius = shape.borderRadius;
-
-    sampleDominantColor(imageUrl).then(color => {
-      el.style.background = `radial-gradient(circle, white 0%, ${color} 35%, transparent 70%)`;
-      el.style.filter     = `drop-shadow(0 0 10px ${color})`;
-      el.animate([
-        { transform: `translate(${fromX}px, ${fromY}px)`, opacity: 0 },
-        { transform: `translate(${fromX}px, ${fromY}px)`, opacity: 1,   offset: 0.07 },
-        { transform: `translate(${toX}px,   ${toY}px)`,   opacity: 0.9, offset: 0.88 },
-        { transform: `translate(${toX}px,   ${toY}px)`,   opacity: 0 },
-      ], { duration: 950, easing: 'ease-in', fill: 'none' });
-    });
+    el.style.background   = `radial-gradient(circle, white 0%, ${color} 35%, transparent 70%)`;
+    el.style.filter       = `drop-shadow(0 0 10px ${color})`;
+    el.animate([
+      { transform: `translate(${fromX}px, ${fromY}px)`, opacity: 0 },
+      { transform: `translate(${fromX}px, ${fromY}px)`, opacity: 1,   offset: 0.07 },
+      { transform: `translate(${toX}px,   ${toY}px)`,   opacity: 0.9, offset: 0.88 },
+      { transform: `translate(${toX}px,   ${toY}px)`,   opacity: 0 },
+    ], { duration: 950, easing: 'ease-in', fill: 'none' });
   }
 
   async function showBlast(caster: Character, casterSide: 'player' | 'opponent', recipient: Character, outcome: CollisionOutcome) {
@@ -226,32 +223,36 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
     const decisive    = outcome === 'decisive-win' || outcome === 'decisive-loss';
     const idxRef      = casterSide === 'player' ? playerBlastIdx : opponentBlastIdx;
 
-    let colorPromise: Promise<string> | null = null;
     let firstBlastUrl: string | undefined;
+
+    // Kick off hit-image color sampling immediately so it's ready when the orb lands
     const hitColorPromise = sampleDominantColor(hitUrl);
 
-    // First orb fires at t=0
+    // First orb — await color first so delay() starts in sync with the animation
+    let hex = '#fbbf24';
     if (images.length > 0) {
       const url = images[idxRef.current % images.length];
       firstBlastUrl = url;
       idxRef.current++;
-      colorPromise = sampleDominantColor(url);
-      fireProjectile(url, casterSide);
+      // Resolving color ensures the image is decoded; delay starts only after animation fires
+      hex = await sampleDominantColor(url);
+      fireProjectile(hex, casterSide);
       setBlast({ url, key: Date.now(), side: casterSide });
     }
 
     if (decisive && images.length > 0) {
-      // Second orb fires at t=300 — both in flight simultaneously
+      // Second orb fires at t=300 — sample its color in parallel with the wait
+      const url2 = images[idxRef.current % images.length];
+      const hex2Promise = sampleDominantColor(url2);
       await delay(300);
-      fireProjectile(images[idxRef.current % images.length], casterSide, projectile2Ref.current);
+      fireProjectile(await hex2Promise, casterSide, projectile2Ref.current);
       idxRef.current++;
       await delay(536); // 300+536 = 836 → first orb arrives
     } else {
       await delay(836);
     }
 
-    const hex     = colorPromise ? await colorPromise : '#fbbf24';
-    const hitHex  = await hitColorPromise;
+    const hitHex = await hitColorPromise;
     const colors  = [hex, hitHex];
 
     // First hit at t=836
@@ -277,25 +278,19 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
     const pImages = vP.blastImagesRight;
     const oImages = vO.blastImagesLeft;
 
-    let pColorPromise: Promise<string> | null = null;
-    let oColorPromise: Promise<string> | null = null;
+    // Capture URLs before incrementing, then resolve both colors in parallel
+    const pUrl = pImages.length > 0 ? pImages[playerBlastIdx.current++   % pImages.length] : null;
+    const oUrl = oImages.length > 0 ? oImages[opponentBlastIdx.current++ % oImages.length] : null;
+    const [pColor, oColor] = await Promise.all([
+      pUrl ? sampleDominantColor(pUrl) : Promise.resolve('#a855f7'),
+      oUrl ? sampleDominantColor(oUrl) : Promise.resolve('#a855f7'),
+    ]);
 
-    if (pImages.length > 0) {
-      const url = pImages[playerBlastIdx.current % pImages.length];
-      playerBlastIdx.current++;
-      pColorPromise = sampleDominantColor(url);
-      fireProjectile(url, 'player');
-    }
-    if (oImages.length > 0) {
-      const url = oImages[opponentBlastIdx.current % oImages.length];
-      opponentBlastIdx.current++;
-      oColorPromise = sampleDominantColor(url);
-      fireProjectile(url, 'opponent', projectile2Ref.current);
-    }
+    // Both colors resolved → fire both projectiles, then start delay
+    if (pUrl) fireProjectile(pColor, 'player');
+    if (oUrl) fireProjectile(oColor, 'opponent', projectile2Ref.current);
 
     await delay(800);
-    const pColor = pColorPromise ? await pColorPromise : '#a855f7';
-    const oColor = oColorPromise ? await oColorPromise : '#a855f7';
 
     const pEl = playerPortraitRef.current;
     const oEl = opponentPortraitRef.current;
