@@ -1,4 +1,13 @@
 {
   "chance": 0,
-  "general": []
+  "general": [
+    "Ope!",
+    "Ah, jeez."
+  ],
+  "opponents": {
+    "nora": [
+      "🎵 You're  born of a jackal... you're beautifuuuul! 🎵"
+    ],
+    "norm": []
+  }
 }

@@ -9,5 +9,18 @@
     "DAMN!",
     "WHADDYA CALL THAT, PUNK?",
     "WHY I OUGHTA!"
-  ]
+  ],
+  "opponents": {
+    "bastion": [],
+    "winston": [
+      "How could you do this to me, Win?",
+      "Try that again and I won't do that Nora form you like for a week!",
+      "If you have to clean me up off the floor after this, at least I'll enjoy it."
+    ],
+    "winfield": [],
+    "sandoval": [],
+    "stella": [],
+    "lucian": [],
+    "anton": []
+  }
 }

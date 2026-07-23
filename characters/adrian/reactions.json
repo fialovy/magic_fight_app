@@ -6,5 +6,44 @@
     "I'll return that in kind.",
     "Uh! Another thread out of place!",
     "Unbelievable."
-  ]
+  ],
+  "opponents": {
+    "bastion": [
+      "Baz, really.",
+      "Bastion."
+    ],
+    "winston": [
+      "Let me guess. There's a math problem for this.",
+      "Winston.",
+      "Whatever you say, professor."
+    ],
+    "winfield": [
+      "I've seen better orbs.",
+      "Winfield."
+    ],
+    "sandoval": [
+      "Sando."
+    ],
+    "stella": [
+      "Stella."
+    ],
+    "lucian": [
+      "Lucian."
+    ],
+    "anton": [
+      "Anton.",
+      "You have some nerve!"
+    ],
+    "nora": [
+      "Nora."
+    ],
+    "norm": [
+      "Well, if it isn't the blockhead.",
+      "Dense.",
+      "Ah, yes. The teal klutz: but make it bigger."
+    ],
+    "meadow_sprite": [
+      "A lot of chirping for such a vulnerable little creature."
+    ]
+  }
 }
