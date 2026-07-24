@@ -15,15 +15,18 @@
   ],
   "opponents": {
     "adrian": [
-      "You'll ruin the effectiveness of your scythes if you keep decorating them like that."
+      "You'll ruin the effectiveness of your scythes if you keep decorating them like that.",
+      "What is a costume without a weapon?"
     ],
     "winston": [
       "I'd like to see the train collection, if you don't mind.",
       "Minnesota is and always will be superior to Wisconsin.",
-      "Please tell Norm to stop breaking his mace."
+      "Please tell Norm to stop breaking his mace; I'm really tired of fixing it."
     ],
     "stella": [],
-    "nora": [],
+    "nora": [
+        "What did I tell you about using the mace setting I optimized for your other form?"
+    ],
     "sandoval": [
       "Voi ei. I thought I fixed your staff last week."
     ],
