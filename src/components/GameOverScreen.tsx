@@ -50,7 +50,7 @@ export default function GameOverScreen({ winner, player, opponent, turnHistory, 
         </p>
       </div>
 
-      <div className="flex items-center gap-12 mb-10">
+      <div className="flex flex-col md:flex-row items-center gap-6 md:gap-12 mb-10">
         <CharacterDisplay character={player}   side="player"   won={playerWon}  />
         <span className="text-4xl font-bold text-purple-500">vs</span>
         <CharacterDisplay character={opponent} side="opponent" won={!playerWon} />
@@ -125,8 +125,8 @@ function CharacterDisplay({ character, side, won }: { character: Character; side
   const barColor = pct > 60 ? 'bg-emerald-500' : pct > 30 ? 'bg-amber-500' : 'bg-rose-500';
 
   return (
-    <div className="flex flex-col items-center gap-2 w-40">
-      <div className={`w-36 h-36 rounded-xl border-2 p-1 ${won ? 'border-amber-400 shadow-lg shadow-amber-500/30' : 'border-rose-800 opacity-60'}`}>
+    <div className="flex flex-col items-center gap-2 w-52 md:w-40">
+      <div className={`w-48 h-48 md:w-36 md:h-36 rounded-xl border-2 p-1 ${won ? 'border-amber-400 shadow-lg shadow-amber-500/30' : 'border-rose-800 opacity-60'}`}>
         <img
           src={side === 'player' ? character.imageRight : character.imageLeft}
           alt={character.displayName}

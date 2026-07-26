@@ -431,6 +431,7 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
     ).then(data => { noraFormDataRef.current = data; });
   }, []);
 
+
   const showOpponentSpell = opponentSpell && (phase === 'opponent-shown' || phase === 'resolving');
 
   return (
@@ -442,23 +443,23 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
         <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
           <span
             key={ruleAnnounce.key}
-            className={`text-7xl font-extrabold tracking-widest uppercase rule-pulse select-none ${ruleAnnounce.rule.startsWith('avoid') ? 'text-rose-400' : 'text-blue-300'}`}
+            className={`text-5xl md:text-7xl font-extrabold tracking-widest uppercase rule-pulse select-none ${ruleAnnounce.rule.startsWith('avoid') ? 'text-rose-400' : 'text-blue-300'}`}
             onAnimationEnd={() => setRuleAnnounce(null)}
           >
             {ruleAnnounce.rule.startsWith('avoid') ? 'AVOID' : 'MATCH'}{' '}
-            <span className="text-4xl">({ruleAnnounce.rule.includes('+') ? 'x2' : 'x1'})</span>
+            <span className="text-3xl md:text-4xl">({ruleAnnounce.rule.includes('+') ? 'x2' : 'x1'})</span>
           </span>
         </div>
       )}
 
-      <div className="text-center py-3 border-b border-purple-800">
+      <div className="text-center py-2 md:py-3 border-b border-purple-800">
         <span className="text-purple-400 text-sm tracking-widest uppercase">Magic Fight</span>
       </div>
 
       {/* Arena row: portraits + center controls */}
-      <div className="flex flex-1 min-h-0">
-        {/* Player */}
-        <div className="flex flex-col items-center p-4 w-72 xl:w-96 shrink-0">
+      <div className="flex flex-1 min-h-0 flex-col md:flex-row">
+        {/* Player — mobile: bottom (order-3); desktop: left (md:order-1) */}
+        <div className="order-3 md:order-1 flex flex-col items-center p-2 md:p-4 w-full md:w-72 xl:w-96 md:shrink-0 h-[30vh] md:h-auto">
           <CharacterPanel
             character={isNora(player) ? applyNoraForm(player, noraForm.idx, noraFormDataRef.current) : player} side="player"
             blast={blast} hitAnim={hitAnim} transitionAnim={noraForm.anim}
@@ -469,21 +470,23 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
           />
         </div>
 
-        {/* Center */}
-        <div className="flex-1 flex flex-col items-center justify-center gap-4 px-4">
+        {/* Center — always middle */}
+        <div className="order-2 flex-1 flex flex-col items-center justify-center gap-2 md:gap-4 px-4 py-2 md:py-0">
           <span className={`text-lg font-bold tracking-widest px-5 py-2 rounded-full border-2 ${currentRule.startsWith('avoid') ? 'text-rose-300 border-rose-600 bg-rose-950/60' : 'text-blue-300 border-blue-600 bg-blue-950/60'}`}>
             {currentRule.startsWith('avoid') ? 'AVOID' : 'MATCH'}
           </span>
-          <span className={`text-purple-500 text-xs uppercase tracking-widest ${showOpponentSpell ? '' : 'invisible'}`}>
+          <span className={`hidden md:block text-purple-500 text-xs uppercase tracking-widest ${showOpponentSpell ? '' : 'invisible'}`}>
             Opponent's spell
           </span>
-          {showOpponentSpell ? (
-            <SpellCard spell={opponentSpell!} size={150} glowing={phase === 'opponent-shown'} />
-          ) : (
-            <div className="w-36 h-36 rounded-xl border-2 border-purple-800/20 bg-purple-950/20 flex items-center justify-center">
-              <span className="text-purple-800 text-4xl select-none">?</span>
-            </div>
-          )}
+          <div className="w-24 h-24 md:w-36 md:h-36">
+            {showOpponentSpell ? (
+              <SpellCard spell={opponentSpell!} glowing={phase === 'opponent-shown'} />
+            ) : (
+              <div className="w-full h-full rounded-xl border-2 border-purple-800/20 bg-purple-950/20 flex items-center justify-center">
+                <span className="text-purple-800 text-4xl select-none">?</span>
+              </div>
+            )}
+          </div>
           <div className="h-5 flex items-center justify-center">
             {phase === 'resolving' && lastOutcome && (
               <span className={`text-sm font-bold ${outcomeColor(lastOutcome)}`}>
@@ -493,8 +496,8 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
           </div>
         </div>
 
-        {/* Opponent */}
-        <div className="flex flex-col items-center p-4 w-72 xl:w-96 shrink-0">
+        {/* Opponent — mobile: top (order-1); desktop: right (md:order-3) */}
+        <div className="order-1 md:order-3 flex flex-col items-center p-2 md:p-4 w-full md:w-72 xl:w-96 md:shrink-0 h-[30vh] md:h-auto">
           <CharacterPanel
             character={isNora(opponent) ? applyNoraForm(opponent, noraForm.idx, noraFormDataRef.current) : opponent} side="opponent"
             blast={blast} hitAnim={hitAnim} transitionAnim={noraForm.anim}
@@ -507,16 +510,16 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
       </div>
 
       {/* Hand row — sticky so spell choices are always visible */}
-      <div className="sticky bottom-0 z-20 py-5 flex justify-center gap-4 border-t border-purple-800/30 bg-indigo-950/90 backdrop-blur-sm">
+      <div className="sticky bottom-0 z-20 py-3 md:py-5 flex justify-center gap-2 md:gap-4 border-t border-purple-800/30 bg-indigo-950/90 backdrop-blur-sm">
         {hand.map((spell, i) => (
-          <SpellCard
-            key={i}
-            spell={spell}
-            size={100}
-            onClick={() => handleCardClick(spell, i)}
-            selected={selectedIdx === i}
-            disabled={phase !== 'opponent-shown'}
-          />
+          <div key={i} className="w-20 h-20 md:w-24 md:h-24 shrink-0">
+            <SpellCard
+              spell={spell}
+              onClick={() => handleCardClick(spell, i)}
+              selected={selectedIdx === i}
+              disabled={phase !== 'opponent-shown'}
+            />
+          </div>
         ))}
       </div>
     </div>
@@ -571,10 +574,17 @@ function CharacterPanel({
     <div className="flex flex-col items-center w-full flex-1 min-h-0 relative">
       {/* Speech bubble — absolutely outside the panel, never affects portrait size */}
       {speech && (
-        <div className={`absolute top-1/4 z-20 w-36 ${side === 'player' ? 'left-full ml-3' : 'right-full mr-3'}`}>
+        <div className={[
+          'absolute z-20 w-36',
+          'left-1/2 -translate-x-1/2 bottom-14 md:bottom-auto',
+          'md:top-1/4 md:translate-x-0',
+          side === 'player'
+            ? 'md:left-full md:ml-3'
+            : 'md:left-auto md:right-full md:mr-3',
+        ].join(' ')}>
           <div className="relative bg-purple-950/90 border border-purple-500 rounded-xl px-3 py-2 text-sm text-purple-100 text-center break-words animate-fade-in">
             &ldquo;{speech}&rdquo;
-            <div className={`absolute top-3 w-3 h-3 bg-purple-950/90 rotate-45
+            <div className={`hidden md:block absolute top-3 w-3 h-3 bg-purple-950/90 rotate-45
               ${side === 'player'
                 ? '-left-1.5 border-l border-b border-purple-500'
                 : '-right-1.5 border-r border-t border-purple-500'
@@ -586,8 +596,8 @@ function CharacterPanel({
 
       {shapeshiftControl && <div className="shrink-0 mb-2">{shapeshiftControl}</div>}
 
-      {/* Portrait always fills full panel width */}
-      <div ref={portraitRef} className="relative w-full flex-1 min-h-20">
+      {/* Portrait — player: order-2 so the name/HP block (order-1) floats above it */}
+      <div ref={portraitRef} className={`relative w-full flex-1 min-h-20${side === 'player' ? ' order-2 mt-1 md:mt-2' : ''}`}>
         <img src={img} alt={character.displayName} className="w-full h-full object-contain" />
 
         {isMyBlast && blast && (
@@ -611,12 +621,14 @@ function CharacterPanel({
         )}
       </div>
 
-      {/* Name and HP always visible below */}
-      <span className="shrink-0 text-purple-200 text-lg font-semibold mt-2">{character.displayName}</span>
-      <div className="shrink-0 w-full bg-slate-800 rounded-full h-3 border border-slate-700 mt-2">
-        <div className={`h-full rounded-full transition-all duration-500 ${barColor}`} style={{ width: `${pct}%` }} />
+      {/* Name/HP — player: order-1 (appears above portrait); opponent: default order (below) */}
+      <div className={`shrink-0 w-full flex flex-col items-center${side === 'player' ? ' order-1' : ' mt-1 md:mt-2'}`}>
+        <span className="text-purple-200 text-base md:text-lg font-semibold">{character.displayName}</span>
+        <div className="w-full max-w-48 md:max-w-none bg-slate-800 rounded-full h-2 md:h-3 border border-slate-700 mt-1 md:mt-2">
+          <div className={`h-full rounded-full transition-all duration-500 ${barColor}`} style={{ width: `${pct}%` }} />
+        </div>
+        <span className="text-xs text-purple-400 tabular-nums mt-0.5">{character.life} / {GAME_LIFE} HP</span>
       </div>
-      <span className="shrink-0 text-xs text-purple-400 tabular-nums mt-1">{character.life} / {GAME_LIFE} HP</span>
     </div>
   );
 }

@@ -31,10 +31,12 @@ interface Props {
   disabled?: boolean;
   /** Pulse glow — used for the opponent's revealed spell */
   glowing?: boolean;
+  /** Explicit pixel size. Omit to let the parent CSS container control width/height. */
   size?: number;
+  className?: string;
 }
 
-export default function SpellCard({ spell, onClick, selected, disabled, glowing, size = 80 }: Props) {
+export default function SpellCard({ spell, onClick, selected, disabled, glowing, size, className }: Props) {
   const uid = useId();
   const color  = SPELL_COLOR_HEX[spell.color];
   const fillId = `sf-${uid}`;
@@ -55,8 +57,10 @@ export default function SpellCard({ spell, onClick, selected, disabled, glowing,
         'transition-all duration-150 select-none',
         borderCls,
         disabled ? 'opacity-40 cursor-default' : 'cursor-pointer',
+        size === undefined ? 'w-full h-full p-[10%]' : '',
+        className ?? '',
       ].join(' ')}
-      style={{ width: size, height: size, padding: Math.round(size * 0.1) }}
+      style={size !== undefined ? { width: size, height: size, padding: Math.round(size * 0.1) } : undefined}
     >
       <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
         <defs>
