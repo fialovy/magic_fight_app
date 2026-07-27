@@ -148,10 +148,10 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
     if (emoji) {
       const shape = confetti.shapeFromText({ text: emoji, scalar: 2 });
       confetti({ particleCount: n, spread: mobile ? 50 : 70, origin, shapes: [shape], scalar: 2.5,
-        startVelocity: mobile ? 16 : 22, gravity: 0.9, decay: mobile ? 0.82 : 0.88 });
+        startVelocity: mobile ? 16 : 22, gravity: 0.9, decay: mobile ? 0.7 : 0.88 });
     } else {
       confetti({ particleCount: n, spread: mobile ? 45 : 60, origin, colors,
-        shapes: ['star', 'circle'], startVelocity: mobile ? 14 : 20, gravity: 0.8, decay: mobile ? 0.82 : 0.9 });
+        shapes: ['star', 'circle'], startVelocity: mobile ? 14 : 20, gravity: 0.8, decay: mobile ? 0.7 : 0.9 });
     }
   }
 
