@@ -39,7 +39,7 @@ export default function GameOverScreen({ winner, player, opponent, turnHistory, 
       startVelocity: mobile ? 22 : 35,
       gravity: 0.8,
       decay: 0.92,
-      ticks: mobile ? 100 : 200,
+      ticks: mobile ? 80 : 150,
       scalar: 1.1, zIndex: 50,
     });
   }, [playerWon]);

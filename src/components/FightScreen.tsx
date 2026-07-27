@@ -145,13 +145,12 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
     };
     const mobile = window.innerWidth < 768;
     const n = mobile ? Math.round(count * 0.5) : count;
+    const shared = { spread: 65, startVelocity: mobile ? 16 : 22, gravity: 0.9, decay: 0.88, ticks: mobile ? 55 : 120 };
     if (emoji) {
       const shape = confetti.shapeFromText({ text: emoji, scalar: 2 });
-      confetti({ particleCount: n, spread: 70, origin, shapes: [shape], scalar: 2.5,
-        startVelocity: mobile ? 16 : 22, gravity: 0.9, decay: 0.88, ticks: mobile ? 70 : 160 });
+      confetti({ particleCount: n, origin, shapes: [shape], scalar: 2.5, ...shared });
     } else {
-      confetti({ particleCount: n, spread: 60, origin, colors,
-        shapes: ['star', 'circle'], startVelocity: mobile ? 14 : 20, gravity: 0.8, decay: 0.9, ticks: mobile ? 70 : 160 });
+      confetti({ particleCount: n, origin, colors, shapes: ['star', 'circle'], ...shared });
     }
   }
 
