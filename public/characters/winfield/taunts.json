@@ -11,6 +11,7 @@
     "I'd rather be roller skating.",
     "In the likely event that I break your wand, sword, staff, mace, or other sub-par magical object, feel free to visit my artifact shop after the match.",
     "Just a little something I learned in Minneapolis...",
+    "You should check out my finished basement some time.",
     "The orbs of disorder are not yours to know. Honestly, I'm only pretending that I know what they're doing half the time..."
   ],
   "opponents": {
@@ -35,7 +36,9 @@
       "May I ask if blue moon will be available this week?"
     ],
     "lucian": [],
-    "norm": [],
+    "norm": [
+        "Please tell Winston to stop calling his wand a sword. Aspiration is not accuracy."
+    ],
     "meadow_sprite": []
   }
 }

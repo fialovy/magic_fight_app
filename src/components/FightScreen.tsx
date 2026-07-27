@@ -143,13 +143,15 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
       x: (rect.left + rect.width  / 2) / window.innerWidth,
       y: (rect.top  + rect.height / 2) / window.innerHeight,
     };
+    const mobile = window.innerWidth < 768;
+    const n = mobile ? Math.round(count * 0.5) : count;
     if (emoji) {
       const shape = confetti.shapeFromText({ text: emoji, scalar: 2 });
-      confetti({ particleCount: count, spread: 70, origin, shapes: [shape], scalar: 2.5,
-        startVelocity: 22, gravity: 0.9, decay: 0.88 });
+      confetti({ particleCount: n, spread: mobile ? 50 : 70, origin, shapes: [shape], scalar: 2.5,
+        startVelocity: mobile ? 16 : 22, gravity: 0.9, decay: mobile ? 0.82 : 0.88 });
     } else {
-      confetti({ particleCount: count, spread: 60, origin, colors,
-        shapes: ['star', 'circle'], startVelocity: 20, gravity: 0.8, decay: 0.9 });
+      confetti({ particleCount: n, spread: mobile ? 45 : 60, origin, colors,
+        shapes: ['star', 'circle'], startVelocity: mobile ? 14 : 20, gravity: 0.8, decay: mobile ? 0.82 : 0.9 });
     }
   }
 

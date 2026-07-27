@@ -30,10 +30,16 @@ export default function GameOverScreen({ winner, player, opponent, turnHistory, 
   useEffect(() => {
     if (!playerWon) return;
     const colors = ['#fbbf24', '#f59e0b', '#a855f7', '#ec4899', '#38bdf8', '#4ade80', '#f87171', '#fb923c'];
+    const mobile = window.innerWidth < 768;
     confetti({
-      particleCount: 80, spread: 100, origin: { x: 0.5, y: 0.15 },
+      particleCount: mobile ? 40 : 80,
+      spread: mobile ? 70 : 100,
+      origin: { x: 0.5, y: 0.15 },
       colors, shapes: ['star', 'circle', 'square'],
-      startVelocity: 35, gravity: 0.8, decay: 0.92, scalar: 1.1, zIndex: 50,
+      startVelocity: mobile ? 22 : 35,
+      gravity: 0.8,
+      decay: mobile ? 0.85 : 0.92,
+      scalar: 1.1, zIndex: 50,
     });
   }, [playerWon]);
 
