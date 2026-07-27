@@ -54,9 +54,32 @@ const NORA_FORM_DEFS = [
   { emoji: '🌿', prefix: 'meadow_sprite', path: 'nora/meadow_sprite', displayName: 'Meadow Sprite' },
 ] as const;
 
-const NORA_NAME_PATHS = new Set(['nora', 'nora/norm', 'nora/meadow_sprite']);
+const NORA_NAME_PATHS = new Set(NORA_FORM_DEFS.map(f => f.path));
 
 function isNora(c: Character) { return NORA_NAME_PATHS.has(c.namePath); }
+
+function panelClass(side: 'player' | 'opponent', character: Character): string {
+  const order  = side === 'player' ? 'order-3 md:order-1' : 'order-1 md:order-3';
+  const height = isNora(character) ? 'h-[min(calc(28vh_+_44px),264px)]' : 'h-[min(28vh,220px)]';
+  return `${order} flex flex-col items-center p-2 md:p-4 w-full md:w-72 xl:w-96 md:shrink-0 md:h-auto ${height}`;
+}
+
+function fireBurst(targetEl: HTMLElement, colors: string[], count: number, emoji?: string) {
+  const rect = targetEl.getBoundingClientRect();
+  const origin = {
+    x: (rect.left + rect.width  / 2) / window.innerWidth,
+    y: (rect.top  + rect.height / 2) / window.innerHeight,
+  };
+  const mobile = window.innerWidth < 768;
+  const n = mobile ? Math.round(count * 0.5) : count;
+  const shared = { spread: 65, startVelocity: mobile ? 16 : 22, gravity: 0.9, decay: 0.88, ticks: mobile ? 55 : 120 };
+  if (emoji) {
+    const shape = confetti.shapeFromText({ text: emoji, scalar: 2 });
+    confetti({ particleCount: n, origin, shapes: [shape], scalar: 2.5, ...shared });
+  } else {
+    confetti({ particleCount: n, origin, colors, shapes: ['star', 'circle'], ...shared });
+  }
+}
 
 interface NoraFormOverride { tauntsInfo: TauntsInfo | null; reactionsInfo: ReactionsInfo | null; }
 
@@ -79,25 +102,13 @@ function applyNoraForm(c: Character, formIdx: number, overrides?: NoraFormOverri
   };
 }
 
-function outcomeLabel(outcome: CollisionOutcome): string {
-  switch (outcome) {
-    case 'decisive-win':  return '✦ Decisive!';
-    case 'win':           return '↑ Overpowered!';
-    case 'neutral':       return '≈ Clash';
-    case 'loss':          return '↓ Overpowered';
-    case 'decisive-loss': return '✦ Shattered!';
-  }
-}
-
-function outcomeColor(outcome: CollisionOutcome): string {
-  switch (outcome) {
-    case 'decisive-win':  return 'text-amber-300';
-    case 'win':           return 'text-blue-300';
-    case 'neutral':       return 'text-purple-400';
-    case 'loss':          return 'text-rose-400';
-    case 'decisive-loss': return 'text-rose-600';
-  }
-}
+const OUTCOME_DISPLAY: Record<CollisionOutcome, { label: string; color: string }> = {
+  'decisive-win':  { label: '✦ Decisive!',   color: 'text-amber-300' },
+  'win':           { label: '↑ Overpowered!', color: 'text-blue-300'  },
+  'neutral':       { label: '≈ Clash',        color: 'text-purple-400'},
+  'loss':          { label: '↓ Overpowered',  color: 'text-rose-400'  },
+  'decisive-loss': { label: '✦ Shattered!',   color: 'text-rose-600'  },
+};
 
 export default function FightScreen({ initialPlayer, initialOpponent, onGameOver }: Props) {
   // Refs hold live values read by async turn logic — avoids stale closures
@@ -136,23 +147,6 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
   const projectileRef       = useRef<HTMLDivElement>(null);
   const projectile2Ref      = useRef<HTMLDivElement>(null);
 
-
-  function fireBurst(targetEl: HTMLElement, colors: string[], count: number, emoji?: string) {
-    const rect = targetEl.getBoundingClientRect();
-    const origin = {
-      x: (rect.left + rect.width  / 2) / window.innerWidth,
-      y: (rect.top  + rect.height / 2) / window.innerHeight,
-    };
-    const mobile = window.innerWidth < 768;
-    const n = mobile ? Math.round(count * 0.5) : count;
-    const shared = { spread: 65, startVelocity: mobile ? 16 : 22, gravity: 0.9, decay: 0.88, ticks: mobile ? 55 : 120 };
-    if (emoji) {
-      const shape = confetti.shapeFromText({ text: emoji, scalar: 2 });
-      confetti({ particleCount: n, origin, shapes: [shape], scalar: 2.5, ...shared });
-    } else {
-      confetti({ particleCount: n, origin, colors, shapes: ['star', 'circle'], ...shared });
-    }
-  }
 
   async function showTransitionEffect(fromIdx: number, toIdx: number) {
     const isSprite = fromIdx === 2 || toIdx === 2;
@@ -434,6 +428,10 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
 
 
   const showOpponentSpell = opponentSpell && (phase === 'opponent-shown' || phase === 'resolving');
+  const isPlayerNora   = isNora(player);
+  const isOpponentNora = isNora(opponent);
+  const displayPlayer   = isPlayerNora   ? applyNoraForm(player,   noraForm.idx, noraFormDataRef.current) : player;
+  const displayOpponent = isOpponentNora ? applyNoraForm(opponent, noraForm.idx, noraFormDataRef.current) : opponent;
 
   return (
     <div className="min-h-dvh app-bg flex flex-col">
@@ -460,14 +458,14 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
       {/* Arena row: portraits + center controls */}
       <div className="flex flex-1 min-h-0 flex-col md:flex-row">
         {/* Player — mobile: bottom (order-3); desktop: left (md:order-1) */}
-        <div className={`order-3 md:order-1 flex flex-col items-center p-2 md:p-4 w-full md:w-72 xl:w-96 md:shrink-0 md:h-auto ${isNora(player) ? 'h-[min(calc(28vh_+_44px),264px)]' : 'h-[min(28vh,220px)]'}`}>
+        <div className={panelClass('player', player)}>
           <CharacterPanel
-            character={isNora(player) ? applyNoraForm(player, noraForm.idx, noraFormDataRef.current) : player} side="player"
+            character={displayPlayer} side="player"
             blast={blast} hitAnim={hitAnim} transitionAnim={noraForm.anim}
             speech={playerSpeech}
             dmgFloat={playerDmgFloat} onDmgFloatEnd={() => setPlayerDmgFloat(null)}
             portraitRef={playerPortraitRef}
-            shapeshiftControl={isNora(player) ? <NoraSegmented formIdx={noraForm.idx} onChange={handleNoraFormChange} /> : undefined}
+            shapeshiftControl={isPlayerNora ? <NoraSegmented formIdx={noraForm.idx} onChange={handleNoraFormChange} /> : undefined}
           />
         </div>
 
@@ -490,22 +488,22 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
           </div>
           <div className="h-5 flex items-center justify-center">
             {phase === 'resolving' && lastOutcome && (
-              <span className={`text-sm font-bold ${outcomeColor(lastOutcome)}`}>
-                {outcomeLabel(lastOutcome)}
+              <span className={`text-sm font-bold ${OUTCOME_DISPLAY[lastOutcome].color}`}>
+                {OUTCOME_DISPLAY[lastOutcome].label}
               </span>
             )}
           </div>
         </div>
 
         {/* Opponent — mobile: top (order-1); desktop: right (md:order-3) */}
-        <div className={`order-1 md:order-3 flex flex-col items-center p-2 md:p-4 w-full md:w-72 xl:w-96 md:shrink-0 md:h-auto ${isNora(opponent) ? 'h-[min(calc(28vh_+_44px),264px)]' : 'h-[min(28vh,220px)]'}`}>
+        <div className={panelClass('opponent', opponent)}>
           <CharacterPanel
-            character={isNora(opponent) ? applyNoraForm(opponent, noraForm.idx, noraFormDataRef.current) : opponent} side="opponent"
+            character={displayOpponent} side="opponent"
             blast={blast} hitAnim={hitAnim} transitionAnim={noraForm.anim}
             speech={opponentSpeech}
             dmgFloat={opponentDmgFloat} onDmgFloatEnd={() => setOpponentDmgFloat(null)}
             portraitRef={opponentPortraitRef}
-            shapeshiftControl={isNora(opponent) ? <NoraSegmented formIdx={noraForm.idx} onChange={handleNoraFormChange} /> : undefined}
+            shapeshiftControl={isOpponentNora ? <NoraSegmented formIdx={noraForm.idx} onChange={handleNoraFormChange} /> : undefined}
           />
         </div>
       </div>
