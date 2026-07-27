@@ -31,7 +31,7 @@ export default function CharacterSelectScreen({ mode, disabledPath, onSelect, lo
         {mode === 'player' ? 'Choose your sorcerer' : 'Choose your opponent'}
       </p>
 
-      <div className="grid grid-cols-3 gap-4 max-w-2xl w-full mb-6">
+      <div className="grid grid-cols-3 gap-4 max-w-lg w-full mb-6">
         {SELECTABLE_CHARACTERS.map(meta => {
           const isDisabled = meta.namePath === disabledPath;
           const isHighlighted = meta.namePath === highlighted;
@@ -51,7 +51,7 @@ export default function CharacterSelectScreen({ mode, disabledPath, onSelect, lo
                     : 'border-purple-700 bg-purple-950/60 hover:border-purple-400 hover:bg-purple-900/60 cursor-pointer',
               ].join(' ')}
             >
-              <div className="relative w-24 h-24 mb-2">
+              <div className="relative w-28 h-28 mb-2">
                 <img
                   src={`${import.meta.env.BASE_URL}images/characters/${meta.imagePrefix}_mf_face_${mode === 'player' ? 'right' : 'left'}.png`}
                   alt={meta.displayName}

@@ -459,7 +459,7 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
       {/* Arena row: portraits + center controls */}
       <div className="flex flex-1 min-h-0 flex-col md:flex-row">
         {/* Player — mobile: bottom (order-3); desktop: left (md:order-1) */}
-        <div className="order-3 md:order-1 flex flex-col items-center p-2 md:p-4 w-full md:w-72 xl:w-96 md:shrink-0 h-[30vh] md:h-auto">
+        <div className={`order-3 md:order-1 flex flex-col items-center p-2 md:p-4 w-full md:w-72 xl:w-96 md:shrink-0 md:h-auto ${isNora(player) ? 'h-[min(calc(28vh_+_44px),244px)]' : 'h-[min(28vh,200px)]'}`}>
           <CharacterPanel
             character={isNora(player) ? applyNoraForm(player, noraForm.idx, noraFormDataRef.current) : player} side="player"
             blast={blast} hitAnim={hitAnim} transitionAnim={noraForm.anim}
@@ -497,7 +497,7 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
         </div>
 
         {/* Opponent — mobile: top (order-1); desktop: right (md:order-3) */}
-        <div className="order-1 md:order-3 flex flex-col items-center p-2 md:p-4 w-full md:w-72 xl:w-96 md:shrink-0 h-[30vh] md:h-auto">
+        <div className={`order-1 md:order-3 flex flex-col items-center p-2 md:p-4 w-full md:w-72 xl:w-96 md:shrink-0 md:h-auto ${isNora(opponent) ? 'h-[min(calc(28vh_+_44px),244px)]' : 'h-[min(28vh,200px)]'}`}>
           <CharacterPanel
             character={isNora(opponent) ? applyNoraForm(opponent, noraForm.idx, noraFormDataRef.current) : opponent} side="opponent"
             blast={blast} hitAnim={hitAnim} transitionAnim={noraForm.anim}
@@ -571,7 +571,7 @@ function CharacterPanel({
   const dmgColor = side === 'player' ? 'text-rose-400' : 'text-amber-300';
 
   return (
-    <div className="flex flex-col items-center w-full flex-1 min-h-0 relative">
+    <div className="flex flex-col items-center md:justify-center w-full flex-1 min-h-0 relative">
       {/* Speech bubble — absolutely outside the panel, never affects portrait size */}
       {speech && (
         <div className={[
@@ -596,8 +596,8 @@ function CharacterPanel({
 
       {shapeshiftControl && <div className="shrink-0 mb-2">{shapeshiftControl}</div>}
 
-      {/* Portrait — player: order-2 so the name/HP block (order-1) floats above it */}
-      <div ref={portraitRef} className={`relative w-full flex-1 min-h-20${side === 'player' ? ' order-2 mt-1 md:mt-2' : ''}`}>
+      {/* Portrait — mobile player: order-2 so name/HP (order-1) floats above it */}
+      <div ref={portraitRef} className={`relative w-full flex-1 min-h-20 md:flex-none md:aspect-square${side === 'player' ? ' max-md:order-2' : ''}`}>
         <img src={img} alt={character.displayName} className="w-full h-full object-contain" />
 
         {isMyBlast && blast && (
@@ -621,10 +621,10 @@ function CharacterPanel({
         )}
       </div>
 
-      {/* Name/HP — player: order-1 (appears above portrait); opponent: default order (below) */}
-      <div className={`shrink-0 w-full flex flex-col items-center${side === 'player' ? ' order-1' : ' mt-1 md:mt-2'}`}>
+      {/* Name/HP — mobile player: max-md:order-1 floats above portrait; desktop always below */}
+      <div className={`shrink-0 w-full flex flex-col items-center max-md:mt-0.5 md:mt-3${side === 'player' ? ' max-md:order-1' : ''}`}>
         <span className="text-purple-200 text-base md:text-lg font-semibold">{character.displayName}</span>
-        <div className="w-full max-w-48 md:max-w-none bg-slate-800 rounded-full h-2 md:h-3 border border-slate-700 mt-1 md:mt-2">
+        <div className="w-full max-w-48 md:max-w-none bg-slate-800 rounded-full h-2 md:h-3 border border-slate-700 mt-1 md:mt-3">
           <div className={`h-full rounded-full transition-all duration-500 ${barColor}`} style={{ width: `${pct}%` }} />
         </div>
         <span className="text-xs text-purple-400 tabular-nums mt-0.5">{character.life} / {GAME_LIFE} HP</span>
