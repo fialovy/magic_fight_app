@@ -435,7 +435,7 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
   const showOpponentSpell = opponentSpell && (phase === 'opponent-shown' || phase === 'resolving');
 
   return (
-    <div className="min-h-screen app-bg flex flex-col">
+    <div className="min-h-dvh app-bg flex flex-col">
       <div ref={projectileRef}  className="fixed top-0 left-0 pointer-events-none" style={{ width: 36, height: 36, zIndex: 100, opacity: 0 }} />
       <div ref={projectile2Ref} className="fixed top-0 left-0 pointer-events-none" style={{ width: 36, height: 36, zIndex: 100, opacity: 0 }} />
 
@@ -452,14 +452,14 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
         </div>
       )}
 
-      <div className="text-center py-2 md:py-3 border-b border-purple-800">
+      <div className="text-center py-1 md:py-3 border-b border-purple-800">
         <span className="text-purple-400 text-sm tracking-widest uppercase">Magic Fight</span>
       </div>
 
       {/* Arena row: portraits + center controls */}
       <div className="flex flex-1 min-h-0 flex-col md:flex-row">
         {/* Player — mobile: bottom (order-3); desktop: left (md:order-1) */}
-        <div className={`order-3 md:order-1 flex flex-col items-center p-2 md:p-4 w-full md:w-72 xl:w-96 md:shrink-0 md:h-auto ${isNora(player) ? 'h-[min(calc(28vh_+_44px),244px)]' : 'h-[min(28vh,200px)]'}`}>
+        <div className={`order-3 md:order-1 flex flex-col items-center p-2 md:p-4 w-full md:w-72 xl:w-96 md:shrink-0 md:h-auto ${isNora(player) ? 'h-[min(calc(28vh_+_44px),264px)]' : 'h-[min(28vh,220px)]'}`}>
           <CharacterPanel
             character={isNora(player) ? applyNoraForm(player, noraForm.idx, noraFormDataRef.current) : player} side="player"
             blast={blast} hitAnim={hitAnim} transitionAnim={noraForm.anim}
@@ -471,14 +471,14 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
         </div>
 
         {/* Center — always middle */}
-        <div className="order-2 flex-1 flex flex-col items-center justify-center gap-2 md:gap-4 px-4 py-2 md:py-0">
-          <span className={`text-lg font-bold tracking-widest px-5 py-2 rounded-full border-2 ${currentRule.startsWith('avoid') ? 'text-rose-300 border-rose-600 bg-rose-950/60' : 'text-blue-300 border-blue-600 bg-blue-950/60'}`}>
+        <div className="order-2 flex-1 flex flex-col items-center justify-center gap-1 md:gap-4 px-4 py-1 md:py-0">
+          <span className={`text-sm md:text-lg font-bold tracking-widest px-3 md:px-5 py-1 md:py-2 rounded-full border-2 ${currentRule.startsWith('avoid') ? 'text-rose-300 border-rose-600 bg-rose-950/60' : 'text-blue-300 border-blue-600 bg-blue-950/60'}`}>
             {currentRule.startsWith('avoid') ? 'AVOID' : 'MATCH'}
           </span>
           <span className={`hidden md:block text-purple-500 text-xs uppercase tracking-widest ${showOpponentSpell ? '' : 'invisible'}`}>
             Opponent's spell
           </span>
-          <div className="w-24 h-24 md:w-36 md:h-36">
+          <div className="w-20 h-20 md:w-36 md:h-36">
             {showOpponentSpell ? (
               <SpellCard spell={opponentSpell!} glowing={phase === 'opponent-shown'} />
             ) : (
@@ -497,7 +497,7 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
         </div>
 
         {/* Opponent — mobile: top (order-1); desktop: right (md:order-3) */}
-        <div className={`order-1 md:order-3 flex flex-col items-center p-2 md:p-4 w-full md:w-72 xl:w-96 md:shrink-0 md:h-auto ${isNora(opponent) ? 'h-[min(calc(28vh_+_44px),244px)]' : 'h-[min(28vh,200px)]'}`}>
+        <div className={`order-1 md:order-3 flex flex-col items-center p-2 md:p-4 w-full md:w-72 xl:w-96 md:shrink-0 md:h-auto ${isNora(opponent) ? 'h-[min(calc(28vh_+_44px),264px)]' : 'h-[min(28vh,220px)]'}`}>
           <CharacterPanel
             character={isNora(opponent) ? applyNoraForm(opponent, noraForm.idx, noraFormDataRef.current) : opponent} side="opponent"
             blast={blast} hitAnim={hitAnim} transitionAnim={noraForm.anim}
@@ -510,7 +510,7 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
       </div>
 
       {/* Hand row — sticky so spell choices are always visible */}
-      <div className="sticky bottom-0 z-20 py-3 md:py-5 flex justify-center gap-2 md:gap-4 border-t border-purple-800/30 bg-indigo-950/90 backdrop-blur-sm">
+      <div className="sticky bottom-0 z-20 py-2 md:py-5 flex justify-center gap-2 md:gap-4 border-t border-purple-800/30 bg-indigo-950/90 backdrop-blur-sm">
         {hand.map((spell, i) => (
           <div key={i} className="w-20 h-20 md:w-24 md:h-24 shrink-0">
             <SpellCard

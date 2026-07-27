@@ -23,15 +23,15 @@ export default function CharacterSelectScreen({ mode, disabledPath, onSelect, lo
   }
 
   return (
-    <div className="min-h-screen app-bg flex flex-col items-center px-4 py-8">
+    <div className="min-h-screen app-bg flex flex-col items-center px-4 py-2 md:py-8">
       <h1 className="text-4xl font-bold text-purple-200 mb-2 tracking-widest uppercase">
         Magic Fight
       </h1>
-      <p className="text-purple-400 mb-8 text-lg">
+      <p className="text-purple-400 mb-3 md:mb-8 text-lg">
         {mode === 'player' ? 'Choose your sorcerer' : 'Choose your opponent'}
       </p>
 
-      <div className="grid grid-cols-3 gap-4 max-w-lg w-full mb-6">
+      <div className="grid grid-cols-3 gap-4 max-w-lg w-full mb-2 md:mb-6">
         {SELECTABLE_CHARACTERS.map(meta => {
           const isDisabled = meta.namePath === disabledPath;
           const isHighlighted = meta.namePath === highlighted;
