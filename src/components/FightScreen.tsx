@@ -147,11 +147,11 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
     const n = mobile ? Math.round(count * 0.5) : count;
     if (emoji) {
       const shape = confetti.shapeFromText({ text: emoji, scalar: 2 });
-      confetti({ particleCount: n, spread: mobile ? 50 : 70, origin, shapes: [shape], scalar: 2.5,
-        ticks: mobile ? 90 : 150, startVelocity: 22, gravity: 1.0, decay: mobile ? 0.82 : 0.88 });
+      confetti({ particleCount: n, spread: 70, origin, shapes: [shape], scalar: 2.5,
+        startVelocity: mobile ? 16 : 22, gravity: 0.9, decay: 0.88, ticks: mobile ? 80 : 160 });
     } else {
-      confetti({ ticks: mobile ? 90 : 150, particleCount: n, spread: mobile ? 45 : 60, origin, colors,
-        shapes: ['star', 'circle'], startVelocity: 22, gravity: 1.0, decay: mobile ? 0.82 : 0.9 });
+      confetti({ particleCount: n, spread: 60, origin, colors,
+        shapes: ['star', 'circle'], startVelocity: mobile ? 14 : 20, gravity: 0.8, decay: 0.9, ticks: mobile ? 80 : 160 });
     }
   }
 

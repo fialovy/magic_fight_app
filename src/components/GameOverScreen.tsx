@@ -33,12 +33,13 @@ export default function GameOverScreen({ winner, player, opponent, turnHistory, 
     const mobile = window.innerWidth < 768;
     confetti({
       particleCount: mobile ? 40 : 80,
-      spread: mobile ? 70 : 100,
+      spread: 100,
       origin: { x: 0.5, y: 0.15 },
       colors, shapes: ['star', 'circle', 'square'],
       startVelocity: mobile ? 22 : 35,
       gravity: 0.8,
-      decay: mobile ? 0.85 : 0.92,
+      decay: 0.92,
+      ticks: mobile ? 100 : 200,
       scalar: 1.1, zIndex: 50,
     });
   }, [playerWon]);
