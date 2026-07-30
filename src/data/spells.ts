@@ -1,30 +1,65 @@
 import type {
-  Spell, SpellColor, SpellShape, SpellFill, SpellRotation, SpellDimensionKey,
-  CharacterAffinity, PatternRule, CollisionOutcome, TimerResult,
+  Spell,
+  SpellColor,
+  SpellShape,
+  SpellFill,
+  SpellRotation,
+  SpellDimensionKey,
+  CharacterAffinity,
+  PatternRule,
+  CollisionOutcome,
+  TimerResult,
 } from '../types/game';
 import { pick } from '../engine/random';
 
-export const SPELL_COLORS:    SpellColor[]    = ['red', 'blue', 'green', 'purple', 'orange'];
-export const SPELL_SHAPES:    SpellShape[]    = ['heart', 'square', 'star', 'triangle'];
-export const SPELL_FILLS:     SpellFill[]     = ['solid', 'vertical-stripe', 'crosshatch', 'dots'];
-export const SPELL_ROTATIONS: SpellRotation[] = ['clockwise', 'counter-clockwise'];
+export const SPELL_COLORS: SpellColor[] = [
+  'red',
+  'blue',
+  'green',
+  'purple',
+  'orange',
+];
+export const SPELL_SHAPES: SpellShape[] = [
+  'heart',
+  'square',
+  'star',
+  'triangle',
+];
+export const SPELL_FILLS: SpellFill[] = [
+  'solid',
+  'vertical-stripe',
+  'crosshatch',
+  'dots',
+];
+export const SPELL_ROTATIONS: SpellRotation[] = [
+  'clockwise',
+  'counter-clockwise',
+];
 
 export const OUTCOME_DAMAGE: Record<CollisionOutcome, number> = {
-  'decisive-win':  4,
-  'win':           2,
-  'neutral':       0,
-  'loss':          2,
+  'decisive-win': 4,
+  win: 2,
+  neutral: 0,
+  loss: 2,
   'decisive-loss': 4,
 };
 
 export function randomSpell(): Spell {
-  return { color: pick(SPELL_COLORS), shape: pick(SPELL_SHAPES), fill: pick(SPELL_FILLS), rotation: pick(SPELL_ROTATIONS) };
+  return {
+    color: pick(SPELL_COLORS),
+    shape: pick(SPELL_SHAPES),
+    fill: pick(SPELL_FILLS),
+    rotation: pick(SPELL_ROTATIONS),
+  };
 }
 
 function applyDimension(spell: Spell, dim: SpellDimensionKey): Spell {
-  if ((SPELL_COLORS    as string[]).includes(dim)) return { ...spell, color:    dim as SpellColor };
-  if ((SPELL_SHAPES    as string[]).includes(dim)) return { ...spell, shape:    dim as SpellShape };
-  if ((SPELL_ROTATIONS as string[]).includes(dim)) return { ...spell, rotation: dim as SpellRotation };
+  if ((SPELL_COLORS as string[]).includes(dim))
+    return { ...spell, color: dim as SpellColor };
+  if ((SPELL_SHAPES as string[]).includes(dim))
+    return { ...spell, shape: dim as SpellShape };
+  if ((SPELL_ROTATIONS as string[]).includes(dim))
+    return { ...spell, rotation: dim as SpellRotation };
   return { ...spell, fill: dim as SpellFill };
 }
 
@@ -37,11 +72,15 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-function spellKey(s: Spell) { return `${s.color}|${s.shape}|${s.fill}|${s.rotation}`; }
+function spellKey(s: Spell) {
+  return `${s.color}|${s.shape}|${s.fill}|${s.rotation}`;
+}
 
 function uniqueSpell(generate: () => Spell, seen: Set<string>): Spell {
   let spell: Spell;
-  do { spell = generate(); } while (seen.has(spellKey(spell)));
+  do {
+    spell = generate();
+  } while (seen.has(spellKey(spell)));
   seen.add(spellKey(spell));
   return spell;
 }
@@ -50,56 +89,142 @@ function uniqueSpell(generate: () => Spell, seen: Set<string>): Spell {
 export function generateHand(affinity: CharacterAffinity): Spell[] {
   const seen = new Set<string>();
   return shuffle([
-    uniqueSpell(() => applyDimension(randomSpell(), affinity.primary),   seen),
-    uniqueSpell(() => applyDimension(randomSpell(), affinity.secondary),  seen),
+    uniqueSpell(() => applyDimension(randomSpell(), affinity.primary), seen),
+    uniqueSpell(() => applyDimension(randomSpell(), affinity.secondary), seen),
     uniqueSpell(() => randomSpell(), seen),
     uniqueSpell(() => randomSpell(), seen),
   ]);
 }
 
-export function getDimensionPower(dim: SpellDimensionKey, affinity: CharacterAffinity): number {
-  if (affinity.primary === dim)   return 3;
+export function getDimensionPower(
+  dim: SpellDimensionKey,
+  affinity: CharacterAffinity,
+): number {
+  if (affinity.primary === dim) return 3;
   if (affinity.secondary === dim) return 2;
   return 1;
 }
 
-export function getContestedDimensions(rule: PatternRule, opponentSpell: Spell): SpellDimensionKey[] {
+export function getContestedDimensions(
+  rule: PatternRule,
+  opponentSpell: Spell,
+): SpellDimensionKey[] {
   switch (rule) {
-    case 'match-color':          case 'avoid-color':          return [opponentSpell.color];
-    case 'match-shape':          case 'avoid-shape':          return [opponentSpell.shape];
-    case 'match-fill':           case 'avoid-fill':           return [opponentSpell.fill];
-    case 'match-rotation':       case 'avoid-rotation':       return [opponentSpell.rotation];
-    case 'match-color+shape':    case 'avoid-color+shape':    return [opponentSpell.color,    opponentSpell.shape];
-    case 'match-color+fill':     case 'avoid-color+fill':     return [opponentSpell.color,    opponentSpell.fill];
-    case 'match-shape+fill':     case 'avoid-shape+fill':     return [opponentSpell.shape,    opponentSpell.fill];
-    case 'match-color+rotation': case 'avoid-color+rotation': return [opponentSpell.color,    opponentSpell.rotation];
-    case 'match-shape+rotation': case 'avoid-shape+rotation': return [opponentSpell.shape,    opponentSpell.rotation];
-    case 'match-fill+rotation':  case 'avoid-fill+rotation':  return [opponentSpell.fill,     opponentSpell.rotation];
+    case 'match-color':
+    case 'avoid-color':
+      return [opponentSpell.color];
+    case 'match-shape':
+    case 'avoid-shape':
+      return [opponentSpell.shape];
+    case 'match-fill':
+    case 'avoid-fill':
+      return [opponentSpell.fill];
+    case 'match-rotation':
+    case 'avoid-rotation':
+      return [opponentSpell.rotation];
+    case 'match-color+shape':
+    case 'avoid-color+shape':
+      return [opponentSpell.color, opponentSpell.shape];
+    case 'match-color+fill':
+    case 'avoid-color+fill':
+      return [opponentSpell.color, opponentSpell.fill];
+    case 'match-shape+fill':
+    case 'avoid-shape+fill':
+      return [opponentSpell.shape, opponentSpell.fill];
+    case 'match-color+rotation':
+    case 'avoid-color+rotation':
+      return [opponentSpell.color, opponentSpell.rotation];
+    case 'match-shape+rotation':
+    case 'avoid-shape+rotation':
+      return [opponentSpell.shape, opponentSpell.rotation];
+    case 'match-fill+rotation':
+    case 'avoid-fill+rotation':
+      return [opponentSpell.fill, opponentSpell.rotation];
   }
 }
 
-export function checkPattern(rule: PatternRule, playerSpell: Spell, opponentSpell: Spell): boolean {
+export function checkPattern(
+  rule: PatternRule,
+  playerSpell: Spell,
+  opponentSpell: Spell,
+): boolean {
   switch (rule) {
-    case 'match-color':          return playerSpell.color    === opponentSpell.color;
-    case 'match-shape':          return playerSpell.shape    === opponentSpell.shape;
-    case 'match-fill':           return playerSpell.fill     === opponentSpell.fill;
-    case 'match-rotation':       return playerSpell.rotation === opponentSpell.rotation;
-    case 'avoid-color':          return playerSpell.color    !== opponentSpell.color;
-    case 'avoid-shape':          return playerSpell.shape    !== opponentSpell.shape;
-    case 'avoid-fill':           return playerSpell.fill     !== opponentSpell.fill;
-    case 'avoid-rotation':       return playerSpell.rotation !== opponentSpell.rotation;
-    case 'match-color+shape':    return playerSpell.color    === opponentSpell.color    && playerSpell.shape    === opponentSpell.shape;
-    case 'match-color+fill':     return playerSpell.color    === opponentSpell.color    && playerSpell.fill     === opponentSpell.fill;
-    case 'match-shape+fill':     return playerSpell.shape    === opponentSpell.shape    && playerSpell.fill     === opponentSpell.fill;
-    case 'match-color+rotation': return playerSpell.color    === opponentSpell.color    && playerSpell.rotation === opponentSpell.rotation;
-    case 'match-shape+rotation': return playerSpell.shape    === opponentSpell.shape    && playerSpell.rotation === opponentSpell.rotation;
-    case 'match-fill+rotation':  return playerSpell.fill     === opponentSpell.fill     && playerSpell.rotation === opponentSpell.rotation;
-    case 'avoid-color+shape':    return playerSpell.color    !== opponentSpell.color    && playerSpell.shape    !== opponentSpell.shape;
-    case 'avoid-color+fill':     return playerSpell.color    !== opponentSpell.color    && playerSpell.fill     !== opponentSpell.fill;
-    case 'avoid-shape+fill':     return playerSpell.shape    !== opponentSpell.shape    && playerSpell.fill     !== opponentSpell.fill;
-    case 'avoid-color+rotation': return playerSpell.color    !== opponentSpell.color    && playerSpell.rotation !== opponentSpell.rotation;
-    case 'avoid-shape+rotation': return playerSpell.shape    !== opponentSpell.shape    && playerSpell.rotation !== opponentSpell.rotation;
-    case 'avoid-fill+rotation':  return playerSpell.fill     !== opponentSpell.fill     && playerSpell.rotation !== opponentSpell.rotation;
+    case 'match-color':
+      return playerSpell.color === opponentSpell.color;
+    case 'match-shape':
+      return playerSpell.shape === opponentSpell.shape;
+    case 'match-fill':
+      return playerSpell.fill === opponentSpell.fill;
+    case 'match-rotation':
+      return playerSpell.rotation === opponentSpell.rotation;
+    case 'avoid-color':
+      return playerSpell.color !== opponentSpell.color;
+    case 'avoid-shape':
+      return playerSpell.shape !== opponentSpell.shape;
+    case 'avoid-fill':
+      return playerSpell.fill !== opponentSpell.fill;
+    case 'avoid-rotation':
+      return playerSpell.rotation !== opponentSpell.rotation;
+    case 'match-color+shape':
+      return (
+        playerSpell.color === opponentSpell.color &&
+        playerSpell.shape === opponentSpell.shape
+      );
+    case 'match-color+fill':
+      return (
+        playerSpell.color === opponentSpell.color &&
+        playerSpell.fill === opponentSpell.fill
+      );
+    case 'match-shape+fill':
+      return (
+        playerSpell.shape === opponentSpell.shape &&
+        playerSpell.fill === opponentSpell.fill
+      );
+    case 'match-color+rotation':
+      return (
+        playerSpell.color === opponentSpell.color &&
+        playerSpell.rotation === opponentSpell.rotation
+      );
+    case 'match-shape+rotation':
+      return (
+        playerSpell.shape === opponentSpell.shape &&
+        playerSpell.rotation === opponentSpell.rotation
+      );
+    case 'match-fill+rotation':
+      return (
+        playerSpell.fill === opponentSpell.fill &&
+        playerSpell.rotation === opponentSpell.rotation
+      );
+    case 'avoid-color+shape':
+      return (
+        playerSpell.color !== opponentSpell.color &&
+        playerSpell.shape !== opponentSpell.shape
+      );
+    case 'avoid-color+fill':
+      return (
+        playerSpell.color !== opponentSpell.color &&
+        playerSpell.fill !== opponentSpell.fill
+      );
+    case 'avoid-shape+fill':
+      return (
+        playerSpell.shape !== opponentSpell.shape &&
+        playerSpell.fill !== opponentSpell.fill
+      );
+    case 'avoid-color+rotation':
+      return (
+        playerSpell.color !== opponentSpell.color &&
+        playerSpell.rotation !== opponentSpell.rotation
+      );
+    case 'avoid-shape+rotation':
+      return (
+        playerSpell.shape !== opponentSpell.shape &&
+        playerSpell.rotation !== opponentSpell.rotation
+      );
+    case 'avoid-fill+rotation':
+      return (
+        playerSpell.fill !== opponentSpell.fill &&
+        playerSpell.rotation !== opponentSpell.rotation
+      );
   }
 }
 
@@ -109,34 +234,53 @@ export function checkPattern(rule: PatternRule, playerSpell: Spell, opponentSpel
  * ≥3 decisive-win | 1-2 win | 0 neutral | -1 to -2 loss | ≤-3 decisive-loss
  */
 export function resolveCollision(
-  rule:             PatternRule,
-  playerAffinity:   CharacterAffinity,
-  opponentSpell:    Spell,
+  rule: PatternRule,
+  playerAffinity: CharacterAffinity,
+  opponentSpell: Spell,
   opponentAffinity: CharacterAffinity,
-  timerResult:      TimerResult,
+  timerResult: TimerResult,
 ): CollisionOutcome {
-  const dims       = getContestedDimensions(rule, opponentSpell);
-  const yourPower  = Math.max(...dims.map(d => getDimensionPower(d, playerAffinity)));
-  const theirPower = Math.max(...dims.map(d => getDimensionPower(d, opponentAffinity)));
-  const bonus     = timerResult === 'correct' ? 2 : timerResult === 'timeout' ? -1 : -2;
-  const net       = (yourPower - theirPower) + bonus;
+  const dims = getContestedDimensions(rule, opponentSpell);
+  const yourPower = Math.max(
+    ...dims.map((d) => getDimensionPower(d, playerAffinity)),
+  );
+  const theirPower = Math.max(
+    ...dims.map((d) => getDimensionPower(d, opponentAffinity)),
+  );
+  const bonus =
+    timerResult === 'correct' ? 2 : timerResult === 'timeout' ? -1 : -2;
+  const net = yourPower - theirPower + bonus;
 
-  if (net >= 3)  return 'decisive-win';
-  if (net >= 1)  return 'win';
+  if (net >= 3) return 'decisive-win';
+  if (net >= 1) return 'win';
   if (net === 0) return 'neutral';
   if (net >= -2) return 'loss';
   return 'decisive-loss';
 }
 
 const MATCH_RULES: PatternRule[] = [
-  'match-color', 'match-shape', 'match-fill', 'match-rotation',
-  'match-color+shape', 'match-color+fill', 'match-shape+fill',
-  'match-color+rotation', 'match-shape+rotation', 'match-fill+rotation',
+  'match-color',
+  'match-shape',
+  'match-fill',
+  'match-rotation',
+  'match-color+shape',
+  'match-color+fill',
+  'match-shape+fill',
+  'match-color+rotation',
+  'match-shape+rotation',
+  'match-fill+rotation',
 ];
 const AVOID_RULES: PatternRule[] = [
-  'avoid-color', 'avoid-shape', 'avoid-fill', 'avoid-rotation',
-  'avoid-color+shape', 'avoid-color+fill', 'avoid-shape+fill',
-  'avoid-color+rotation', 'avoid-shape+rotation', 'avoid-fill+rotation',
+  'avoid-color',
+  'avoid-shape',
+  'avoid-fill',
+  'avoid-rotation',
+  'avoid-color+shape',
+  'avoid-color+fill',
+  'avoid-shape+fill',
+  'avoid-color+rotation',
+  'avoid-shape+rotation',
+  'avoid-fill+rotation',
 ];
 
 export function randomPatternRule(): PatternRule {
@@ -145,44 +289,71 @@ export function randomPatternRule(): PatternRule {
 
 function makeValidSpell(rule: PatternRule, oppSpell: Spell): Spell {
   const b = randomSpell();
-  const avoidColor    = () => pick(SPELL_COLORS.filter(c    => c    !== oppSpell.color));
-  const avoidShape    = () => pick(SPELL_SHAPES.filter(s    => s    !== oppSpell.shape));
-  const avoidFill     = () => pick(SPELL_FILLS.filter(f     => f    !== oppSpell.fill));
-  const avoidRotation = () => pick(SPELL_ROTATIONS.filter(r => r    !== oppSpell.rotation));
-  const ac = b.color    === oppSpell.color    ? avoidColor()    : b.color;
-  const as_ = b.shape   === oppSpell.shape    ? avoidShape()    : b.shape;
-  const af = b.fill     === oppSpell.fill     ? avoidFill()     : b.fill;
+  const avoidColor = () =>
+    pick(SPELL_COLORS.filter((c) => c !== oppSpell.color));
+  const avoidShape = () =>
+    pick(SPELL_SHAPES.filter((s) => s !== oppSpell.shape));
+  const avoidFill = () => pick(SPELL_FILLS.filter((f) => f !== oppSpell.fill));
+  const avoidRotation = () =>
+    pick(SPELL_ROTATIONS.filter((r) => r !== oppSpell.rotation));
+  const ac = b.color === oppSpell.color ? avoidColor() : b.color;
+  const as_ = b.shape === oppSpell.shape ? avoidShape() : b.shape;
+  const af = b.fill === oppSpell.fill ? avoidFill() : b.fill;
   const ar = b.rotation === oppSpell.rotation ? avoidRotation() : b.rotation;
   switch (rule) {
-    case 'match-color':          return { ...b, color:    oppSpell.color    };
-    case 'match-shape':          return { ...b, shape:    oppSpell.shape    };
-    case 'match-fill':           return { ...b, fill:     oppSpell.fill     };
-    case 'match-rotation':       return { ...b, rotation: oppSpell.rotation };
-    case 'avoid-color':          return { ...b, color:    ac  };
-    case 'avoid-shape':          return { ...b, shape:    as_ };
-    case 'avoid-fill':           return { ...b, fill:     af  };
-    case 'avoid-rotation':       return { ...b, rotation: ar  };
-    case 'match-color+shape':    return { ...b, color: oppSpell.color, shape: oppSpell.shape    };
-    case 'match-color+fill':     return { ...b, color: oppSpell.color, fill:  oppSpell.fill     };
-    case 'match-shape+fill':     return { ...b, shape: oppSpell.shape, fill:  oppSpell.fill     };
-    case 'match-color+rotation': return { ...b, color: oppSpell.color, rotation: oppSpell.rotation };
-    case 'match-shape+rotation': return { ...b, shape: oppSpell.shape, rotation: oppSpell.rotation };
-    case 'match-fill+rotation':  return { ...b, fill:  oppSpell.fill,  rotation: oppSpell.rotation };
-    case 'avoid-color+shape':    return { ...b, color: ac,  shape: as_ };
-    case 'avoid-color+fill':     return { ...b, color: ac,  fill:  af  };
-    case 'avoid-shape+fill':     return { ...b, shape: as_, fill:  af  };
-    case 'avoid-color+rotation': return { ...b, color: ac,  rotation: ar };
-    case 'avoid-shape+rotation': return { ...b, shape: as_, rotation: ar };
-    case 'avoid-fill+rotation':  return { ...b, fill:  af,  rotation: ar };
+    case 'match-color':
+      return { ...b, color: oppSpell.color };
+    case 'match-shape':
+      return { ...b, shape: oppSpell.shape };
+    case 'match-fill':
+      return { ...b, fill: oppSpell.fill };
+    case 'match-rotation':
+      return { ...b, rotation: oppSpell.rotation };
+    case 'avoid-color':
+      return { ...b, color: ac };
+    case 'avoid-shape':
+      return { ...b, shape: as_ };
+    case 'avoid-fill':
+      return { ...b, fill: af };
+    case 'avoid-rotation':
+      return { ...b, rotation: ar };
+    case 'match-color+shape':
+      return { ...b, color: oppSpell.color, shape: oppSpell.shape };
+    case 'match-color+fill':
+      return { ...b, color: oppSpell.color, fill: oppSpell.fill };
+    case 'match-shape+fill':
+      return { ...b, shape: oppSpell.shape, fill: oppSpell.fill };
+    case 'match-color+rotation':
+      return { ...b, color: oppSpell.color, rotation: oppSpell.rotation };
+    case 'match-shape+rotation':
+      return { ...b, shape: oppSpell.shape, rotation: oppSpell.rotation };
+    case 'match-fill+rotation':
+      return { ...b, fill: oppSpell.fill, rotation: oppSpell.rotation };
+    case 'avoid-color+shape':
+      return { ...b, color: ac, shape: as_ };
+    case 'avoid-color+fill':
+      return { ...b, color: ac, fill: af };
+    case 'avoid-shape+fill':
+      return { ...b, shape: as_, fill: af };
+    case 'avoid-color+rotation':
+      return { ...b, color: ac, rotation: ar };
+    case 'avoid-shape+rotation':
+      return { ...b, shape: as_, rotation: ar };
+    case 'avoid-fill+rotation':
+      return { ...b, fill: af, rotation: ar };
   }
 }
 
 /** Ensures at least one card satisfies the rule for the given opponent spell. Replaces a random card if not, preserving uniqueness. */
-export function guaranteeMatch(hand: Spell[], rule: PatternRule, oppSpell: Spell): Spell[] {
-  if (hand.some(s => checkPattern(rule, s, oppSpell))) return hand;
-  const result     = [...hand];
+export function guaranteeMatch(
+  hand: Spell[],
+  rule: PatternRule,
+  oppSpell: Spell,
+): Spell[] {
+  if (hand.some((s) => checkPattern(rule, s, oppSpell))) return hand;
+  const result = [...hand];
   const replaceIdx = Math.floor(Math.random() * result.length);
-  const seen       = new Set(result.filter((_, i) => i !== replaceIdx).map(spellKey));
+  const seen = new Set(result.filter((_, i) => i !== replaceIdx).map(spellKey));
   result[replaceIdx] = uniqueSpell(() => makeValidSpell(rule, oppSpell), seen);
   return result;
 }

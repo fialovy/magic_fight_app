@@ -9,11 +9,18 @@ interface Props {
   loadCharacter: (namePath: string) => Promise<Character>;
 }
 
-export default function CharacterSelectScreen({ mode, disabledPath, onSelect, loadCharacter }: Props) {
+export default function CharacterSelectScreen({
+  mode,
+  disabledPath,
+  onSelect,
+  loadCharacter,
+}: Props) {
   const [highlighted, setHighlighted] = useState<string | null>(null);
   const [loading, setLoading] = useState<string | null>(null);
 
-  const highlightedMeta = SELECTABLE_CHARACTERS.find(m => m.namePath === highlighted);
+  const highlightedMeta = SELECTABLE_CHARACTERS.find(
+    (m) => m.namePath === highlighted,
+  );
 
   async function handleSelect(namePath: string) {
     setLoading(namePath);
@@ -32,7 +39,7 @@ export default function CharacterSelectScreen({ mode, disabledPath, onSelect, lo
       </p>
 
       <div className="grid grid-cols-3 gap-4 max-w-lg w-full mb-2 md:mb-6">
-        {SELECTABLE_CHARACTERS.map(meta => {
+        {SELECTABLE_CHARACTERS.map((meta) => {
           const isDisabled = meta.namePath === disabledPath;
           const isHighlighted = meta.namePath === highlighted;
           const isLoading = meta.namePath === loading;
@@ -41,7 +48,11 @@ export default function CharacterSelectScreen({ mode, disabledPath, onSelect, lo
             <button
               key={meta.namePath}
               disabled={isDisabled || loading !== null}
-              onClick={() => isHighlighted ? handleSelect(meta.namePath) : setHighlighted(meta.namePath)}
+              onClick={() =>
+                isHighlighted
+                  ? handleSelect(meta.namePath)
+                  : setHighlighted(meta.namePath)
+              }
               className={[
                 'relative flex flex-col items-center p-3 rounded-xl border-2 transition-all duration-200',
                 isDisabled
@@ -63,11 +74,15 @@ export default function CharacterSelectScreen({ mode, disabledPath, onSelect, lo
                   </div>
                 )}
               </div>
-              <span className={`text-sm font-semibold ${isHighlighted ? 'text-amber-300' : 'text-purple-200'}`}>
+              <span
+                className={`text-sm font-semibold ${isHighlighted ? 'text-amber-300' : 'text-purple-200'}`}
+              >
                 {meta.displayName}
               </span>
               {isHighlighted && !isDisabled && (
-                <span className="text-xs text-amber-400 mt-1">Click to confirm</span>
+                <span className="text-xs text-amber-400 mt-1">
+                  Click to confirm
+                </span>
               )}
             </button>
           );
@@ -76,7 +91,9 @@ export default function CharacterSelectScreen({ mode, disabledPath, onSelect, lo
 
       {highlightedMeta && (
         <div className="max-w-2xl w-full bg-purple-950/80 border border-purple-700 rounded-xl p-4 text-purple-200 text-sm leading-relaxed">
-          <p className="font-semibold text-amber-300 mb-1">{highlightedMeta.displayName}</p>
+          <p className="font-semibold text-amber-300 mb-1">
+            {highlightedMeta.displayName}
+          </p>
           <BioPreview namePath={highlightedMeta.namePath} />
         </div>
       )}
@@ -90,11 +107,20 @@ function BioPreview({ namePath }: { namePath: string }) {
   useEffect(() => {
     setBio(null);
     fetch(`${import.meta.env.BASE_URL}characters/${namePath}/bio.txt`)
-      .then(r => r.text())
-      .then(t => setBio(t.trim()))
+      .then((r) => r.text())
+      .then((t) => setBio(t.trim()))
       .catch(() => setBio(''));
   }, [namePath]);
 
-  if (bio === null) return <span className="text-purple-500 italic">Loading...</span>;
-  return <>{bio || <span className="text-purple-500 italic">No description available.</span>}</>;
+  if (bio === null)
+    return <span className="text-purple-500 italic">Loading...</span>;
+  return (
+    <>
+      {bio || (
+        <span className="text-purple-500 italic">
+          No description available.
+        </span>
+      )}
+    </>
+  );
 }

@@ -26,7 +26,12 @@ export default function App() {
     setScreen('fight');
   }
 
-  function handleGameOver(w: 'player' | 'opponent', p: Character, o: Character, history: TurnRecord[]) {
+  function handleGameOver(
+    w: 'player' | 'opponent',
+    p: Character,
+    o: Character,
+    history: TurnRecord[],
+  ) {
     setWinner(w);
     setFinalPlayer(p);
     setFinalOpponent(o);
@@ -46,7 +51,12 @@ export default function App() {
 
   switch (screen) {
     case 'title':
-      return <TitleScreen onStart={() => setScreen('character-select')} onGallery={() => setScreen('gallery')} />;
+      return (
+        <TitleScreen
+          onStart={() => setScreen('character-select')}
+          onGallery={() => setScreen('gallery')}
+        />
+      );
 
     case 'character-select':
       return (

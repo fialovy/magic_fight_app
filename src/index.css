@@ -13,10 +13,18 @@ body {
 }
 
 @keyframes blast-flash {
-  0%   { opacity: 0; }
-  18%  { opacity: 1; }
-  75%  { opacity: 1; }
-  100% { opacity: 0; }
+  0% {
+    opacity: 0;
+  }
+  18% {
+    opacity: 1;
+  }
+  75% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
 }
 
 .blast-animate {
@@ -24,10 +32,18 @@ body {
 }
 
 @keyframes hit-flash {
-  0%   { opacity: 0; }
-  12%  { opacity: 1; }
-  65%  { opacity: 0.9; }
-  100% { opacity: 0; }
+  0% {
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  65% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+  }
 }
 
 .hit-animate {
@@ -35,30 +51,61 @@ body {
 }
 
 @keyframes transition-flash {
-  0%   { opacity: 1; }
-  80%  { opacity: 1; }
-  100% { opacity: 0; }
+  0% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
 }
 
 .transition-animate {
   animation: transition-flash 1.8s ease-in-out forwards;
 }
 
-@keyframes spin-cw  { to { transform: rotate( 360deg); } }
-@keyframes spin-ccw { to { transform: rotate(-360deg); } }
+@keyframes spin-cw {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes spin-ccw {
+  to {
+    transform: rotate(-360deg);
+  }
+}
 
-.spell-spin-cw, .spell-spin-ccw {
+.spell-spin-cw,
+.spell-spin-ccw {
   transform-box: view-box;
   transform-origin: center;
 }
-.spell-spin-cw  { animation: spin-cw  2s linear infinite; }
-.spell-spin-ccw { animation: spin-ccw 2s linear infinite; }
+.spell-spin-cw {
+  animation: spin-cw 2s linear infinite;
+}
+.spell-spin-ccw {
+  animation: spin-ccw 2s linear infinite;
+}
 
 @keyframes rule-pulse {
-  0%   { opacity: 0; transform: scale(0.7); }
-  18%  { opacity: 1; transform: scale(1.06); }
-  60%  { opacity: 1; transform: scale(1); }
-  100% { opacity: 0; transform: scale(1); }
+  0% {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  18% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
 }
 
 .rule-pulse {
@@ -66,8 +113,14 @@ body {
 }
 
 @keyframes fade-in {
-  from { opacity: 0; transform: translateY(-4px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .animate-fade-in {
@@ -75,10 +128,22 @@ body {
 }
 
 @keyframes float-up {
-  0%   { opacity: 0; transform: translateX(-50%) translateY(0px)    scale(0.7); }
-  15%  { opacity: 1; transform: translateX(-50%) translateY(-10px)  scale(1.15); }
-  70%  { opacity: 1; transform: translateX(-50%) translateY(-30px)  scale(1); }
-  100% { opacity: 0; transform: translateX(-50%) translateY(-54px)  scale(0.9); }
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(0px) scale(0.7);
+  }
+  15% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-10px) scale(1.15);
+  }
+  70% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-30px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-54px) scale(0.9);
+  }
 }
 
 .damage-float {
@@ -87,8 +152,12 @@ body {
 }
 
 @keyframes border-beam {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .border-beam {

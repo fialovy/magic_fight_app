@@ -3,7 +3,12 @@ import { CHARACTER_REGISTRY } from '../data/characters';
 import type { CharacterMeta } from '../data/characters';
 import { BLAST_COUNTS } from 'virtual:blast-counts';
 import type { Spell } from '../types/game';
-import { SPELL_COLORS, SPELL_FILLS, SPELL_ROTATIONS, SPELL_SHAPES } from '../data/spells';
+import {
+  SPELL_COLORS,
+  SPELL_FILLS,
+  SPELL_ROTATIONS,
+  SPELL_SHAPES,
+} from '../data/spells';
 import SpellCard from './SpellCard';
 
 interface Props {
@@ -11,25 +16,31 @@ interface Props {
 }
 
 const NORA_FORMS: { emoji: string; meta: CharacterMeta }[] = [
-  { emoji: '♀️', meta: CHARACTER_REGISTRY.find(m => m.namePath === 'nora')! },
-  { emoji: '♂️', meta: CHARACTER_REGISTRY.find(m => m.namePath === 'nora/norm')! },
-  { emoji: '🌿', meta: CHARACTER_REGISTRY.find(m => m.namePath === 'nora/meadow_sprite')! },
+  { emoji: '♀️', meta: CHARACTER_REGISTRY.find((m) => m.namePath === 'nora')! },
+  {
+    emoji: '♂️',
+    meta: CHARACTER_REGISTRY.find((m) => m.namePath === 'nora/norm')!,
+  },
+  {
+    emoji: '🌿',
+    meta: CHARACTER_REGISTRY.find((m) => m.namePath === 'nora/meadow_sprite')!,
+  },
 ];
 
-const NORA_PATHS = new Set(NORA_FORMS.map(f => f.meta.namePath));
+const NORA_PATHS = new Set(NORA_FORMS.map((f) => f.meta.namePath));
 
 // Shared-index sequence for the secret gallery, sorted by narrative order 0-11
 const SECRET_IMAGES: { num: number; prefix: 'norm' | 'nora' }[] = [
-  { num: 0,  prefix: 'norm' },
-  { num: 1,  prefix: 'norm' },
-  { num: 2,  prefix: 'norm' },
-  { num: 3,  prefix: 'norm' },
-  { num: 4,  prefix: 'norm' },
-  { num: 5,  prefix: 'nora' },
-  { num: 6,  prefix: 'nora' },
-  { num: 7,  prefix: 'norm' },
-  { num: 8,  prefix: 'nora' },
-  { num: 9,  prefix: 'nora' },
+  { num: 0, prefix: 'norm' },
+  { num: 1, prefix: 'norm' },
+  { num: 2, prefix: 'norm' },
+  { num: 3, prefix: 'norm' },
+  { num: 4, prefix: 'norm' },
+  { num: 5, prefix: 'nora' },
+  { num: 6, prefix: 'nora' },
+  { num: 7, prefix: 'norm' },
+  { num: 8, prefix: 'nora' },
+  { num: 9, prefix: 'nora' },
   { num: 10, prefix: 'norm' },
   { num: 11, prefix: 'norm' },
 ];
@@ -40,8 +51,13 @@ export default function Gallery({ onBack }: Props) {
       <div className="max-w-5xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-purple-200 tracking-widest uppercase">Gallery</h1>
-            <p className="text-purple-400 text-sm mt-1">Original art, handcrafted without AI in Google Drawings by the human developer (2017-2026)</p>
+            <h1 className="text-3xl font-bold text-purple-200 tracking-widest uppercase">
+              Gallery
+            </h1>
+            <p className="text-purple-400 text-sm mt-1">
+              Original art, handcrafted without AI in Google Drawings by the
+              human developer (2017-2026)
+            </p>
           </div>
           <button
             onClick={onBack}
@@ -51,13 +67,15 @@ export default function Gallery({ onBack }: Props) {
           </button>
         </div>
 
-        {CHARACTER_REGISTRY
-          .filter(m => !NORA_PATHS.has(m.namePath) || m.namePath === 'nora')
-          .map(meta => meta.namePath === 'nora'
-            ? <NoraGallerySection key="nora" />
-            : <CharacterGallerySection key={meta.namePath} meta={meta} />
-          )
-        }
+        {CHARACTER_REGISTRY.filter(
+          (m) => !NORA_PATHS.has(m.namePath) || m.namePath === 'nora',
+        ).map((meta) =>
+          meta.namePath === 'nora' ? (
+            <NoraGallerySection key="nora" />
+          ) : (
+            <CharacterGallerySection key={meta.namePath} meta={meta} />
+          ),
+        )}
 
         <SpellPreviewSection />
       </div>
@@ -67,8 +85,10 @@ export default function Gallery({ onBack }: Props) {
 
 function useBlastImages(imagePrefix: string, showLeft: boolean): string[] {
   const blastCount = BLAST_COUNTS[imagePrefix] ?? 0;
-  return Array.from({ length: blastCount }, (_, i) =>
-    `${import.meta.env.BASE_URL}images/characters/on_cast/${imagePrefix}_mf_blast_${i}_face_${showLeft ? 'left' : 'right'}.png`
+  return Array.from(
+    { length: blastCount },
+    (_, i) =>
+      `${import.meta.env.BASE_URL}images/characters/on_cast/${imagePrefix}_mf_blast_${i}_face_${showLeft ? 'left' : 'right'}.png`,
   );
 }
 
@@ -116,7 +136,10 @@ function NoraGallerySection() {
           </div>
           {/* Hidden heart button — lives outside overflow-hidden so no border bleeds through */}
           <button
-            onClick={() => { setSecretFound(true); setFormIdx(3); }}
+            onClick={() => {
+              setSecretFound(true);
+              setFormIdx(3);
+            }}
             className={[
               'px-3 py-1.5 text-base rounded-lg border transition-all duration-300',
               formIdx === 3
@@ -132,7 +155,7 @@ function NoraGallerySection() {
 
         {!isSecret && (
           <button
-            onClick={() => setShowLeft(v => !v)}
+            onClick={() => setShowLeft((v) => !v)}
             className="ml-auto text-xs px-3 py-1 rounded-lg border border-purple-600 text-purple-300 hover:bg-purple-800 transition-colors"
           >
             {showLeft ? '◀ Facing left' : '▶ Facing right'}
@@ -151,7 +174,9 @@ function NoraGallerySection() {
                 src={`${import.meta.env.BASE_URL}images/characters/secret/${prefix}_secret_${num}.png`}
                 alt={`${prefix} secret ${num}`}
                 className="max-w-full max-h-full object-contain"
-                onError={e => { (e.target as HTMLImageElement).style.opacity = '0.2'; }}
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.opacity = '0.2';
+                }}
               />
               <span className="absolute bottom-1 right-2 text-xs text-rose-700/50 group-hover:text-rose-300 transition-colors">
                 {num}
@@ -180,7 +205,7 @@ function CharacterGallerySection({ meta }: { meta: CharacterMeta }) {
         />
         <h2 className="text-xl font-bold text-amber-300">{meta.displayName}</h2>
         <button
-          onClick={() => setShowLeft(v => !v)}
+          onClick={() => setShowLeft((v) => !v)}
           className="ml-auto text-xs px-3 py-1 rounded-lg border border-purple-600 text-purple-300 hover:bg-purple-800 transition-colors"
         >
           {showLeft ? '◀ Facing left' : '▶ Facing right'}
@@ -218,7 +243,9 @@ function BlastGrid({
             src={url}
             alt={`${meta.displayName} blast ${i}`}
             className="max-w-full max-h-full object-contain"
-            onError={e => { (e.target as HTMLImageElement).style.opacity = '0.2'; }}
+            onError={(e) => {
+              (e.target as HTMLImageElement).style.opacity = '0.2';
+            }}
           />
         </div>
       ))}
@@ -228,42 +255,62 @@ function BlastGrid({
 
 // One card per shape (solid, cycling colors) + one per non-solid fill (cycling shapes/colors).
 // Automatically includes any new shapes or fills added to the spell system.
-const COLOR_PREVIEWS: Spell[] = SPELL_COLORS.map(color => ({
-  color, shape: 'heart', fill: 'solid', rotation: 'clockwise',
+const COLOR_PREVIEWS: Spell[] = SPELL_COLORS.map((color) => ({
+  color,
+  shape: 'heart',
+  fill: 'solid',
+  rotation: 'clockwise',
 }));
 
 const SHAPE_PREVIEWS: Spell[] = SPELL_SHAPES.map((shape, i) => ({
-  color: SPELL_COLORS[i % SPELL_COLORS.length], shape, fill: 'solid', rotation: 'clockwise',
+  color: SPELL_COLORS[i % SPELL_COLORS.length],
+  shape,
+  fill: 'solid',
+  rotation: 'clockwise',
 }));
 
-const FILL_PREVIEWS: Spell[] = SPELL_FILLS
-  .filter(f => f !== 'solid')
-  .map((fill, i) => ({
+const FILL_PREVIEWS: Spell[] = SPELL_FILLS.filter((f) => f !== 'solid').map(
+  (fill, i) => ({
     color: SPELL_COLORS[(i + 1) % SPELL_COLORS.length],
     shape: SPELL_SHAPES[i % SPELL_SHAPES.length],
-    fill, rotation: 'clockwise',
-  }));
+    fill,
+    rotation: 'clockwise',
+  }),
+);
 
 const ROTATION_PREVIEWS: Spell[] = SPELL_ROTATIONS.map((rotation, i) => ({
   color: SPELL_COLORS[i % SPELL_COLORS.length],
-  shape: 'heart', fill: 'vertical-stripe', rotation,
+  shape: 'heart',
+  fill: 'vertical-stripe',
+  rotation,
 }));
 
 function SpellPreviewSection() {
   return (
     <div className="mb-10 pt-6 border-t border-purple-800/40">
-      <p className="text-purple-400 text-sm font-semibold tracking-wide uppercase mb-1">✦ Spell system preview</p>
+      <p className="text-purple-400 text-sm font-semibold tracking-wide uppercase mb-1">
+        ✦ Spell system preview
+      </p>
       <p className="text-purple-600 text-xs mb-4">
-        {SPELL_COLORS.length} colors · {SPELL_SHAPES.length} shapes · {SPELL_FILLS.length} fills · {SPELL_ROTATIONS.length} rotations
+        {SPELL_COLORS.length} colors · {SPELL_SHAPES.length} shapes ·{' '}
+        {SPELL_FILLS.length} fills · {SPELL_ROTATIONS.length} rotations
       </p>
       <div className="flex flex-wrap gap-3">
-        {COLOR_PREVIEWS.map((spell, i) => <SpellCard key={`color-${i}`} spell={spell} size={80} />)}
+        {COLOR_PREVIEWS.map((spell, i) => (
+          <SpellCard key={`color-${i}`} spell={spell} size={80} />
+        ))}
         <div className="w-px bg-purple-800/40 mx-1" />
-        {SHAPE_PREVIEWS.map((spell, i) => <SpellCard key={`shape-${i}`} spell={spell} size={80} />)}
+        {SHAPE_PREVIEWS.map((spell, i) => (
+          <SpellCard key={`shape-${i}`} spell={spell} size={80} />
+        ))}
         <div className="w-px bg-purple-800/40 mx-1" />
-        {FILL_PREVIEWS.map((spell, i) => <SpellCard key={`fill-${i}`} spell={spell} size={80} />)}
+        {FILL_PREVIEWS.map((spell, i) => (
+          <SpellCard key={`fill-${i}`} spell={spell} size={80} />
+        ))}
         <div className="w-px bg-purple-800/40 mx-1" />
-        {ROTATION_PREVIEWS.map((spell, i) => <SpellCard key={`rot-${i}`} spell={spell} size={80} />)}
+        {ROTATION_PREVIEWS.map((spell, i) => (
+          <SpellCard key={`rot-${i}`} spell={spell} size={80} />
+        ))}
       </div>
     </div>
   );

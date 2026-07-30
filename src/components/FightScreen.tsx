@@ -1,11 +1,31 @@
 import { useEffect, useRef, useState } from 'react';
-import type { Character, CollisionOutcome, PatternRule, ReactionsInfo, Spell, TimerResult, TauntsInfo, TurnRecord } from '../types/game';
-import { GAME_LIFE, PATTERN_TURNS, TIMER_FLOOR_MS, TIMER_START_MS, TIMER_STEP_MS } from '../types/game';
+import type {
+  Character,
+  CollisionOutcome,
+  PatternRule,
+  ReactionsInfo,
+  Spell,
+  TimerResult,
+  TauntsInfo,
+  TurnRecord,
+} from '../types/game';
+import {
+  GAME_LIFE,
+  PATTERN_TURNS,
+  TIMER_FLOOR_MS,
+  TIMER_START_MS,
+  TIMER_STEP_MS,
+} from '../types/game';
 import { pickReaction, pickTaunt } from '../engine/combat';
 import { sampleDominantColor } from '../engine/colorSampler';
 import {
-  checkPattern, generateHand, guaranteeMatch, OUTCOME_DAMAGE,
-  randomPatternRule, randomSpell, resolveCollision,
+  checkPattern,
+  generateHand,
+  guaranteeMatch,
+  OUTCOME_DAMAGE,
+  randomPatternRule,
+  randomSpell,
+  resolveCollision,
 } from '../data/spells';
 import SpellCard from './SpellCard';
 import { BLAST_COUNTS } from 'virtual:blast-counts';
@@ -14,12 +34,25 @@ import confetti from 'canvas-confetti';
 interface Props {
   initialPlayer: Character;
   initialOpponent: Character;
-  onGameOver: (winner: 'player' | 'opponent', player: Character, opponent: Character, history: TurnRecord[]) => void;
+  onGameOver: (
+    winner: 'player' | 'opponent',
+    player: Character,
+    opponent: Character,
+    history: TurnRecord[],
+  ) => void;
 }
 
-type TurnPhase = 'between-turns' | 'hand-shown' | 'opponent-shown' | 'resolving';
+type TurnPhase =
+  | 'between-turns'
+  | 'hand-shown'
+  | 'opponent-shown'
+  | 'resolving';
 
-interface BlastAnim { url: string; key: number; side: 'player' | 'opponent'; }
+interface BlastAnim {
+  url: string;
+  key: number;
+  side: 'player' | 'opponent';
+}
 
 // Emoji burst for specific blast images — add any image stem here (without _face_left/right.png)
 const BLAST_EMOJI: Record<string, string> = {
@@ -30,147 +63,237 @@ const BLAST_EMOJI: Record<string, string> = {
   bastion_mf_blast_4: '🥞',
   lucian_mf_blast_3: '💖',
   meadow_sprite_mf_blast_0: '🌿',
-  nora_mf_blast_5: '🌈'
+  nora_mf_blast_5: '🌈',
 };
 
 function blastEmojiFor(url: string): string | undefined {
-  const stem = (url.split('/').pop() ?? '').replace(/_face_(left|right)\.png$/, '');
+  const stem = (url.split('/').pop() ?? '').replace(
+    /_face_(left|right)\.png$/,
+    '',
+  );
   return BLAST_EMOJI[stem];
 }
 
 const ORB_SHAPES: { clipPath: string; borderRadius: string }[] = [
-  { clipPath: 'none',                                                                                                                                                       borderRadius: '50%' },
-  { clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',                                                                                                               borderRadius: '0'   },
-  { clipPath: 'polygon(50% 0%, 54% 46%, 100% 50%, 54% 54%, 50% 100%, 46% 54%, 0% 50%, 46% 46%)',                                                                           borderRadius: '0'   },
-  { clipPath: 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)',                                                          borderRadius: '0'   },
-  { clipPath: 'polygon(50% 0%, 57% 34%, 85% 15%, 66% 43%, 100% 50%, 66% 57%, 85% 85%, 57% 66%, 50% 100%, 43% 66%, 15% 85%, 34% 57%, 0% 50%, 34% 43%, 15% 15%, 43% 34%)', borderRadius: '0'   },
+  { clipPath: 'none', borderRadius: '50%' },
+  {
+    clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
+    borderRadius: '0',
+  },
+  {
+    clipPath:
+      'polygon(50% 0%, 54% 46%, 100% 50%, 54% 54%, 50% 100%, 46% 54%, 0% 50%, 46% 46%)',
+    borderRadius: '0',
+  },
+  {
+    clipPath:
+      'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)',
+    borderRadius: '0',
+  },
+  {
+    clipPath:
+      'polygon(50% 0%, 57% 34%, 85% 15%, 66% 43%, 100% 50%, 66% 57%, 85% 85%, 57% 66%, 50% 100%, 43% 66%, 15% 85%, 34% 57%, 0% 50%, 34% 43%, 15% 15%, 43% 34%)',
+    borderRadius: '0',
+  },
 ];
 
-const delay = (ms: number) => new Promise<void>(r => setTimeout(r, ms));
+const delay = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
 const NORA_FORM_DEFS = [
-  { emoji: '♀️', prefix: 'nora',          path: 'nora',               displayName: 'Nora'          },
-  { emoji: '♂️', prefix: 'norm',          path: 'nora/norm',          displayName: 'Norm'          },
-  { emoji: '🌿', prefix: 'meadow_sprite', path: 'nora/meadow_sprite', displayName: 'Meadow Sprite' },
+  { emoji: '♀️', prefix: 'nora', path: 'nora', displayName: 'Nora' },
+  { emoji: '♂️', prefix: 'norm', path: 'nora/norm', displayName: 'Norm' },
+  {
+    emoji: '🌿',
+    prefix: 'meadow_sprite',
+    path: 'nora/meadow_sprite',
+    displayName: 'Meadow Sprite',
+  },
 ] as const;
 
-const NORA_NAME_PATHS = new Set(NORA_FORM_DEFS.map(f => f.path));
+const NORA_NAME_PATHS = new Set(NORA_FORM_DEFS.map((f) => f.path));
 
-function isNora(c: Character) { return NORA_NAME_PATHS.has(c.namePath); }
+function isNora(c: Character) {
+  return NORA_NAME_PATHS.has(c.namePath);
+}
 
 function panelClass(side: 'player' | 'opponent', character: Character): string {
-  const order  = side === 'player' ? 'order-3 md:order-1' : 'order-1 md:order-3';
-  const height = isNora(character) ? 'h-[min(calc(28vh_+_44px),264px)]' : 'h-[min(28vh,220px)]';
+  const order = side === 'player' ? 'order-3 md:order-1' : 'order-1 md:order-3';
+  const height = isNora(character)
+    ? 'h-[min(calc(28vh_+_44px),264px)]'
+    : 'h-[min(28vh,220px)]';
   return `${order} flex flex-col items-center p-2 md:p-4 w-full md:w-72 xl:w-96 md:shrink-0 md:h-auto ${height}`;
 }
 
-function fireBurst(targetEl: HTMLElement, colors: string[], count: number, emoji?: string) {
+function fireBurst(
+  targetEl: HTMLElement,
+  colors: string[],
+  count: number,
+  emoji?: string,
+) {
   const rect = targetEl.getBoundingClientRect();
   const origin = {
-    x: (rect.left + rect.width  / 2) / window.innerWidth,
-    y: (rect.top  + rect.height / 2) / window.innerHeight,
+    x: (rect.left + rect.width / 2) / window.innerWidth,
+    y: (rect.top + rect.height / 2) / window.innerHeight,
   };
   const mobile = window.innerWidth < 768;
   const n = mobile ? Math.round(count * 0.5) : count;
-  const shared = { spread: 65, startVelocity: mobile ? 16 : 22, gravity: 0.9, decay: 0.88, ticks: mobile ? 55 : 120 };
+  const shared = {
+    spread: 65,
+    startVelocity: mobile ? 16 : 22,
+    gravity: 0.9,
+    decay: 0.88,
+    ticks: mobile ? 55 : 120,
+  };
   if (emoji) {
     const shape = confetti.shapeFromText({ text: emoji, scalar: 2 });
-    confetti({ particleCount: n, origin, shapes: [shape], scalar: 2.5, ...shared });
+    confetti({
+      particleCount: n,
+      origin,
+      shapes: [shape],
+      scalar: 2.5,
+      ...shared,
+    });
   } else {
-    confetti({ particleCount: n, origin, colors, shapes: ['star', 'circle'], ...shared });
+    confetti({
+      particleCount: n,
+      origin,
+      colors,
+      shapes: ['star', 'circle'],
+      ...shared,
+    });
   }
 }
 
-interface NoraFormOverride { tauntsInfo: TauntsInfo | null; reactionsInfo: ReactionsInfo | null; }
+interface NoraFormOverride {
+  tauntsInfo: TauntsInfo | null;
+  reactionsInfo: ReactionsInfo | null;
+}
 
-function applyNoraForm(c: Character, formIdx: number, overrides?: NoraFormOverride[] | null): Character {
+function applyNoraForm(
+  c: Character,
+  formIdx: number,
+  overrides?: NoraFormOverride[] | null,
+): Character {
   const { prefix, path, displayName } = NORA_FORM_DEFS[formIdx];
   const count = BLAST_COUNTS[prefix] ?? 0;
-  const ov    = overrides?.[formIdx];
+  const ov = overrides?.[formIdx];
   return {
     ...c,
     namePath: path,
     displayName,
-    tauntsInfo:    ov ? ov.tauntsInfo    : c.tauntsInfo,
+    tauntsInfo: ov ? ov.tauntsInfo : c.tauntsInfo,
     reactionsInfo: ov ? ov.reactionsInfo : c.reactionsInfo,
-    imageLeft:        `${import.meta.env.BASE_URL}images/characters/${prefix}_mf_face_left.png`,
-    imageRight:       `${import.meta.env.BASE_URL}images/characters/${prefix}_mf_face_right.png`,
-    hitImageLeft:     `${import.meta.env.BASE_URL}images/characters/on_impact/${prefix}_mf_hit_face_left.png`,
-    hitImageRight:    `${import.meta.env.BASE_URL}images/characters/on_impact/${prefix}_mf_hit_face_right.png`,
-    blastImagesLeft:  Array.from({ length: count }, (_, i) => `${import.meta.env.BASE_URL}images/characters/on_cast/${prefix}_mf_blast_${i}_face_left.png`),
-    blastImagesRight: Array.from({ length: count }, (_, i) => `${import.meta.env.BASE_URL}images/characters/on_cast/${prefix}_mf_blast_${i}_face_right.png`),
+    imageLeft: `${import.meta.env.BASE_URL}images/characters/${prefix}_mf_face_left.png`,
+    imageRight: `${import.meta.env.BASE_URL}images/characters/${prefix}_mf_face_right.png`,
+    hitImageLeft: `${import.meta.env.BASE_URL}images/characters/on_impact/${prefix}_mf_hit_face_left.png`,
+    hitImageRight: `${import.meta.env.BASE_URL}images/characters/on_impact/${prefix}_mf_hit_face_right.png`,
+    blastImagesLeft: Array.from(
+      { length: count },
+      (_, i) =>
+        `${import.meta.env.BASE_URL}images/characters/on_cast/${prefix}_mf_blast_${i}_face_left.png`,
+    ),
+    blastImagesRight: Array.from(
+      { length: count },
+      (_, i) =>
+        `${import.meta.env.BASE_URL}images/characters/on_cast/${prefix}_mf_blast_${i}_face_right.png`,
+    ),
   };
 }
 
-const OUTCOME_DISPLAY: Record<CollisionOutcome, { label: string; color: string }> = {
-  'decisive-win':  { label: '✦ Decisive!',   color: 'text-amber-300' },
-  'win':           { label: '↑ Overpowered!', color: 'text-blue-300'  },
-  'neutral':       { label: '≈ Clash',        color: 'text-purple-400'},
-  'loss':          { label: '↓ Overpowered',  color: 'text-rose-400'  },
-  'decisive-loss': { label: '✦ Shattered!',   color: 'text-rose-600'  },
+const OUTCOME_DISPLAY: Record<
+  CollisionOutcome,
+  { label: string; color: string }
+> = {
+  'decisive-win': { label: '✦ Decisive!', color: 'text-amber-300' },
+  win: { label: '↑ Overpowered!', color: 'text-blue-300' },
+  neutral: { label: '≈ Clash', color: 'text-purple-400' },
+  loss: { label: '↓ Overpowered', color: 'text-rose-400' },
+  'decisive-loss': { label: '✦ Shattered!', color: 'text-rose-600' },
 };
 
-export default function FightScreen({ initialPlayer, initialOpponent, onGameOver }: Props) {
+export default function FightScreen({
+  initialPlayer,
+  initialOpponent,
+  onGameOver,
+}: Props) {
   // Refs hold live values read by async turn logic — avoids stale closures
-  const livePlayerRef    = useRef(initialPlayer);
-  const liveOpponentRef  = useRef(initialOpponent);
-  const patternRef       = useRef({ rule: randomPatternRule() as PatternRule, turnsLeft: PATTERN_TURNS });
-  const cardClickRef     = useRef<((spell: Spell) => void) | null>(null);
-  const playerBlastIdx   = useRef(0);
+  const livePlayerRef = useRef(initialPlayer);
+  const liveOpponentRef = useRef(initialOpponent);
+  const patternRef = useRef({
+    rule: randomPatternRule() as PatternRule,
+    turnsLeft: PATTERN_TURNS,
+  });
+  const cardClickRef = useRef<((spell: Spell) => void) | null>(null);
+  const playerBlastIdx = useRef(0);
   const opponentBlastIdx = useRef(0);
-  const noraFormIdxRef   = useRef(0);
+  const noraFormIdxRef = useRef(0);
   const timerDurationRef = useRef(TIMER_START_MS);
-  const noraFormDataRef  = useRef<NoraFormOverride[] | null>(null);
-  const restartTimerRef  = useRef<(() => void) | null>(null);
-  const turnHistoryRef   = useRef<TurnRecord[]>([]);
+  const noraFormDataRef = useRef<NoraFormOverride[] | null>(null);
+  const restartTimerRef = useRef<(() => void) | null>(null);
+  const turnHistoryRef = useRef<TurnRecord[]>([]);
 
   // Display state — noraForm combines idx + transition overlay so they always update in one render
-  const [noraForm, setNoraForm] = useState<{ idx: number; anim: BlastAnim | null }>({ idx: 0, anim: null });
-  const [player,       setPlayer]       = useState(initialPlayer);
-  const [opponent,     setOpponent]     = useState(initialOpponent);
-  const [phase,        setPhase]        = useState<TurnPhase>('between-turns');
-  const [hand,         setHand]         = useState<Spell[]>([]);
+  const [noraForm, setNoraForm] = useState<{
+    idx: number;
+    anim: BlastAnim | null;
+  }>({ idx: 0, anim: null });
+  const [player, setPlayer] = useState(initialPlayer);
+  const [opponent, setOpponent] = useState(initialOpponent);
+  const [phase, setPhase] = useState<TurnPhase>('between-turns');
+  const [hand, setHand] = useState<Spell[]>([]);
   const [opponentSpell, setOpponentSpell] = useState<Spell | null>(null);
-  const [selectedIdx,  setSelectedIdx]  = useState<number | null>(null);
-  const [lastOutcome,  setLastOutcome]  = useState<CollisionOutcome | null>(null);
-  const [blast,   setBlast]   = useState<BlastAnim | null>(null);
+  const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
+  const [lastOutcome, setLastOutcome] = useState<CollisionOutcome | null>(null);
+  const [blast, setBlast] = useState<BlastAnim | null>(null);
   const [hitAnim, setHitAnim] = useState<BlastAnim | null>(null);
-  const [playerSpeech,   setPlayerSpeech]   = useState<string | null>(null);
+  const [playerSpeech, setPlayerSpeech] = useState<string | null>(null);
   const [opponentSpeech, setOpponentSpeech] = useState<string | null>(null);
-  const [playerDmgFloat,   setPlayerDmgFloat]   = useState<{ text: string; key: number } | null>(null);
-  const [opponentDmgFloat, setOpponentDmgFloat] = useState<{ text: string; key: number } | null>(null);
-  const [currentRule,  setCurrentRule]  = useState<PatternRule>(patternRef.current.rule);
-  const [ruleAnnounce, setRuleAnnounce] = useState<{ rule: PatternRule; key: number } | null>({ rule: patternRef.current.rule, key: Date.now() });
+  const [playerDmgFloat, setPlayerDmgFloat] = useState<{
+    text: string;
+    key: number;
+  } | null>(null);
+  const [opponentDmgFloat, setOpponentDmgFloat] = useState<{
+    text: string;
+    key: number;
+  } | null>(null);
+  const [currentRule, setCurrentRule] = useState<PatternRule>(
+    patternRef.current.rule,
+  );
+  const [ruleAnnounce, setRuleAnnounce] = useState<{
+    rule: PatternRule;
+    key: number;
+  } | null>({ rule: patternRef.current.rule, key: Date.now() });
 
-  const playerPortraitRef   = useRef<HTMLDivElement>(null);
+  const playerPortraitRef = useRef<HTMLDivElement>(null);
   const opponentPortraitRef = useRef<HTMLDivElement>(null);
-  const projectileRef       = useRef<HTMLDivElement>(null);
-  const projectile2Ref      = useRef<HTMLDivElement>(null);
-
+  const projectileRef = useRef<HTMLDivElement>(null);
+  const projectile2Ref = useRef<HTMLDivElement>(null);
 
   async function showTransitionEffect(fromIdx: number, toIdx: number) {
     const isSprite = fromIdx === 2 || toIdx === 2;
-    const suffix   = isSprite ? 'sprite_to_humanoid_or_humanoid_to_sprite' : 'humanoid_to_humanoid';
-    const side     = isNora(initialPlayer) ? 'player' : 'opponent';
-    const dir      = side === 'player' ? 'right' : 'left';
-    const url      = `${import.meta.env.BASE_URL}images/characters/ability_transitions/nora_mf_splat_${suffix}_face_${dir}.png`;
+    const suffix = isSprite
+      ? 'sprite_to_humanoid_or_humanoid_to_sprite'
+      : 'humanoid_to_humanoid';
+    const side = isNora(initialPlayer) ? 'player' : 'opponent';
+    const dir = side === 'player' ? 'right' : 'left';
+    const url = `${import.meta.env.BASE_URL}images/characters/ability_transitions/nora_mf_splat_${suffix}_face_${dir}.png`;
 
     // Show overlay (transition-flash: opacity 1→1→0 over 1800ms, fade starts at 80%=1440ms)
-    setNoraForm(v => ({ ...v, anim: { url, key: Date.now(), side } }));
+    setNoraForm((v) => ({ ...v, anim: { url, key: Date.now(), side } }));
 
     // At 1440ms the overlay is still fully opaque — safe to swap portrait underneath
     await delay(1440);
-    setNoraForm(v => ({ ...v, idx: toIdx }));
+    setNoraForm((v) => ({ ...v, idx: toIdx }));
 
     // At 1800ms the CSS fade reaches opacity:0 (forwards fill keeps it there) — safe to remove
     await delay(400);
-    setNoraForm(v => ({ ...v, anim: null }));
+    setNoraForm((v) => ({ ...v, anim: null }));
   }
 
   function handleNoraFormChange(idx: number) {
     const prev = noraFormIdxRef.current;
     if (idx === prev) return;
-    noraFormIdxRef.current = idx;  // update ref immediately so turn logic uses new form
+    noraFormIdxRef.current = idx; // update ref immediately so turn logic uses new form
     // setNoraFormIdx is called inside showTransitionEffect after the animation
     showTransitionEffect(prev, idx);
     restartTimerRef.current?.();
@@ -184,39 +307,74 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
     cb(spell);
   }
 
-  function fireProjectile(color: string, fromSide: 'player' | 'opponent', orbEl?: HTMLDivElement | null) {
-    const fromEl = fromSide === 'player' ? playerPortraitRef.current : opponentPortraitRef.current;
-    const toEl   = fromSide === 'player' ? opponentPortraitRef.current : playerPortraitRef.current;
+  function fireProjectile(
+    color: string,
+    fromSide: 'player' | 'opponent',
+    orbEl?: HTMLDivElement | null,
+  ) {
+    const fromEl =
+      fromSide === 'player'
+        ? playerPortraitRef.current
+        : opponentPortraitRef.current;
+    const toEl =
+      fromSide === 'player'
+        ? opponentPortraitRef.current
+        : playerPortraitRef.current;
     const el = orbEl !== undefined ? orbEl : projectileRef.current;
     if (!fromEl || !toEl || !el || typeof el.animate !== 'function') return;
 
     const S = 36;
     const fromRect = fromEl.getBoundingClientRect();
-    const toRect   = toEl.getBoundingClientRect();
-    const fromX = fromRect.left + fromRect.width  / 2 - S / 2;
-    const fromY = fromRect.top  + fromRect.height / 2 - S / 2;
-    const toX   = toRect.left  + toRect.width    / 2 - S / 2;
-    const toY   = toRect.top   + toRect.height   / 2 - S / 2;
+    const toRect = toEl.getBoundingClientRect();
+    const fromX = fromRect.left + fromRect.width / 2 - S / 2;
+    const fromY = fromRect.top + fromRect.height / 2 - S / 2;
+    const toX = toRect.left + toRect.width / 2 - S / 2;
+    const toY = toRect.top + toRect.height / 2 - S / 2;
     const shape = ORB_SHAPES[Math.floor(Math.random() * ORB_SHAPES.length)];
-    el.style.clipPath     = shape.clipPath;
+    el.style.clipPath = shape.clipPath;
     el.style.borderRadius = shape.borderRadius;
-    el.style.background   = `radial-gradient(circle, white 0%, ${color} 35%, transparent 70%)`;
-    el.style.filter       = `drop-shadow(0 0 10px ${color})`;
-    el.animate([
-      { transform: `translate(${fromX}px, ${fromY}px)`, opacity: 0 },
-      { transform: `translate(${fromX}px, ${fromY}px)`, opacity: 1,   offset: 0.07 },
-      { transform: `translate(${toX}px,   ${toY}px)`,   opacity: 0.9, offset: 0.88 },
-      { transform: `translate(${toX}px,   ${toY}px)`,   opacity: 0 },
-    ], { duration: 950, easing: 'ease-in', fill: 'none' });
+    el.style.background = `radial-gradient(circle, white 0%, ${color} 35%, transparent 70%)`;
+    el.style.filter = `drop-shadow(0 0 10px ${color})`;
+    el.animate(
+      [
+        { transform: `translate(${fromX}px, ${fromY}px)`, opacity: 0 },
+        {
+          transform: `translate(${fromX}px, ${fromY}px)`,
+          opacity: 1,
+          offset: 0.07,
+        },
+        {
+          transform: `translate(${toX}px,   ${toY}px)`,
+          opacity: 0.9,
+          offset: 0.88,
+        },
+        { transform: `translate(${toX}px,   ${toY}px)`, opacity: 0 },
+      ],
+      { duration: 950, easing: 'ease-in', fill: 'none' },
+    );
   }
 
-  async function showBlast(caster: Character, casterSide: 'player' | 'opponent', recipient: Character, outcome: CollisionOutcome) {
-    const images      = casterSide === 'player' ? caster.blastImagesRight : caster.blastImagesLeft;
-    const recipientSide: 'player' | 'opponent' = casterSide === 'player' ? 'opponent' : 'player';
-    const hitUrl      = recipientSide === 'player' ? recipient.hitImageRight : recipient.hitImageLeft;
-    const recipientEl = (recipientSide === 'player' ? playerPortraitRef : opponentPortraitRef).current;
-    const decisive    = outcome === 'decisive-win' || outcome === 'decisive-loss';
-    const idxRef      = casterSide === 'player' ? playerBlastIdx : opponentBlastIdx;
+  async function showBlast(
+    caster: Character,
+    casterSide: 'player' | 'opponent',
+    recipient: Character,
+    outcome: CollisionOutcome,
+  ) {
+    const images =
+      casterSide === 'player'
+        ? caster.blastImagesRight
+        : caster.blastImagesLeft;
+    const recipientSide: 'player' | 'opponent' =
+      casterSide === 'player' ? 'opponent' : 'player';
+    const hitUrl =
+      recipientSide === 'player'
+        ? recipient.hitImageRight
+        : recipient.hitImageLeft;
+    const recipientEl = (
+      recipientSide === 'player' ? playerPortraitRef : opponentPortraitRef
+    ).current;
+    const decisive = outcome === 'decisive-win' || outcome === 'decisive-loss';
+    const idxRef = casterSide === 'player' ? playerBlastIdx : opponentBlastIdx;
 
     let firstBlastUrl: string | undefined;
 
@@ -248,12 +406,13 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
     }
 
     const hitHex = await hitColorPromise;
-    const colors  = [hex, hitHex];
+    const colors = [hex, hitHex];
 
     // First hit at t=836
     const burstEmoji = firstBlastUrl ? blastEmojiFor(firstBlastUrl) : undefined;
     setHitAnim({ url: hitUrl, key: Date.now(), side: recipientSide });
-    if (recipientEl) fireBurst(recipientEl, colors, decisive ? 50 : 35, burstEmoji);
+    if (recipientEl)
+      fireBurst(recipientEl, colors, decisive ? 50 : 35, burstEmoji);
 
     if (decisive) {
       // Second orb arrives at t=300+836=1136 → wait 1136−836=300ms after first hit
@@ -274,8 +433,14 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
     const oImages = vO.blastImagesLeft;
 
     // Capture URLs before incrementing, then resolve both colors in parallel
-    const pUrl = pImages.length > 0 ? pImages[playerBlastIdx.current++   % pImages.length] : null;
-    const oUrl = oImages.length > 0 ? oImages[opponentBlastIdx.current++ % oImages.length] : null;
+    const pUrl =
+      pImages.length > 0
+        ? pImages[playerBlastIdx.current++ % pImages.length]
+        : null;
+    const oUrl =
+      oImages.length > 0
+        ? oImages[opponentBlastIdx.current++ % oImages.length]
+        : null;
     const [pColor, oColor] = await Promise.all([
       pUrl ? sampleDominantColor(pUrl) : Promise.resolve('#a855f7'),
       oUrl ? sampleDominantColor(oUrl) : Promise.resolve('#a855f7'),
@@ -315,13 +480,16 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
     setOpponentSpell(oppSpell);
     setPhase('opponent-shown');
 
-    const selectedSpell = await new Promise<Spell | null>(resolve => {
+    const selectedSpell = await new Promise<Spell | null>((resolve) => {
       cardClickRef.current = resolve;
       let timeoutId: ReturnType<typeof setTimeout>;
       const arm = () => {
         clearTimeout(timeoutId);
         timeoutId = setTimeout(() => {
-          if (cardClickRef.current) { cardClickRef.current = null; resolve(null); }
+          if (cardClickRef.current) {
+            cardClickRef.current = null;
+            resolve(null);
+          }
           restartTimerRef.current = null;
         }, timerDurationRef.current);
       };
@@ -338,9 +506,17 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
     const timedOut = selectedSpell === null;
     const timerResult: TimerResult = timedOut
       ? 'timeout'
-      : checkPattern(rule, selectedSpell, oppSpell) ? 'correct' : 'wrong';
+      : checkPattern(rule, selectedSpell, oppSpell)
+        ? 'correct'
+        : 'wrong';
 
-    const outcome = resolveCollision(rule, p.affinity, oppSpell, o.affinity, timerResult);
+    const outcome = resolveCollision(
+      rule,
+      p.affinity,
+      oppSpell,
+      o.affinity,
+      timerResult,
+    );
     turnHistoryRef.current.push({ rule, timerResult, outcome });
     setLastOutcome(outcome);
 
@@ -354,8 +530,12 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
     }
 
     // Collision visuals — use form-overridden images if Nora is fighting
-    const vP = isNora(p) ? applyNoraForm(p, noraFormIdxRef.current, noraFormDataRef.current) : p;
-    const vO = isNora(o) ? applyNoraForm(o, noraFormIdxRef.current, noraFormDataRef.current) : o;
+    const vP = isNora(p)
+      ? applyNoraForm(p, noraFormIdxRef.current, noraFormDataRef.current)
+      : p;
+    const vO = isNora(o)
+      ? applyNoraForm(o, noraFormIdxRef.current, noraFormDataRef.current)
+      : o;
     if (outcome === 'win' || outcome === 'decisive-win') {
       await showBlast(vP, 'player', vO, outcome);
     } else if (outcome === 'loss' || outcome === 'decisive-loss') {
@@ -367,14 +547,16 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
     // Commit state
     setPlayer(newP);
     setOpponent(newO);
-    livePlayerRef.current  = newP;
+    livePlayerRef.current = newP;
     liveOpponentRef.current = newO;
 
     // Floating damage number over the hit character's portrait
     if (damage > 0) {
       const float = { text: `−${damage}`, key: Date.now() };
-      if (outcome === 'win' || outcome === 'decisive-win') setOpponentDmgFloat(float);
-      else if (outcome === 'loss' || outcome === 'decisive-loss') setPlayerDmgFloat(float);
+      if (outcome === 'win' || outcome === 'decisive-win')
+        setOpponentDmgFloat(float);
+      else if (outcome === 'loss' || outcome === 'decisive-loss')
+        setPlayerDmgFloat(float);
     }
 
     // Speech bubbles
@@ -387,21 +569,35 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
 
     await delay(800);
 
-    const finalP = isNora(newP) ? applyNoraForm(newP, noraFormIdxRef.current, noraFormDataRef.current) : newP;
-    const finalO = isNora(newO) ? applyNoraForm(newO, noraFormIdxRef.current, noraFormDataRef.current) : newO;
-    if (newO.life <= 0) { onGameOver('player',   finalP, finalO, turnHistoryRef.current); return; }
-    if (newP.life <= 0) { onGameOver('opponent', finalP, finalO, turnHistoryRef.current); return; }
+    const finalP = isNora(newP)
+      ? applyNoraForm(newP, noraFormIdxRef.current, noraFormDataRef.current)
+      : newP;
+    const finalO = isNora(newO)
+      ? applyNoraForm(newO, noraFormIdxRef.current, noraFormDataRef.current)
+      : newO;
+    if (newO.life <= 0) {
+      onGameOver('player', finalP, finalO, turnHistoryRef.current);
+      return;
+    }
+    if (newP.life <= 0) {
+      onGameOver('opponent', finalP, finalO, turnHistoryRef.current);
+      return;
+    }
 
     // Rotate pattern every 5 turns
     const newTurnsLeft = turnsLeft - 1;
     if (newTurnsLeft <= 0) {
       const newRule = randomPatternRule();
       patternRef.current = { rule: newRule, turnsLeft: PATTERN_TURNS };
-      timerDurationRef.current = Math.max(TIMER_FLOOR_MS, timerDurationRef.current - TIMER_STEP_MS);
+      timerDurationRef.current = Math.max(
+        TIMER_FLOOR_MS,
+        timerDurationRef.current - TIMER_STEP_MS,
+      );
       setCurrentRule(newRule);
       const oldMode = rule.startsWith('avoid') ? 'avoid' : 'match';
       const newMode = newRule.startsWith('avoid') ? 'avoid' : 'match';
-      if (oldMode !== newMode) setRuleAnnounce({ rule: newRule, key: Date.now() });
+      if (oldMode !== newMode)
+        setRuleAnnounce({ rule: newRule, key: Date.now() });
     } else {
       patternRef.current = { rule, turnsLeft: newTurnsLeft };
     }
@@ -411,32 +607,55 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
   }
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { runTurn(); }, []);
+  useEffect(() => {
+    runTurn();
+  }, []);
 
   useEffect(() => {
     if (!isNora(initialPlayer) && !isNora(initialOpponent)) return;
     Promise.all(
       NORA_FORM_DEFS.map(async ({ path }) => {
         const [taunts, reactions] = await Promise.all([
-          fetch(`${import.meta.env.BASE_URL}characters/${path}/taunts.json`).then(r => r.ok ? r.json() : null).catch(() => null),
-          fetch(`${import.meta.env.BASE_URL}characters/${path}/reactions.json`).then(r => r.ok ? r.json() : null).catch(() => null),
+          fetch(`${import.meta.env.BASE_URL}characters/${path}/taunts.json`)
+            .then((r) => (r.ok ? r.json() : null))
+            .catch(() => null),
+          fetch(`${import.meta.env.BASE_URL}characters/${path}/reactions.json`)
+            .then((r) => (r.ok ? r.json() : null))
+            .catch(() => null),
         ]);
-        return { tauntsInfo: taunts, reactionsInfo: reactions } as NoraFormOverride;
-      })
-    ).then(data => { noraFormDataRef.current = data; });
+        return {
+          tauntsInfo: taunts,
+          reactionsInfo: reactions,
+        } as NoraFormOverride;
+      }),
+    ).then((data) => {
+      noraFormDataRef.current = data;
+    });
   }, []);
 
-
-  const showOpponentSpell = opponentSpell && (phase === 'opponent-shown' || phase === 'resolving');
-  const isPlayerNora   = isNora(player);
+  const showOpponentSpell =
+    opponentSpell && (phase === 'opponent-shown' || phase === 'resolving');
+  const isPlayerNora = isNora(player);
   const isOpponentNora = isNora(opponent);
-  const displayPlayer   = isPlayerNora   ? applyNoraForm(player,   noraForm.idx, noraFormDataRef.current) : player;
-  const displayOpponent = isOpponentNora ? applyNoraForm(opponent, noraForm.idx, noraFormDataRef.current) : opponent;
+  const displayPlayer = isPlayerNora
+    ? applyNoraForm(player, noraForm.idx, noraFormDataRef.current)
+    : player;
+  const displayOpponent = isOpponentNora
+    ? applyNoraForm(opponent, noraForm.idx, noraFormDataRef.current)
+    : opponent;
 
   return (
     <div className="min-h-dvh app-bg flex flex-col">
-      <div ref={projectileRef}  className="fixed top-0 left-0 pointer-events-none" style={{ width: 36, height: 36, zIndex: 100, opacity: 0 }} />
-      <div ref={projectile2Ref} className="fixed top-0 left-0 pointer-events-none" style={{ width: 36, height: 36, zIndex: 100, opacity: 0 }} />
+      <div
+        ref={projectileRef}
+        className="fixed top-0 left-0 pointer-events-none"
+        style={{ width: 36, height: 36, zIndex: 100, opacity: 0 }}
+      />
+      <div
+        ref={projectile2Ref}
+        className="fixed top-0 left-0 pointer-events-none"
+        style={{ width: 36, height: 36, zIndex: 100, opacity: 0 }}
+      />
 
       {ruleAnnounce && (
         <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
@@ -446,13 +665,17 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
             onAnimationEnd={() => setRuleAnnounce(null)}
           >
             {ruleAnnounce.rule.startsWith('avoid') ? 'AVOID' : 'MATCH'}{' '}
-            <span className="text-3xl md:text-4xl">({ruleAnnounce.rule.includes('+') ? 'x2' : 'x1'})</span>
+            <span className="text-3xl md:text-4xl">
+              ({ruleAnnounce.rule.includes('+') ? 'x2' : 'x1'})
+            </span>
           </span>
         </div>
       )}
 
       <div className="text-center py-1 md:py-3 border-b border-purple-800">
-        <span className="text-purple-400 text-sm tracking-widest uppercase">Magic Fight</span>
+        <span className="text-purple-400 text-sm tracking-widest uppercase">
+          Magic Fight
+        </span>
       </div>
 
       {/* Arena row: portraits + center controls */}
@@ -460,26 +683,44 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
         {/* Player — mobile: bottom (order-3); desktop: left (md:order-1) */}
         <div className={panelClass('player', player)}>
           <CharacterPanel
-            character={displayPlayer} side="player"
-            blast={blast} hitAnim={hitAnim} transitionAnim={noraForm.anim}
+            character={displayPlayer}
+            side="player"
+            blast={blast}
+            hitAnim={hitAnim}
+            transitionAnim={noraForm.anim}
             speech={playerSpeech}
-            dmgFloat={playerDmgFloat} onDmgFloatEnd={() => setPlayerDmgFloat(null)}
+            dmgFloat={playerDmgFloat}
+            onDmgFloatEnd={() => setPlayerDmgFloat(null)}
             portraitRef={playerPortraitRef}
-            shapeshiftControl={isPlayerNora ? <NoraSegmented formIdx={noraForm.idx} onChange={handleNoraFormChange} /> : undefined}
+            shapeshiftControl={
+              isPlayerNora ? (
+                <NoraSegmented
+                  formIdx={noraForm.idx}
+                  onChange={handleNoraFormChange}
+                />
+              ) : undefined
+            }
           />
         </div>
 
         {/* Center — always middle */}
         <div className="order-2 flex-1 flex flex-col items-center justify-center gap-1 md:gap-4 px-4 py-1 md:py-0">
-          <span className={`text-sm md:text-lg font-bold tracking-widest px-3 md:px-5 py-1 md:py-2 rounded-full border-2 ${currentRule.startsWith('avoid') ? 'text-rose-300 border-rose-600 bg-rose-950/60' : 'text-blue-300 border-blue-600 bg-blue-950/60'}`}>
+          <span
+            className={`text-sm md:text-lg font-bold tracking-widest px-3 md:px-5 py-1 md:py-2 rounded-full border-2 ${currentRule.startsWith('avoid') ? 'text-rose-300 border-rose-600 bg-rose-950/60' : 'text-blue-300 border-blue-600 bg-blue-950/60'}`}
+          >
             {currentRule.startsWith('avoid') ? 'AVOID' : 'MATCH'}
           </span>
-          <span className={`hidden md:block text-purple-500 text-xs uppercase tracking-widest ${showOpponentSpell ? '' : 'invisible'}`}>
+          <span
+            className={`hidden md:block text-purple-500 text-xs uppercase tracking-widest ${showOpponentSpell ? '' : 'invisible'}`}
+          >
             Opponent's spell
           </span>
           <div className="w-20 h-20 md:w-36 md:h-36">
             {showOpponentSpell ? (
-              <SpellCard spell={opponentSpell!} glowing={phase === 'opponent-shown'} />
+              <SpellCard
+                spell={opponentSpell!}
+                glowing={phase === 'opponent-shown'}
+              />
             ) : (
               <div className="w-full h-full rounded-xl border-2 border-purple-800/20 bg-purple-950/20 flex items-center justify-center">
                 <span className="text-purple-800 text-4xl select-none">?</span>
@@ -488,7 +729,9 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
           </div>
           <div className="h-5 flex items-center justify-center">
             {phase === 'resolving' && lastOutcome && (
-              <span className={`text-sm font-bold ${OUTCOME_DISPLAY[lastOutcome].color}`}>
+              <span
+                className={`text-sm font-bold ${OUTCOME_DISPLAY[lastOutcome].color}`}
+              >
                 {OUTCOME_DISPLAY[lastOutcome].label}
               </span>
             )}
@@ -498,12 +741,23 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
         {/* Opponent — mobile: top (order-1); desktop: right (md:order-3) */}
         <div className={panelClass('opponent', opponent)}>
           <CharacterPanel
-            character={displayOpponent} side="opponent"
-            blast={blast} hitAnim={hitAnim} transitionAnim={noraForm.anim}
+            character={displayOpponent}
+            side="opponent"
+            blast={blast}
+            hitAnim={hitAnim}
+            transitionAnim={noraForm.anim}
             speech={opponentSpeech}
-            dmgFloat={opponentDmgFloat} onDmgFloatEnd={() => setOpponentDmgFloat(null)}
+            dmgFloat={opponentDmgFloat}
+            onDmgFloatEnd={() => setOpponentDmgFloat(null)}
             portraitRef={opponentPortraitRef}
-            shapeshiftControl={isOpponentNora ? <NoraSegmented formIdx={noraForm.idx} onChange={handleNoraFormChange} /> : undefined}
+            shapeshiftControl={
+              isOpponentNora ? (
+                <NoraSegmented
+                  formIdx={noraForm.idx}
+                  onChange={handleNoraFormChange}
+                />
+              ) : undefined
+            }
           />
         </div>
       </div>
@@ -525,7 +779,13 @@ export default function FightScreen({ initialPlayer, initialOpponent, onGameOver
   );
 }
 
-function NoraSegmented({ formIdx, onChange }: { formIdx: number; onChange: (i: number) => void }) {
+function NoraSegmented({
+  formIdx,
+  onChange,
+}: {
+  formIdx: number;
+  onChange: (i: number) => void;
+}) {
   return (
     <div className="flex rounded-lg border border-purple-700 overflow-hidden">
       {NORA_FORM_DEFS.map((f, i) => (
@@ -548,7 +808,16 @@ function NoraSegmented({ formIdx, onChange }: { formIdx: number; onChange: (i: n
 }
 
 function CharacterPanel({
-  character, side, blast, hitAnim, transitionAnim, speech, dmgFloat, onDmgFloatEnd, portraitRef, shapeshiftControl,
+  character,
+  side,
+  blast,
+  hitAnim,
+  transitionAnim,
+  speech,
+  dmgFloat,
+  onDmgFloatEnd,
+  portraitRef,
+  shapeshiftControl,
 }: {
   character: Character;
   side: 'player' | 'opponent';
@@ -561,58 +830,89 @@ function CharacterPanel({
   portraitRef?: React.RefObject<HTMLDivElement | null>;
   shapeshiftControl?: React.ReactNode;
 }) {
-  const isMyBlast      = blast?.side === side;
-  const isMyHit        = hitAnim?.side === side;
+  const isMyBlast = blast?.side === side;
+  const isMyHit = hitAnim?.side === side;
   const isMyTransition = transitionAnim?.side === side;
   const img = side === 'player' ? character.imageRight : character.imageLeft;
   const pct = Math.max(0, (character.life / GAME_LIFE) * 100);
-  const barColor = pct > 60 ? 'bg-emerald-500' : pct > 30 ? 'bg-amber-500' : 'bg-rose-500';
+  const barColor =
+    pct > 60 ? 'bg-emerald-500' : pct > 30 ? 'bg-amber-500' : 'bg-rose-500';
   const dmgColor = side === 'player' ? 'text-rose-400' : 'text-amber-300';
 
   return (
     <div className="flex flex-col items-center md:justify-center w-full flex-1 min-h-0 relative">
       {/* Speech bubble — absolutely outside the panel, never affects portrait size */}
       {speech && (
-        <div className={[
-          'absolute z-20 w-36',
-          'left-1/2 -translate-x-1/2 bottom-14 md:bottom-auto',
-          'md:top-1/4 md:translate-x-0',
-          side === 'player'
-            ? 'md:left-full md:ml-3'
-            : 'md:left-auto md:right-full md:mr-3',
-        ].join(' ')}>
+        <div
+          className={[
+            'absolute z-20 w-36',
+            'left-1/2 -translate-x-1/2 bottom-14 md:bottom-auto',
+            'md:top-1/4 md:translate-x-0',
+            side === 'player'
+              ? 'md:left-full md:ml-3'
+              : 'md:left-auto md:right-full md:mr-3',
+          ].join(' ')}
+        >
           <div className="relative bg-purple-950/90 border border-purple-500 rounded-xl px-3 py-2 text-sm text-purple-100 text-center break-words animate-fade-in">
             &ldquo;{speech}&rdquo;
-            <div className={`hidden md:block absolute top-3 w-3 h-3 bg-purple-950/90 rotate-45
-              ${side === 'player'
-                ? '-left-1.5 border-l border-b border-purple-500'
-                : '-right-1.5 border-r border-t border-purple-500'
+            <div
+              className={`hidden md:block absolute top-3 w-3 h-3 bg-purple-950/90 rotate-45
+              ${
+                side === 'player'
+                  ? '-left-1.5 border-l border-b border-purple-500'
+                  : '-right-1.5 border-r border-t border-purple-500'
               }`}
             />
           </div>
         </div>
       )}
 
-      {shapeshiftControl && <div className="shrink-0 mb-2">{shapeshiftControl}</div>}
+      {shapeshiftControl && (
+        <div className="shrink-0 mb-2">{shapeshiftControl}</div>
+      )}
 
       {/* Portrait — mobile player: order-2 so name/HP (order-1) floats above it */}
-      <div ref={portraitRef} className={`relative w-full flex-1 min-h-20 md:flex-none md:aspect-square${side === 'player' ? ' max-md:order-2' : ''}`}>
-        <img src={img} alt={character.displayName} className="w-full h-full object-contain" />
+      <div
+        ref={portraitRef}
+        className={`relative w-full flex-1 min-h-20 md:flex-none md:aspect-square${side === 'player' ? ' max-md:order-2' : ''}`}
+      >
+        <img
+          src={img}
+          alt={character.displayName}
+          className="w-full h-full object-contain"
+        />
 
         {isMyBlast && blast && (
-          <img key={blast.key} src={blast.url} alt="" className="absolute inset-0 w-full h-full object-contain blast-animate" />
+          <img
+            key={blast.key}
+            src={blast.url}
+            alt=""
+            className="absolute inset-0 w-full h-full object-contain blast-animate"
+          />
         )}
         {isMyHit && hitAnim && (
-          <img key={hitAnim.key} src={hitAnim.url} alt="" className="absolute inset-0 w-full h-full object-contain hit-animate" />
+          <img
+            key={hitAnim.key}
+            src={hitAnim.url}
+            alt=""
+            className="absolute inset-0 w-full h-full object-contain hit-animate"
+          />
         )}
         {isMyTransition && transitionAnim && (
-          <img key={transitionAnim.key} src={transitionAnim.url} alt="" className="absolute inset-0 w-full h-full object-contain transition-animate" />
+          <img
+            key={transitionAnim.key}
+            src={transitionAnim.url}
+            alt=""
+            className="absolute inset-0 w-full h-full object-contain transition-animate"
+          />
         )}
         {dmgFloat && (
           <div
             key={dmgFloat.key}
             className={`absolute left-1/2 top-1/4 damage-float text-6xl font-black select-none z-10 ${dmgColor}`}
-            style={{ textShadow: '0 2px 8px rgba(0,0,0,0.9), 0 0 20px rgba(0,0,0,0.6)' }}
+            style={{
+              textShadow: '0 2px 8px rgba(0,0,0,0.9), 0 0 20px rgba(0,0,0,0.6)',
+            }}
             onAnimationEnd={onDmgFloatEnd}
           >
             {dmgFloat.text}
@@ -621,12 +921,21 @@ function CharacterPanel({
       </div>
 
       {/* Name/HP — mobile player: max-md:order-1 floats above portrait; desktop always below */}
-      <div className={`shrink-0 w-full flex flex-col items-center max-md:mt-0.5 md:mt-3${side === 'player' ? ' max-md:order-1' : ''}`}>
-        <span className="text-purple-200 text-base md:text-lg font-semibold">{character.displayName}</span>
+      <div
+        className={`shrink-0 w-full flex flex-col items-center max-md:mt-0.5 md:mt-3${side === 'player' ? ' max-md:order-1' : ''}`}
+      >
+        <span className="text-purple-200 text-base md:text-lg font-semibold">
+          {character.displayName}
+        </span>
         <div className="w-full max-w-48 md:max-w-none bg-slate-800 rounded-full h-2 md:h-3 border border-slate-700 mt-1 md:mt-3">
-          <div className={`h-full rounded-full transition-all duration-500 ${barColor}`} style={{ width: `${pct}%` }} />
+          <div
+            className={`h-full rounded-full transition-all duration-500 ${barColor}`}
+            style={{ width: `${pct}%` }}
+          />
         </div>
-        <span className="text-xs text-purple-400 tabular-nums mt-0.5">{character.life} / {GAME_LIFE} HP</span>
+        <span className="text-xs text-purple-400 tabular-nums mt-0.5">
+          {character.life} / {GAME_LIFE} HP
+        </span>
       </div>
     </div>
   );

@@ -19,10 +19,16 @@ function pickLine(
   return pick(pool);
 }
 
-export function pickReaction(character: Character, opponentNamePath?: string): string | null {
+export function pickReaction(
+  character: Character,
+  opponentNamePath?: string,
+): string | null {
   return pickLine(character.reactionsInfo, opponentNamePath);
 }
 
-export function pickTaunt(character: Character, opponentNamePath?: string): string | null {
+export function pickTaunt(
+  character: Character,
+  opponentNamePath?: string,
+): string | null {
   return pickLine(character.tauntsInfo, opponentNamePath);
 }
