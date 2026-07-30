@@ -25,79 +25,79 @@ export interface CharacterMeta {
   isVariant: boolean;
 }
 
-export const CHARACTER_REGISTRY: CharacterMeta[] = [
-  {
+export const CHARACTER_REGISTRY: Record<string, CharacterMeta> = {
+  adrian: {
     namePath: 'adrian',
     displayName: 'Adrian',
     imagePrefix: 'adrian',
     isVariant: false,
   },
-  {
+  anton: {
     namePath: 'anton',
     displayName: 'Anton',
     imagePrefix: 'anton',
     isVariant: false,
   },
-  {
+  bastion: {
     namePath: 'bastion',
     displayName: 'Bastion',
     imagePrefix: 'bastion',
     isVariant: false,
   },
-  {
+  lucian: {
     namePath: 'lucian',
     displayName: 'Lucian',
     imagePrefix: 'lucian',
     isVariant: false,
   },
-  {
+  nora: {
     namePath: 'nora',
     displayName: 'Nora',
     imagePrefix: 'nora',
     isVariant: false,
   },
-  {
+  sandoval: {
     namePath: 'sandoval',
     displayName: 'Sandoval',
     imagePrefix: 'sandoval',
     isVariant: false,
   },
-  {
+  stella: {
     namePath: 'stella',
     displayName: 'Stella',
     imagePrefix: 'stella',
     isVariant: false,
   },
-  {
+  winfield: {
     namePath: 'winfield',
     displayName: 'Winfield',
     imagePrefix: 'winfield',
     isVariant: false,
   },
-  {
+  winston: {
     namePath: 'winston',
     displayName: 'Winston',
     imagePrefix: 'winston',
     isVariant: false,
   },
-  {
+  'nora/norm': {
     namePath: 'nora/norm',
     displayName: 'Norm',
     imagePrefix: 'norm',
     isVariant: true,
   },
-  {
+  'nora/meadow_sprite': {
     namePath: 'nora/meadow_sprite',
     displayName: 'Meadow Sprite',
     imagePrefix: 'meadow_sprite',
     isVariant: true,
   },
-];
+};
 
 export function findMeta(namePath: string): CharacterMeta | undefined {
-  return CHARACTER_REGISTRY.find((m) => m.namePath === namePath);
+  return CHARACTER_REGISTRY[namePath];
 }
 
-export const SELECTABLE_CHARACTERS = CHARACTER_REGISTRY.filter(
+export const SELECTABLE_CHARACTERS = Object.values(CHARACTER_REGISTRY).filter(
   (m) => !m.isVariant,
 );

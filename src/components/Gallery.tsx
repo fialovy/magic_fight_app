@@ -16,15 +16,9 @@ interface Props {
 }
 
 const NORA_FORMS: { emoji: string; meta: CharacterMeta }[] = [
-  { emoji: '♀️', meta: CHARACTER_REGISTRY.find((m) => m.namePath === 'nora')! },
-  {
-    emoji: '♂️',
-    meta: CHARACTER_REGISTRY.find((m) => m.namePath === 'nora/norm')!,
-  },
-  {
-    emoji: '🌿',
-    meta: CHARACTER_REGISTRY.find((m) => m.namePath === 'nora/meadow_sprite')!,
-  },
+  { emoji: '♀️', meta: CHARACTER_REGISTRY['nora']! },
+  { emoji: '♂️', meta: CHARACTER_REGISTRY['nora/norm']! },
+  { emoji: '🌿', meta: CHARACTER_REGISTRY['nora/meadow_sprite']! },
 ];
 
 const NORA_PATHS = new Set(NORA_FORMS.map((f) => f.meta.namePath));
@@ -67,15 +61,15 @@ export default function Gallery({ onBack }: Props) {
           </button>
         </div>
 
-        {CHARACTER_REGISTRY.filter(
-          (m) => !NORA_PATHS.has(m.namePath) || m.namePath === 'nora',
-        ).map((meta) =>
-          meta.namePath === 'nora' ? (
-            <NoraGallerySection key="nora" />
-          ) : (
-            <CharacterGallerySection key={meta.namePath} meta={meta} />
-          ),
-        )}
+        {Object.values(CHARACTER_REGISTRY)
+          .filter((m) => !NORA_PATHS.has(m.namePath) || m.namePath === 'nora')
+          .map((meta) =>
+            meta.namePath === 'nora' ? (
+              <NoraGallerySection key="nora" />
+            ) : (
+              <CharacterGallerySection key={meta.namePath} meta={meta} />
+            ),
+          )}
 
         <SpellPreviewSection />
       </div>
