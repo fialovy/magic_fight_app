@@ -118,7 +118,7 @@ function BioPreview({ namePath }: { namePath: string }) {
     <>
       {bio || (
         <span className="text-purple-500 italic">
-          No description available.
+          Strange...there doesn't seem to be a bio for this character. 🌚
         </span>
       )}
     </>

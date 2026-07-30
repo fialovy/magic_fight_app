@@ -64,6 +64,8 @@ export const TIMER_START_MS = 2500;
 export const TIMER_STEP_MS = 250;
 export const TIMER_FLOOR_MS = 1100;
 
+export const MOBILE_WIDTH_ESTIMATE = 768;
+
 export interface TauntsInfo {
   // how likely this particular character is to taunt (e.g., Adrian is very likely)
   chance: number;

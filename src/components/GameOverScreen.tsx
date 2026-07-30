@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Character, TurnRecord } from '../types/game';
-import { GAME_LIFE } from '../types/game';
+import { GAME_LIFE, MOBILE_WIDTH_ESTIMATE } from '../types/game';
 import confetti from 'canvas-confetti';
 
 async function downloadImage(url: string, filename: string) {
@@ -45,7 +45,7 @@ export default function GameOverScreen({
       '#f87171',
       '#fb923c',
     ];
-    const mobile = window.innerWidth < 768;
+    const mobile = window.innerWidth < MOBILE_WIDTH_ESTIMATE;
     confetti({
       particleCount: mobile ? 40 : 80,
       spread: 100,

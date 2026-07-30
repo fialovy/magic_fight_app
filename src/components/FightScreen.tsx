@@ -11,11 +11,13 @@ import type {
 } from '../types/game';
 import {
   GAME_LIFE,
+  MOBILE_WIDTH_ESTIMATE,
   PATTERN_TURNS,
   TIMER_FLOOR_MS,
   TIMER_START_MS,
   TIMER_STEP_MS,
 } from '../types/game';
+import { pick } from '../engine/random';
 import { pickReaction, pickTaunt } from '../engine/combat';
 import { sampleDominantColor } from '../engine/colorSampler';
 import {
@@ -54,7 +56,9 @@ interface BlastAnim {
   side: 'player' | 'opponent';
 }
 
-// Emoji burst for specific blast images — add any image stem here (without _face_left/right.png)
+// Emoji burst for specific blast images to use instead of the default confettis
+// that are just a couple of sampled colors from the image — add any image stem here
+// if a particular emoji seems like a good confetti for it (without _face_left/right.png)
 const BLAST_EMOJI: Record<string, string> = {
   winston_mf_blast_0: '🚂',
   sandoval_mf_blast_2: '❄️',
@@ -99,7 +103,7 @@ const ORB_SHAPES: { clipPath: string; borderRadius: string }[] = [
 
 const delay = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
-const NORA_FORM_DEFS = [
+const SUBSTRATE_FORM_DEFS = [
   { emoji: '♀️', prefix: 'nora', path: 'nora', displayName: 'Nora' },
   { emoji: '♂️', prefix: 'norm', path: 'nora/norm', displayName: 'Norm' },
   {
@@ -110,15 +114,16 @@ const NORA_FORM_DEFS = [
   },
 ] as const;
 
-const NORA_NAME_PATHS = new Set(NORA_FORM_DEFS.map((f) => f.path));
+const SUBSTRATE_NAME_PATHS: Set<string> = new Set(SUBSTRATE_FORM_DEFS.map((f) => f.path));
 
-function isNora(c: Character) {
-  return NORA_NAME_PATHS.has(c.namePath);
+function isTheSubstrate(c: Character) {
+  return SUBSTRATE_NAME_PATHS.has(c.namePath);
 }
 
+// for desktop vs. mobile placement of player vs. opponent
 function panelClass(side: 'player' | 'opponent', character: Character): string {
   const order = side === 'player' ? 'order-3 md:order-1' : 'order-1 md:order-3';
-  const height = isNora(character)
+  const height = isTheSubstrate(character)
     ? 'h-[min(calc(28vh_+_44px),264px)]'
     : 'h-[min(28vh,220px)]';
   return `${order} flex flex-col items-center p-2 md:p-4 w-full md:w-72 xl:w-96 md:shrink-0 md:h-auto ${height}`;
@@ -135,9 +140,10 @@ function fireBurst(
     x: (rect.left + rect.width / 2) / window.innerWidth,
     y: (rect.top + rect.height / 2) / window.innerHeight,
   };
-  const mobile = window.innerWidth < 768;
-  const n = mobile ? Math.round(count * 0.5) : count;
-  const shared = {
+  const mobile = window.innerWidth < MOBILE_WIDTH_ESTIMATE;
+  const sharedConfettiConfig = {
+    particleCount: mobile ? Math.round(count * 0.5) : count,
+    origin,
     spread: 65,
     startVelocity: mobile ? 16 : 22,
     gravity: 0.9,
@@ -146,35 +152,25 @@ function fireBurst(
   };
   if (emoji) {
     const shape = confetti.shapeFromText({ text: emoji, scalar: 2 });
-    confetti({
-      particleCount: n,
-      origin,
-      shapes: [shape],
-      scalar: 2.5,
-      ...shared,
-    });
+    confetti({ shapes: [shape], scalar: 2.5, ...sharedConfettiConfig });
   } else {
-    confetti({
-      particleCount: n,
-      origin,
-      colors,
-      shapes: ['star', 'circle'],
-      ...shared,
-    });
+    confetti({ colors, shapes: ['star', 'circle'], ...sharedConfettiConfig });
   }
 }
 
-interface NoraFormOverride {
+interface SubstrateFormOverride {
   tauntsInfo: TauntsInfo | null;
   reactionsInfo: ReactionsInfo | null;
 }
 
-function applyNoraForm(
+// When Norm/Nora changes forms, we have to override all of the character
+// metadata including their images of course
+function applySubstrateShapeshift(
   c: Character,
   formIdx: number,
-  overrides?: NoraFormOverride[] | null,
+  overrides?: SubstrateFormOverride[] | null,
 ): Character {
-  const { prefix, path, displayName } = NORA_FORM_DEFS[formIdx];
+  const { prefix, path, displayName } = SUBSTRATE_FORM_DEFS[formIdx];
   const count = BLAST_COUNTS[prefix] ?? 0;
   const ov = overrides?.[formIdx];
   return {
@@ -226,14 +222,14 @@ export default function FightScreen({
   const cardClickRef = useRef<((spell: Spell) => void) | null>(null);
   const playerBlastIdx = useRef(0);
   const opponentBlastIdx = useRef(0);
-  const noraFormIdxRef = useRef(0);
+  const substrateFormIdxRef = useRef(0);
   const timerDurationRef = useRef(TIMER_START_MS);
-  const noraFormDataRef = useRef<NoraFormOverride[] | null>(null);
+  const substrateFormDataRef = useRef<SubstrateFormOverride[] | null>(null);
   const restartTimerRef = useRef<(() => void) | null>(null);
   const turnHistoryRef = useRef<TurnRecord[]>([]);
 
-  // Display state — noraForm combines idx + transition overlay so they always update in one render
-  const [noraForm, setNoraForm] = useState<{
+  // Display state — substrateForm combines idx + transition overlay so they always update in one render
+  const [substrateForm, setSubstrateForm] = useState<{
     idx: number;
     anim: BlastAnim | null;
   }>({ idx: 0, anim: null });
@@ -274,27 +270,27 @@ export default function FightScreen({
     const suffix = isSprite
       ? 'sprite_to_humanoid_or_humanoid_to_sprite'
       : 'humanoid_to_humanoid';
-    const side = isNora(initialPlayer) ? 'player' : 'opponent';
+    const side = isTheSubstrate(initialPlayer) ? 'player' : 'opponent';
     const dir = side === 'player' ? 'right' : 'left';
     const url = `${import.meta.env.BASE_URL}images/characters/ability_transitions/nora_mf_splat_${suffix}_face_${dir}.png`;
 
     // Show overlay (transition-flash: opacity 1→1→0 over 1800ms, fade starts at 80%=1440ms)
-    setNoraForm((v) => ({ ...v, anim: { url, key: Date.now(), side } }));
+    setSubstrateForm((v) => ({ ...v, anim: { url, key: Date.now(), side } }));
 
     // At 1440ms the overlay is still fully opaque — safe to swap portrait underneath
     await delay(1440);
-    setNoraForm((v) => ({ ...v, idx: toIdx }));
+    setSubstrateForm((v) => ({ ...v, idx: toIdx }));
 
     // At 1800ms the CSS fade reaches opacity:0 (forwards fill keeps it there) — safe to remove
     await delay(400);
-    setNoraForm((v) => ({ ...v, anim: null }));
+    setSubstrateForm((v) => ({ ...v, anim: null }));
   }
 
-  function handleNoraFormChange(idx: number) {
-    const prev = noraFormIdxRef.current;
+  function handleSubstrateFormChange(idx: number) {
+    const prev = substrateFormIdxRef.current;
     if (idx === prev) return;
-    noraFormIdxRef.current = idx; // update ref immediately so turn logic uses new form
-    // setNoraFormIdx is called inside showTransitionEffect after the animation
+    substrateFormIdxRef.current = idx; // update ref immediately so turn logic uses new form
+    // setSubstrateFormIdx is called inside showTransitionEffect after the animation
     showTransitionEffect(prev, idx);
     restartTimerRef.current?.();
   }
@@ -330,7 +326,7 @@ export default function FightScreen({
     const fromY = fromRect.top + fromRect.height / 2 - S / 2;
     const toX = toRect.left + toRect.width / 2 - S / 2;
     const toY = toRect.top + toRect.height / 2 - S / 2;
-    const shape = ORB_SHAPES[Math.floor(Math.random() * ORB_SHAPES.length)];
+    const shape = pick(ORB_SHAPES);
     el.style.clipPath = shape.clipPath;
     el.style.borderRadius = shape.borderRadius;
     el.style.background = `radial-gradient(circle, white 0%, ${color} 35%, transparent 70%)`;
@@ -529,12 +525,12 @@ export default function FightScreen({
       newP = { ...newP, life: Math.max(0, newP.life - damage) };
     }
 
-    // Collision visuals — use form-overridden images if Nora is fighting
-    const vP = isNora(p)
-      ? applyNoraForm(p, noraFormIdxRef.current, noraFormDataRef.current)
+    // Collision visuals — use form-overridden images if the substrate is fighting
+    const vP = isTheSubstrate(p)
+      ? applySubstrateShapeshift(p, substrateFormIdxRef.current, substrateFormDataRef.current)
       : p;
-    const vO = isNora(o)
-      ? applyNoraForm(o, noraFormIdxRef.current, noraFormDataRef.current)
+    const vO = isTheSubstrate(o)
+      ? applySubstrateShapeshift(o, substrateFormIdxRef.current, substrateFormDataRef.current)
       : o;
     if (outcome === 'win' || outcome === 'decisive-win') {
       await showBlast(vP, 'player', vO, outcome);
@@ -569,11 +565,11 @@ export default function FightScreen({
 
     await delay(800);
 
-    const finalP = isNora(newP)
-      ? applyNoraForm(newP, noraFormIdxRef.current, noraFormDataRef.current)
+    const finalP = isTheSubstrate(newP)
+      ? applySubstrateShapeshift(newP, substrateFormIdxRef.current, substrateFormDataRef.current)
       : newP;
-    const finalO = isNora(newO)
-      ? applyNoraForm(newO, noraFormIdxRef.current, noraFormDataRef.current)
+    const finalO = isTheSubstrate(newO)
+      ? applySubstrateShapeshift(newO, substrateFormIdxRef.current, substrateFormDataRef.current)
       : newO;
     if (newO.life <= 0) {
       onGameOver('player', finalP, finalO, turnHistoryRef.current);
@@ -612,9 +608,9 @@ export default function FightScreen({
   }, []);
 
   useEffect(() => {
-    if (!isNora(initialPlayer) && !isNora(initialOpponent)) return;
+    if (!isTheSubstrate(initialPlayer) && !isTheSubstrate(initialOpponent)) return;
     Promise.all(
-      NORA_FORM_DEFS.map(async ({ path }) => {
+      SUBSTRATE_FORM_DEFS.map(async ({ path }) => {
         const [taunts, reactions] = await Promise.all([
           fetch(`${import.meta.env.BASE_URL}characters/${path}/taunts.json`)
             .then((r) => (r.ok ? r.json() : null))
@@ -626,22 +622,22 @@ export default function FightScreen({
         return {
           tauntsInfo: taunts,
           reactionsInfo: reactions,
-        } as NoraFormOverride;
+        } as SubstrateFormOverride;
       }),
     ).then((data) => {
-      noraFormDataRef.current = data;
+      substrateFormDataRef.current = data;
     });
   }, []);
 
   const showOpponentSpell =
     opponentSpell && (phase === 'opponent-shown' || phase === 'resolving');
-  const isPlayerNora = isNora(player);
-  const isOpponentNora = isNora(opponent);
-  const displayPlayer = isPlayerNora
-    ? applyNoraForm(player, noraForm.idx, noraFormDataRef.current)
+  const isPlayerSubstrate = isTheSubstrate(player);
+  const isOpponentSubstrate = isTheSubstrate(opponent);
+  const displayPlayer = isPlayerSubstrate
+    ? applySubstrateShapeshift(player, substrateForm.idx, substrateFormDataRef.current)
     : player;
-  const displayOpponent = isOpponentNora
-    ? applyNoraForm(opponent, noraForm.idx, noraFormDataRef.current)
+  const displayOpponent = isOpponentSubstrate
+    ? applySubstrateShapeshift(opponent, substrateForm.idx, substrateFormDataRef.current)
     : opponent;
 
   return (
@@ -680,23 +676,24 @@ export default function FightScreen({
 
       {/* Arena row: portraits + center controls */}
       <div className="flex flex-1 min-h-0 flex-col md:flex-row">
-        {/* Player — mobile: bottom (order-3); desktop: left (md:order-1) */}
+        {/* Put the player on the bottom for mobile (order-3); on the left for desktop (md:order-1) */}
+        {/* I absolutely refuse to respect anything other than portrait mode on mobile. */}
         <div className={panelClass('player', player)}>
           <CharacterPanel
             character={displayPlayer}
             side="player"
             blast={blast}
             hitAnim={hitAnim}
-            transitionAnim={noraForm.anim}
+            transitionAnim={substrateForm.anim}
             speech={playerSpeech}
             dmgFloat={playerDmgFloat}
             onDmgFloatEnd={() => setPlayerDmgFloat(null)}
             portraitRef={playerPortraitRef}
             shapeshiftControl={
-              isPlayerNora ? (
-                <NoraSegmented
-                  formIdx={noraForm.idx}
-                  onChange={handleNoraFormChange}
+              isPlayerSubstrate ? (
+                <SubstrateSegmented
+                  formIdx={substrateForm.idx}
+                  onChange={handleSubstrateFormChange}
                 />
               ) : undefined
             }
@@ -745,16 +742,16 @@ export default function FightScreen({
             side="opponent"
             blast={blast}
             hitAnim={hitAnim}
-            transitionAnim={noraForm.anim}
+            transitionAnim={substrateForm.anim}
             speech={opponentSpeech}
             dmgFloat={opponentDmgFloat}
             onDmgFloatEnd={() => setOpponentDmgFloat(null)}
             portraitRef={opponentPortraitRef}
             shapeshiftControl={
-              isOpponentNora ? (
-                <NoraSegmented
-                  formIdx={noraForm.idx}
-                  onChange={handleNoraFormChange}
+              isOpponentSubstrate ? (
+                <SubstrateSegmented
+                  formIdx={substrateForm.idx}
+                  onChange={handleSubstrateFormChange}
                 />
               ) : undefined
             }
@@ -779,7 +776,7 @@ export default function FightScreen({
   );
 }
 
-function NoraSegmented({
+function SubstrateSegmented({
   formIdx,
   onChange,
 }: {
@@ -788,7 +785,7 @@ function NoraSegmented({
 }) {
   return (
     <div className="flex rounded-lg border border-purple-700 overflow-hidden">
-      {NORA_FORM_DEFS.map((f, i) => (
+      {SUBSTRATE_FORM_DEFS.map((f, i) => (
         <button
           key={i}
           onClick={() => onChange(i)}
