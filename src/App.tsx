@@ -14,6 +14,8 @@ export default function App() {
   const [winner, setWinner] = useState<'player' | 'opponent' | null>(null);
   const [finalPlayer, setFinalPlayer] = useState<Character | null>(null);
   const [finalOpponent, setFinalOpponent] = useState<Character | null>(null);
+  // we want to summarize all the turns at the end so we can display what the
+  // player got right and wrong
   const [turnHistory, setTurnHistory] = useState<TurnRecord[]>([]);
 
   function handlePlayerSelected(char: Character) {

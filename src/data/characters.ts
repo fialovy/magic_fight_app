@@ -1,5 +1,6 @@
 import type { CharacterAffinity } from '../types/game';
 
+// particular dimensions that each character has a more powerful hit with
 export const CHARACTER_AFFINITIES: Record<string, CharacterAffinity> = {
   sandoval: { primary: 'star', secondary: 'blue' },
   winston: { primary: 'blue', secondary: 'square' },
@@ -18,6 +19,9 @@ export interface CharacterMeta {
   namePath: string;
   displayName: string;
   imagePrefix: string;
+  // for now this only refers to shapeshifting, which no longer does anything
+  // meaningful for the game itself, but there could be other ways to 'change' a
+  // character in the future
   isVariant: boolean;
 }
 

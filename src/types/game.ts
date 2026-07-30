@@ -16,6 +16,7 @@ export interface Spell {
   rotation: SpellRotation;
 }
 
+// give the characters some individual hidden strengths
 export interface CharacterAffinity {
   primary: SpellDimensionKey; // power 3
   secondary: SpellDimensionKey; // power 2
@@ -43,29 +44,41 @@ export type PatternRule =
   | 'avoid-color+rotation'
   | 'avoid-shape+rotation'
   | 'avoid-fill+rotation';
+
+// affects the projectile visuals
 export type CollisionOutcome =
   | 'decisive-win'
   | 'win'
   | 'neutral'
   | 'loss'
   | 'decisive-loss';
+
 export type TimerResult = 'correct' | 'wrong' | 'timeout';
 
+// total health bar to start out
 export const GAME_LIFE = 20;
+// how long the rule lasts before we change to another one
 export const PATTERN_TURNS = 4;
+// for making the time limit creep down over time
 export const TIMER_START_MS = 2500;
 export const TIMER_STEP_MS = 250;
 export const TIMER_FLOOR_MS = 1100;
 
 export interface TauntsInfo {
+  // how likely this particular character is to taunt (e.g., Adrian is very likely)
   chance: number;
+  // taunts said to any opponent
   general: string[];
+  // dict of particular taunts aimed at particular opponents
   opponents?: Record<string, string[]>;
 }
 
 export interface ReactionsInfo {
+  // how likely this particular character is to react when hit
   chance: number;
+  // reactions said to any opponent
   general: string[];
+  // dict of particular reactions aimed at particular opponents
   opponents?: Record<string, string[]>;
 }
 
@@ -76,10 +89,14 @@ export interface Character {
   tauntsInfo: TauntsInfo | null;
   reactionsInfo: ReactionsInfo | null;
   affinity: CharacterAffinity;
+  // main portraits - need the ability to face either direction depending
+  // on whether you are player or opponent
   imageLeft: string;
   imageRight: string;
+  // monochrome 'expressive' versions I drew for spell impact
   hitImageLeft: string;
   hitImageRight: string;
+  // combat images
   blastImagesLeft: string[];
   blastImagesRight: string[];
 }
