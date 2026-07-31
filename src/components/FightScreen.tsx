@@ -82,6 +82,18 @@ const ORB_SIZE = 36;
 const FALLBACK_ORB_COLOR = '#fbbf24'; // amber-400 — used when a character has no blast images
 const FALLBACK_CLASH_COLOR = '#a855f7'; // purple-500 — used in neutral clash when an image is missing
 
+function nextBlastUrl(
+  images: string[],
+  idxRef: React.MutableRefObject<number>,
+): string | null {
+  if (images.length === 0) return null;
+  return images[idxRef.current++ % images.length];
+}
+
+function sampleColor(url: string | null, fallback: string): Promise<string> {
+  return url ? sampleDominantColor(url) : Promise.resolve(fallback);
+}
+
 const ORB_SHAPES: { clipPath: string; borderRadius: string }[] = [
   { clipPath: 'none', borderRadius: '50%' },
   {
@@ -389,10 +401,9 @@ export default function FightScreen({
 
     // First orb — await color first so delay() starts in sync with the animation
     let hex = FALLBACK_ORB_COLOR;
-    if (images.length > 0) {
-      const url = images[idxRef.current % images.length];
+    const url = nextBlastUrl(images, idxRef);
+    if (url) {
       firstBlastUrl = url;
-      idxRef.current++;
       // Resolving color ensures the image is decoded; delay starts only after animation fires
       hex = await sampleDominantColor(url);
       fireProjectile(hex, casterSide);
@@ -401,11 +412,10 @@ export default function FightScreen({
 
     if (decisive && images.length > 0) {
       // Second orb fires at t=300 — sample its color in parallel with the wait
-      const url2 = images[idxRef.current % images.length];
-      const hex2Promise = sampleDominantColor(url2);
+      const url2 = nextBlastUrl(images, idxRef);
+      const hex2Promise = sampleColor(url2, FALLBACK_ORB_COLOR);
       await delay(300);
       fireProjectile(await hex2Promise, casterSide, projectile2Ref.current);
-      idxRef.current++;
       await delay(536); // 300+536 = 836 → first orb arrives
     } else {
       await delay(836);
@@ -439,17 +449,11 @@ export default function FightScreen({
     const oImages = vO.blastImagesLeft;
 
     // Capture URLs before incrementing, then resolve both colors in parallel
-    const pUrl =
-      pImages.length > 0
-        ? pImages[playerBlastIdx.current++ % pImages.length]
-        : null;
-    const oUrl =
-      oImages.length > 0
-        ? oImages[opponentBlastIdx.current++ % oImages.length]
-        : null;
+    const pUrl = nextBlastUrl(pImages, playerBlastIdx);
+    const oUrl = nextBlastUrl(oImages, opponentBlastIdx);
     const [pColor, oColor] = await Promise.all([
-      pUrl ? sampleDominantColor(pUrl) : Promise.resolve(FALLBACK_CLASH_COLOR),
-      oUrl ? sampleDominantColor(oUrl) : Promise.resolve(FALLBACK_CLASH_COLOR),
+      sampleColor(pUrl, FALLBACK_CLASH_COLOR),
+      sampleColor(oUrl, FALLBACK_CLASH_COLOR),
     ]);
 
     // Both colors resolved → fire both projectiles, then start delay
@@ -590,7 +594,7 @@ export default function FightScreen({
       return;
     }
 
-    // Rotate pattern every 5 turns
+    // Rotate pattern every few turns
     const newTurnsLeft = turnsLeft - 1;
     if (newTurnsLeft <= 0) {
       const newRule = randomPatternRule();
@@ -600,10 +604,7 @@ export default function FightScreen({
         timerDurationRef.current - TIMER_STEP_MS,
       );
       setCurrentRule(newRule);
-      const oldMode = rule.startsWith('avoid') ? 'avoid' : 'match';
-      const newMode = newRule.startsWith('avoid') ? 'avoid' : 'match';
-      if (oldMode !== newMode)
-        setRuleAnnounce({ rule: newRule, key: Date.now() });
+      setRuleAnnounce({ rule: newRule, key: Date.now() });
     } else {
       patternRef.current = { rule, turnsLeft: newTurnsLeft };
     }
@@ -617,6 +618,7 @@ export default function FightScreen({
     runTurn();
   }, []);
 
+  // make sure the substrate's stuff is always up to date
   useEffect(() => {
     if (!isTheSubstrate(initialPlayer) && !isTheSubstrate(initialOpponent)) return;
     Promise.all(
@@ -786,6 +788,7 @@ export default function FightScreen({
   );
 }
 
+// shapeshift buttons for fun
 function SubstrateSegmented({
   formIdx,
   onChange,
