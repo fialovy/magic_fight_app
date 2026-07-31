@@ -15,15 +15,17 @@ interface Props {
   onBack: () => void;
 }
 
-const NORA_FORMS: { emoji: string; meta: CharacterMeta }[] = [
+const SUBSTRATE_FORMS: { emoji: string; meta: CharacterMeta }[] = [
   { emoji: '♀️', meta: CHARACTER_REGISTRY['nora']! },
   { emoji: '♂️', meta: CHARACTER_REGISTRY['nora/norm']! },
   { emoji: '🌿', meta: CHARACTER_REGISTRY['nora/meadow_sprite']! },
 ];
 
-const NORA_PATHS = new Set(NORA_FORMS.map((f) => f.meta.namePath));
+const SUBSTRATE_PATHS = new Set(SUBSTRATE_FORMS.map((f) => f.meta.namePath));
+const SECRET_FORM_IDX = SUBSTRATE_FORMS.length;
 
-// Shared-index sequence for the secret gallery, sorted by narrative order 0-11
+// Shared-index sequence for the secret gallery, which has both of the primary forms
+// depending on when it was drawn and/or in what mood
 const SECRET_IMAGES: { num: number; prefix: 'norm' | 'nora' }[] = [
   { num: 0, prefix: 'norm' },
   { num: 1, prefix: 'norm' },
@@ -62,10 +64,10 @@ export default function Gallery({ onBack }: Props) {
         </div>
 
         {Object.values(CHARACTER_REGISTRY)
-          .filter((m) => !NORA_PATHS.has(m.namePath) || m.namePath === 'nora')
+          .filter((m) => !SUBSTRATE_PATHS.has(m.namePath) || m.namePath === 'nora')
           .map((meta) =>
             meta.namePath === 'nora' ? (
-              <NoraGallerySection key="nora" />
+              <SubstrateGallerySection key="nora" />
             ) : (
               <CharacterGallerySection key={meta.namePath} meta={meta} />
             ),
@@ -86,13 +88,13 @@ function useBlastImages(imagePrefix: string, showLeft: boolean): string[] {
   );
 }
 
-function NoraGallerySection() {
+function SubstrateGallerySection() {
   const [formIdx, setFormIdx] = useState(0);
   const [showLeft, setShowLeft] = useState(false);
   const [secretFound, setSecretFound] = useState(false);
 
-  const isSecret = formIdx === 3;
-  const { meta } = NORA_FORMS[isSecret ? 0 : formIdx];
+  const isSecret = formIdx === SECRET_FORM_IDX;
+  const { meta } = SUBSTRATE_FORMS[isSecret ? 0 : formIdx];
   const blastImages = useBlastImages(meta.imagePrefix, showLeft);
 
   return (
@@ -111,7 +113,7 @@ function NoraGallerySection() {
         {/* Segmented form picker — emoji only */}
         <div className="flex items-stretch shrink-0 gap-1">
           <div className="flex rounded-lg border border-purple-700 overflow-hidden">
-            {NORA_FORMS.map((form, i) => (
+            {SUBSTRATE_FORMS.map((form, i) => (
               <button
                 key={i}
                 onClick={() => setFormIdx(i)}
@@ -132,11 +134,11 @@ function NoraGallerySection() {
           <button
             onClick={() => {
               setSecretFound(true);
-              setFormIdx(3);
+              setFormIdx(SECRET_FORM_IDX);
             }}
             className={[
               'px-3 py-1.5 text-base rounded-lg border transition-all duration-300',
-              formIdx === 3
+              formIdx === SECRET_FORM_IDX
                 ? 'bg-rose-800/80 text-rose-200 border-purple-700'
                 : secretFound
                   ? 'bg-purple-900/60 text-rose-300/70 hover:bg-purple-800 border-purple-700'

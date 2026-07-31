@@ -78,6 +78,10 @@ function blastEmojiFor(url: string): string | undefined {
   return BLAST_EMOJI[stem];
 }
 
+const ORB_SIZE = 36;
+const FALLBACK_ORB_COLOR = '#fbbf24'; // amber-400 — used when a character has no blast images
+const FALLBACK_CLASH_COLOR = '#a855f7'; // purple-500 — used in neutral clash when an image is missing
+
 const ORB_SHAPES: { clipPath: string; borderRadius: string }[] = [
   { clipPath: 'none', borderRadius: '50%' },
   {
@@ -115,6 +119,9 @@ const SUBSTRATE_FORM_DEFS = [
 ] as const;
 
 const SUBSTRATE_NAME_PATHS: Set<string> = new Set(SUBSTRATE_FORM_DEFS.map((f) => f.path));
+const SUBSTRATE_IDX = Object.fromEntries(
+  SUBSTRATE_FORM_DEFS.map((f, i) => [f.prefix, i]),
+) as Record<(typeof SUBSTRATE_FORM_DEFS)[number]['prefix'], number>;
 
 function isTheSubstrate(c: Character) {
   return SUBSTRATE_NAME_PATHS.has(c.namePath);
@@ -265,8 +272,10 @@ export default function FightScreen({
   const projectileRef = useRef<HTMLDivElement>(null);
   const projectile2Ref = useRef<HTMLDivElement>(null);
 
-  async function showTransitionEffect(fromIdx: number, toIdx: number) {
-    const isSprite = fromIdx === 2 || toIdx === 2;
+  async function showShapeshiftEffect(fromIdx: number, toIdx: number) {
+    const isSprite = fromIdx === SUBSTRATE_IDX.meadow_sprite || toIdx === SUBSTRATE_IDX.meadow_sprite;
+    // The splat effect picture is different depending on what forms we are
+    // going between 🏳️‍🌈
     const suffix = isSprite
       ? 'sprite_to_humanoid_or_humanoid_to_sprite'
       : 'humanoid_to_humanoid';
@@ -290,8 +299,8 @@ export default function FightScreen({
     const prev = substrateFormIdxRef.current;
     if (idx === prev) return;
     substrateFormIdxRef.current = idx; // update ref immediately so turn logic uses new form
-    // setSubstrateFormIdx is called inside showTransitionEffect after the animation
-    showTransitionEffect(prev, idx);
+    // setSubstrateFormIdx is called inside showShapeshiftEffect after the animation
+    showShapeshiftEffect(prev, idx);
     restartTimerRef.current?.();
   }
 
@@ -319,13 +328,13 @@ export default function FightScreen({
     const el = orbEl !== undefined ? orbEl : projectileRef.current;
     if (!fromEl || !toEl || !el || typeof el.animate !== 'function') return;
 
-    const S = 36;
     const fromRect = fromEl.getBoundingClientRect();
     const toRect = toEl.getBoundingClientRect();
-    const fromX = fromRect.left + fromRect.width / 2 - S / 2;
-    const fromY = fromRect.top + fromRect.height / 2 - S / 2;
-    const toX = toRect.left + toRect.width / 2 - S / 2;
-    const toY = toRect.top + toRect.height / 2 - S / 2;
+    // center it but then kinda back up to REALLY center it because it also has width 
+    const fromX = fromRect.left + fromRect.width / 2 - ORB_SIZE / 2;
+    const fromY = fromRect.top + fromRect.height / 2 - ORB_SIZE / 2;
+    const toX = toRect.left + toRect.width / 2 - ORB_SIZE / 2;
+    const toY = toRect.top + toRect.height / 2 - ORB_SIZE / 2;
     const shape = pick(ORB_SHAPES);
     el.style.clipPath = shape.clipPath;
     el.style.borderRadius = shape.borderRadius;
@@ -374,11 +383,12 @@ export default function FightScreen({
 
     let firstBlastUrl: string | undefined;
 
-    // Kick off hit-image color sampling immediately so it's ready when the orb lands
+    // Kick off hit image color sampling immediately so it's ready when the orb lands
+    // We use this to color the confetti to match the colors in the character art
     const hitColorPromise = sampleDominantColor(hitUrl);
 
     // First orb — await color first so delay() starts in sync with the animation
-    let hex = '#fbbf24';
+    let hex = FALLBACK_ORB_COLOR;
     if (images.length > 0) {
       const url = images[idxRef.current % images.length];
       firstBlastUrl = url;
@@ -438,8 +448,8 @@ export default function FightScreen({
         ? oImages[opponentBlastIdx.current++ % oImages.length]
         : null;
     const [pColor, oColor] = await Promise.all([
-      pUrl ? sampleDominantColor(pUrl) : Promise.resolve('#a855f7'),
-      oUrl ? sampleDominantColor(oUrl) : Promise.resolve('#a855f7'),
+      pUrl ? sampleDominantColor(pUrl) : Promise.resolve(FALLBACK_CLASH_COLOR),
+      oUrl ? sampleDominantColor(oUrl) : Promise.resolve(FALLBACK_CLASH_COLOR),
     ]);
 
     // Both colors resolved → fire both projectiles, then start delay
@@ -645,12 +655,12 @@ export default function FightScreen({
       <div
         ref={projectileRef}
         className="fixed top-0 left-0 pointer-events-none"
-        style={{ width: 36, height: 36, zIndex: 100, opacity: 0 }}
+        style={{ width: ORB_SIZE, height: ORB_SIZE, zIndex: 100, opacity: 0 }}
       />
       <div
         ref={projectile2Ref}
         className="fixed top-0 left-0 pointer-events-none"
-        style={{ width: 36, height: 36, zIndex: 100, opacity: 0 }}
+        style={{ width: ORB_SIZE, height: ORB_SIZE, zIndex: 100, opacity: 0 }}
       />
 
       {ruleAnnounce && (
