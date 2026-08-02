@@ -19,6 +19,11 @@ async function fetchJSON<T>(path: string): Promise<T | null> {
   }
 }
 
+export async function loadLore(namePath: string): Promise<string[]> {
+  const facts = await fetchJSON<string[]>(`${DATA_BASE}${namePath}/lore.json`);
+  return (facts ?? []).filter((f) => f.length > 0);
+}
+
 export async function loadCharacter(
   namePath: string,
   inheritLife?: number,

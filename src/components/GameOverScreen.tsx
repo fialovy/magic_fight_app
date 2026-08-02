@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import type { Character, TurnRecord } from '../types/game';
 import { GAME_LIFE, MOBILE_WIDTH_ESTIMATE } from '../types/game';
 import confetti from 'canvas-confetti';
+import { loadLore } from '../engine/loader';
+import { pick } from '../engine/random';
 
 async function downloadImage(url: string, filename: string) {
   const res = await fetch(url);
@@ -31,7 +33,15 @@ export default function GameOverScreen({
 }: Props) {
   const playerWon = winner === 'player';
   const [carouselIdx, setCarouselIdx] = useState<number | null>(null);
+  const [loreFact, setLoreFact] = useState<string | null>(null);
   const trophies = player.blastImagesRight;
+
+  useEffect(() => {
+    if (!playerWon) return;
+    loadLore(player.namePath).then((facts) => {
+      if (facts.length > 0) setLoreFact(pick(facts));
+    });
+  }, [playerWon, player.namePath]);
 
   useEffect(() => {
     if (!playerWon) return;
@@ -97,6 +107,17 @@ export default function GameOverScreen({
           <TrophyButton onClick={() => setCarouselIdx(0)} />
         )}
       </div>
+
+      {loreFact && (
+        <div className="w-full max-w-lg bg-amber-800/20 border border-amber-500/40 rounded-2xl p-5 mb-6">
+          <p className="text-amber-500 text-xs font-semibold tracking-widest uppercase mb-2">
+            ✦ {player.displayName} — lore unlocked
+          </p>
+          <p className="text-amber-100/80 text-sm leading-relaxed">
+            {loreFact}
+          </p>
+        </div>
+      )}
 
       {turnHistory.length > 0 && (
         <BattleStats history={turnHistory} playerWon={playerWon} />
