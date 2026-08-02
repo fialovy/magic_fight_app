@@ -130,7 +130,9 @@ const SUBSTRATE_FORM_DEFS = [
   },
 ] as const;
 
-const SUBSTRATE_NAME_PATHS: Set<string> = new Set(SUBSTRATE_FORM_DEFS.map((f) => f.path));
+const SUBSTRATE_NAME_PATHS: Set<string> = new Set(
+  SUBSTRATE_FORM_DEFS.map((f) => f.path),
+);
 const SUBSTRATE_IDX = Object.fromEntries(
   SUBSTRATE_FORM_DEFS.map((f, i) => [f.prefix, i]),
 ) as Record<(typeof SUBSTRATE_FORM_DEFS)[number]['prefix'], number>;
@@ -285,7 +287,9 @@ export default function FightScreen({
   const projectile2Ref = useRef<HTMLDivElement>(null);
 
   async function showShapeshiftEffect(fromIdx: number, toIdx: number) {
-    const isSprite = fromIdx === SUBSTRATE_IDX.meadow_sprite || toIdx === SUBSTRATE_IDX.meadow_sprite;
+    const isSprite =
+      fromIdx === SUBSTRATE_IDX.meadow_sprite ||
+      toIdx === SUBSTRATE_IDX.meadow_sprite;
     // The splat effect picture is different depending on what forms we are
     // going between 🏳️‍🌈
     const suffix = isSprite
@@ -342,7 +346,7 @@ export default function FightScreen({
 
     const fromRect = fromEl.getBoundingClientRect();
     const toRect = toEl.getBoundingClientRect();
-    // center it but then kinda back up to REALLY center it because it also has width 
+    // center it but then kinda back up to REALLY center it because it also has width
     const fromX = fromRect.left + fromRect.width / 2 - ORB_SIZE / 2;
     const fromY = fromRect.top + fromRect.height / 2 - ORB_SIZE / 2;
     const toX = toRect.left + toRect.width / 2 - ORB_SIZE / 2;
@@ -541,10 +545,18 @@ export default function FightScreen({
 
     // Collision visuals — use form-overridden images if the substrate is fighting
     const vP = isTheSubstrate(p)
-      ? applySubstrateShapeshift(p, substrateFormIdxRef.current, substrateFormDataRef.current)
+      ? applySubstrateShapeshift(
+          p,
+          substrateFormIdxRef.current,
+          substrateFormDataRef.current,
+        )
       : p;
     const vO = isTheSubstrate(o)
-      ? applySubstrateShapeshift(o, substrateFormIdxRef.current, substrateFormDataRef.current)
+      ? applySubstrateShapeshift(
+          o,
+          substrateFormIdxRef.current,
+          substrateFormDataRef.current,
+        )
       : o;
     if (outcome === 'win' || outcome === 'decisive-win') {
       await showBlast(vP, 'player', vO, outcome);
@@ -580,10 +592,18 @@ export default function FightScreen({
     await delay(800);
 
     const finalP = isTheSubstrate(newP)
-      ? applySubstrateShapeshift(newP, substrateFormIdxRef.current, substrateFormDataRef.current)
+      ? applySubstrateShapeshift(
+          newP,
+          substrateFormIdxRef.current,
+          substrateFormDataRef.current,
+        )
       : newP;
     const finalO = isTheSubstrate(newO)
-      ? applySubstrateShapeshift(newO, substrateFormIdxRef.current, substrateFormDataRef.current)
+      ? applySubstrateShapeshift(
+          newO,
+          substrateFormIdxRef.current,
+          substrateFormDataRef.current,
+        )
       : newO;
     if (newO.life <= 0) {
       onGameOver('player', finalP, finalO, turnHistoryRef.current);
@@ -620,7 +640,8 @@ export default function FightScreen({
 
   // make sure the substrate's stuff is always up to date
   useEffect(() => {
-    if (!isTheSubstrate(initialPlayer) && !isTheSubstrate(initialOpponent)) return;
+    if (!isTheSubstrate(initialPlayer) && !isTheSubstrate(initialOpponent))
+      return;
     Promise.all(
       SUBSTRATE_FORM_DEFS.map(async ({ path }) => {
         const [taunts, reactions] = await Promise.all([
@@ -646,10 +667,18 @@ export default function FightScreen({
   const isPlayerSubstrate = isTheSubstrate(player);
   const isOpponentSubstrate = isTheSubstrate(opponent);
   const displayPlayer = isPlayerSubstrate
-    ? applySubstrateShapeshift(player, substrateForm.idx, substrateFormDataRef.current)
+    ? applySubstrateShapeshift(
+        player,
+        substrateForm.idx,
+        substrateFormDataRef.current,
+      )
     : player;
   const displayOpponent = isOpponentSubstrate
-    ? applySubstrateShapeshift(opponent, substrateForm.idx, substrateFormDataRef.current)
+    ? applySubstrateShapeshift(
+        opponent,
+        substrateForm.idx,
+        substrateFormDataRef.current,
+      )
     : opponent;
 
   return (

@@ -64,7 +64,9 @@ export default function Gallery({ onBack }: Props) {
         </div>
 
         {Object.values(CHARACTER_REGISTRY)
-          .filter((m) => !SUBSTRATE_PATHS.has(m.namePath) || m.namePath === 'nora')
+          .filter(
+            (m) => !SUBSTRATE_PATHS.has(m.namePath) || m.namePath === 'nora',
+          )
           .map((meta) =>
             meta.namePath === 'nora' ? (
               <SubstrateGallerySection key="nora" />
