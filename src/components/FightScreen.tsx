@@ -286,6 +286,7 @@ export default function FightScreen({
   const [currentRule, setCurrentRule] = useState<PatternRule>(
     patternRef.current.rule,
   );
+  const [ruleKey, setRuleKey] = useState(0);
   const [timerBar, setTimerBar] = useState<{ duration: number; key: number; isAvoid: boolean } | null>(null);
 
   const playerPortraitRef = useRef<HTMLDivElement>(null);
@@ -627,6 +628,7 @@ export default function FightScreen({
     const newRule = randomPatternRule();
     patternRef.current = { rule: newRule, turnsLeft: PATTERN_TURNS };
     setCurrentRule(newRule);
+    setRuleKey((k) => k + 1);
     timerStepCountRef.current += 1;
     if (timerStepCountRef.current % TIMER_STEP_TURNS === 0) {
       timerDurationRef.current = Math.max(
@@ -737,7 +739,8 @@ export default function FightScreen({
         {/* Center — always middle */}
         <div className="order-2 flex-1 flex flex-col items-center justify-center gap-1 md:gap-4 px-4 py-1 md:py-0">
           <span
-            className={`inline-flex gap-2 text-sm md:text-lg font-bold tracking-widest px-3 md:px-5 py-1 md:py-2 rounded-full border-2 ${currentDisplay.isAvoid ? 'text-rose-300 border-rose-600 bg-rose-950/60' : 'text-blue-300 border-blue-600 bg-blue-950/60'}`}
+            key={ruleKey}
+            className={`badge-flash inline-flex gap-2 text-sm md:text-lg font-bold tracking-widest px-3 md:px-5 py-1 md:py-2 rounded-full border-2 ${currentDisplay.isAvoid ? 'text-rose-300 border-rose-600 bg-rose-950/60' : 'text-blue-300 border-blue-600 bg-blue-950/60'}`}
           >
             {currentDisplay.dims.map((dim, i) => (
               <span key={i} className={currentDisplay.isAvoid ? 'line-through' : undefined}>{dim}</span>
