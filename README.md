@@ -35,3 +35,8 @@ npm run dev
 Then open the URL printed in your terminal (usually `http://localhost:5173`). You
 can also access the latest live version [here!](https://fialovy.github.io/magic_fight_app/)
 
+
+#### Disclaimer
+
+Character names somehow being shared with THREE of my previous managers' or bosses' children is COMPLETELY COINCIDENTAL. For example, Nora existed before these kids were born, and Anton was my partner's unrelated idea. I promise I'm not weird.
+
