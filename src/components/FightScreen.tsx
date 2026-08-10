@@ -16,6 +16,7 @@ import {
   TIMER_FLOOR_MS,
   TIMER_START_MS,
   TIMER_STEP_MS,
+  TIMER_STEP_TURNS,
 } from '../types/game';
 import { pick } from '../engine/random';
 import { pickReaction, pickTaunt } from '../engine/combat';
@@ -228,6 +229,14 @@ const OUTCOME_DISPLAY: Record<
   'decisive-loss': { label: '✦ Shattered!', color: 'text-rose-600' },
 };
 
+function parseRule(rule: PatternRule): { isAvoid: boolean; dims: string[] } {
+  return {
+    isAvoid: rule.startsWith('avoid'),
+    // both 'match-' and 'avoid-' are 6 chars
+    dims: rule.slice(6).split('+').map((d) => d.toUpperCase()),
+  };
+}
+
 export default function FightScreen({
   initialPlayer,
   initialOpponent,
@@ -245,6 +254,7 @@ export default function FightScreen({
   const opponentBlastIdx = useRef(0);
   const substrateFormIdxRef = useRef(0);
   const timerDurationRef = useRef(TIMER_START_MS);
+  const timerStepCountRef = useRef(0);
   const substrateFormDataRef = useRef<SubstrateFormOverride[] | null>(null);
   const restartTimerRef = useRef<(() => void) | null>(null);
   const turnHistoryRef = useRef<TurnRecord[]>([]);
@@ -276,10 +286,6 @@ export default function FightScreen({
   const [currentRule, setCurrentRule] = useState<PatternRule>(
     patternRef.current.rule,
   );
-  const [ruleAnnounce, setRuleAnnounce] = useState<{
-    rule: PatternRule;
-    key: number;
-  } | null>({ rule: patternRef.current.rule, key: Date.now() });
 
   const playerPortraitRef = useRef<HTMLDivElement>(null);
   const opponentPortraitRef = useRef<HTMLDivElement>(null);
@@ -476,7 +482,7 @@ export default function FightScreen({
   async function runTurn() {
     const p = livePlayerRef.current;
     const o = liveOpponentRef.current;
-    const { rule, turnsLeft } = patternRef.current;
+    const { rule } = patternRef.current;
 
     // Generate opponent spell first so hand can guarantee at least one matching card
     const oppSpell = randomSpell();
@@ -614,19 +620,16 @@ export default function FightScreen({
       return;
     }
 
-    // Rotate pattern every few turns
-    const newTurnsLeft = turnsLeft - 1;
-    if (newTurnsLeft <= 0) {
-      const newRule = randomPatternRule();
-      patternRef.current = { rule: newRule, turnsLeft: PATTERN_TURNS };
+    // Rule rotates every turn; timer steps down every TIMER_STEP_TURNS turns
+    const newRule = randomPatternRule();
+    patternRef.current = { rule: newRule, turnsLeft: PATTERN_TURNS };
+    setCurrentRule(newRule);
+    timerStepCountRef.current += 1;
+    if (timerStepCountRef.current % TIMER_STEP_TURNS === 0) {
       timerDurationRef.current = Math.max(
         TIMER_FLOOR_MS,
         timerDurationRef.current - TIMER_STEP_MS,
       );
-      setCurrentRule(newRule);
-      setRuleAnnounce({ rule: newRule, key: Date.now() });
-    } else {
-      patternRef.current = { rule, turnsLeft: newTurnsLeft };
     }
 
     await delay(400);
@@ -664,6 +667,7 @@ export default function FightScreen({
 
   const showOpponentSpell =
     opponentSpell && (phase === 'opponent-shown' || phase === 'resolving');
+  const currentDisplay = parseRule(currentRule);
   const isPlayerSubstrate = isTheSubstrate(player);
   const isOpponentSubstrate = isTheSubstrate(opponent);
   const displayPlayer = isPlayerSubstrate
@@ -694,20 +698,6 @@ export default function FightScreen({
         style={{ width: ORB_SIZE, height: ORB_SIZE, zIndex: 100, opacity: 0 }}
       />
 
-      {ruleAnnounce && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
-          <span
-            key={ruleAnnounce.key}
-            className={`text-5xl md:text-7xl font-extrabold tracking-widest uppercase rule-pulse select-none ${ruleAnnounce.rule.startsWith('avoid') ? 'text-rose-400' : 'text-blue-300'}`}
-            onAnimationEnd={() => setRuleAnnounce(null)}
-          >
-            {ruleAnnounce.rule.startsWith('avoid') ? 'AVOID' : 'MATCH'}{' '}
-            <span className="text-3xl md:text-4xl">
-              ({ruleAnnounce.rule.includes('+') ? 'x2' : 'x1'})
-            </span>
-          </span>
-        </div>
-      )}
 
       <div className="text-center py-1 md:py-3 border-b border-purple-800">
         <span className="text-purple-400 text-sm tracking-widest uppercase">
@@ -744,9 +734,11 @@ export default function FightScreen({
         {/* Center — always middle */}
         <div className="order-2 flex-1 flex flex-col items-center justify-center gap-1 md:gap-4 px-4 py-1 md:py-0">
           <span
-            className={`text-sm md:text-lg font-bold tracking-widest px-3 md:px-5 py-1 md:py-2 rounded-full border-2 ${currentRule.startsWith('avoid') ? 'text-rose-300 border-rose-600 bg-rose-950/60' : 'text-blue-300 border-blue-600 bg-blue-950/60'}`}
+            className={`inline-flex gap-2 text-sm md:text-lg font-bold tracking-widest px-3 md:px-5 py-1 md:py-2 rounded-full border-2 ${currentDisplay.isAvoid ? 'text-rose-300 border-rose-600 bg-rose-950/60' : 'text-blue-300 border-blue-600 bg-blue-950/60'}`}
           >
-            {currentRule.startsWith('avoid') ? 'AVOID' : 'MATCH'}
+            {currentDisplay.dims.map((dim, i) => (
+              <span key={i} className={currentDisplay.isAvoid ? 'line-through' : undefined}>{dim}</span>
+            ))}
           </span>
           <span
             className={`hidden md:block text-purple-500 text-xs uppercase tracking-widest ${showOpponentSpell ? '' : 'invisible'}`}

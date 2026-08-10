@@ -58,11 +58,12 @@ export type TimerResult = 'correct' | 'wrong' | 'timeout';
 // total health bar to start out
 export const GAME_LIFE = 20;
 // how long the rule lasts before we change to another one
-export const PATTERN_TURNS = 4;
+export const PATTERN_TURNS = 1;
 // for making the time limit creep down over time
-export const TIMER_START_MS = 2500;
-export const TIMER_STEP_MS = 250;
-export const TIMER_FLOOR_MS = 1100;
+export const TIMER_START_MS = 1400;
+export const TIMER_STEP_MS = 175;
+export const TIMER_FLOOR_MS = 700;
+export const TIMER_STEP_TURNS = 5;
 
 export const MOBILE_WIDTH_ESTIMATE = 768;
 
