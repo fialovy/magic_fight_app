@@ -286,6 +286,7 @@ export default function FightScreen({
   const [currentRule, setCurrentRule] = useState<PatternRule>(
     patternRef.current.rule,
   );
+  const [timerBar, setTimerBar] = useState<{ duration: number; key: number; isAvoid: boolean } | null>(null);
 
   const playerPortraitRef = useRef<HTMLDivElement>(null);
   const opponentPortraitRef = useRef<HTMLDivElement>(null);
@@ -499,6 +500,7 @@ export default function FightScreen({
     // Phase 2: opponent spell reveals, countdown begins
     setOpponentSpell(oppSpell);
     setPhase('opponent-shown');
+    setTimerBar({ duration: timerDurationRef.current, key: Date.now(), isAvoid: rule.startsWith('avoid') });
 
     const selectedSpell = await new Promise<Spell | null>((resolve) => {
       cardClickRef.current = resolve;
@@ -521,6 +523,7 @@ export default function FightScreen({
     setPlayerSpeech(null);
     setOpponentSpeech(null);
     setPhase('resolving');
+    setTimerBar(null);
 
     // Determine outcome
     const timedOut = selectedSpell === null;
@@ -755,6 +758,15 @@ export default function FightScreen({
               <div className="w-full h-full rounded-xl border-2 border-purple-800/20 bg-purple-950/20 flex items-center justify-center">
                 <span className="text-purple-800 text-4xl select-none">?</span>
               </div>
+            )}
+          </div>
+          <div className="w-20 md:w-36 h-1.5 bg-purple-900/50 rounded-full overflow-hidden">
+            {timerBar && (
+              <div
+                key={timerBar.key}
+                className={`h-full rounded-full timer-drain ${timerBar.isAvoid ? 'bg-rose-400' : 'bg-blue-400'}`}
+                style={{ '--timer-duration': `${timerBar.duration}ms` } as React.CSSProperties}
+              />
             )}
           </div>
           <div className="h-5 flex items-center justify-center">
