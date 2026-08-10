@@ -287,6 +287,8 @@ export default function FightScreen({
     patternRef.current.rule,
   );
   const [ruleKey, setRuleKey] = useState(0);
+  const streakRef = useRef(0);
+  const [streak, setStreak] = useState(0);
   const [timerBar, setTimerBar] = useState<{ duration: number; key: number; isAvoid: boolean } | null>(null);
 
   const playerPortraitRef = useRef<HTMLDivElement>(null);
@@ -534,6 +536,9 @@ export default function FightScreen({
         ? 'correct'
         : 'wrong';
 
+    streakRef.current = timerResult === 'correct' ? streakRef.current + 1 : 0;
+    setStreak(streakRef.current);
+
     const outcome = resolveCollision(
       rule,
       p.affinity,
@@ -725,6 +730,7 @@ export default function FightScreen({
             dmgFloat={playerDmgFloat}
             onDmgFloatEnd={() => setPlayerDmgFloat(null)}
             portraitRef={playerPortraitRef}
+            streak={streak}
             shapeshiftControl={
               isPlayerSubstrate ? (
                 <SubstrateSegmented
@@ -774,9 +780,7 @@ export default function FightScreen({
           </div>
           <div className="h-5 flex items-center justify-center">
             {phase === 'resolving' && lastOutcome && (
-              <span
-                className={`text-sm font-bold ${OUTCOME_DISPLAY[lastOutcome].color}`}
-              >
+              <span className={`text-sm font-bold ${OUTCOME_DISPLAY[lastOutcome].color}`}>
                 {OUTCOME_DISPLAY[lastOutcome].label}
               </span>
             )}
@@ -863,6 +867,7 @@ function CharacterPanel({
   dmgFloat,
   onDmgFloatEnd,
   portraitRef,
+  streak,
   shapeshiftControl,
 }: {
   character: Character;
@@ -874,6 +879,7 @@ function CharacterPanel({
   dmgFloat: { text: string; key: number } | null;
   onDmgFloatEnd: () => void;
   portraitRef?: React.RefObject<HTMLDivElement | null>;
+  streak?: number;
   shapeshiftControl?: React.ReactNode;
 }) {
   const isMyBlast = blast?.side === side;
@@ -982,6 +988,11 @@ function CharacterPanel({
         <span className="text-xs text-purple-400 tabular-nums mt-0.5">
           {character.life} / {GAME_LIFE} HP
         </span>
+        {streak !== undefined && (
+          <span className={`text-xs font-bold text-amber-400 mt-0.5 ${streak >= 2 ? '' : 'invisible'}`}>
+            🔥 ×{streak}
+          </span>
+        )}
       </div>
     </div>
   );
