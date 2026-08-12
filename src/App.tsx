@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import type { Character, GameScreen, TurnRecord } from './types/game';
+import type { Character, GameConfig, GameScreen, TurnRecord } from './types/game';
+import { DEFAULT_CONFIG } from './types/game';
 import { loadCharacter } from './engine/loader';
 import TitleScreen from './components/TitleScreen';
 import CharacterSelectScreen from './components/CharacterSelectScreen';
@@ -17,6 +18,7 @@ export default function App() {
   // we want to summarize all the turns at the end so we can display what the
   // player got right and wrong
   const [turnHistory, setTurnHistory] = useState<TurnRecord[]>([]);
+  const [gameConfig, setGameConfig] = useState<GameConfig>(DEFAULT_CONFIG);
 
   function handlePlayerSelected(char: Character) {
     setPlayer(char);
@@ -66,6 +68,8 @@ export default function App() {
           mode="player"
           onSelect={handlePlayerSelected}
           loadCharacter={loadCharacter}
+          config={gameConfig}
+          onConfigChange={setGameConfig}
         />
       );
 
@@ -76,6 +80,8 @@ export default function App() {
           disabledPath={player?.namePath}
           onSelect={handleOpponentSelected}
           loadCharacter={loadCharacter}
+          config={gameConfig}
+          onConfigChange={setGameConfig}
         />
       );
 
@@ -85,6 +91,7 @@ export default function App() {
           initialPlayer={player}
           initialOpponent={opponent}
           onGameOver={handleGameOver}
+          config={gameConfig}
         />
       ) : null;
 

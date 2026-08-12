@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { Character } from '../types/game';
+import type { Character, GameConfig, GameMode, GameSpeed } from '../types/game';
 import { SELECTABLE_CHARACTERS } from '../data/characters';
 
 interface Props {
@@ -7,6 +7,8 @@ interface Props {
   disabledPath?: string;
   onSelect: (character: Character) => void;
   loadCharacter: (namePath: string) => Promise<Character>;
+  config: GameConfig;
+  onConfigChange: (c: GameConfig) => void;
 }
 
 export default function CharacterSelectScreen({
@@ -14,6 +16,8 @@ export default function CharacterSelectScreen({
   disabledPath,
   onSelect,
   loadCharacter,
+  config,
+  onConfigChange,
 }: Props) {
   const [highlighted, setHighlighted] = useState<string | null>(null);
   const [loading, setLoading] = useState<string | null>(null);
@@ -37,6 +41,28 @@ export default function CharacterSelectScreen({
       <p className="text-purple-400 mb-3 md:mb-8 text-lg">
         {mode === 'player' ? 'Choose your sorcerer' : 'Choose your opponent'}
       </p>
+
+      <div className="flex flex-wrap items-center justify-center gap-4 md:gap-8 mb-4 md:mb-6">
+        <SegmentedControl
+          label="Rule"
+          options={[
+            { value: 'follow', label: 'Follow' },
+            { value: 'guess',  label: 'Guess'  },
+          ] as { value: GameMode; label: string }[]}
+          value={config.mode}
+          onChange={(v) => onConfigChange({ ...config, mode: v })}
+        />
+        <SegmentedControl
+          label="Speed"
+          options={[
+            { value: 'slow',   label: 'Slow'   },
+            { value: 'medium', label: 'Medium' },
+            { value: 'fast',   label: 'Fast'   },
+          ] as { value: GameSpeed; label: string }[]}
+          value={config.speed}
+          onChange={(v) => onConfigChange({ ...config, speed: v })}
+        />
+      </div>
 
       <div className="grid grid-cols-3 gap-4 max-w-lg w-full mb-2 md:mb-6">
         {SELECTABLE_CHARACTERS.map((meta) => {
@@ -97,6 +123,41 @@ export default function CharacterSelectScreen({
           <BioPreview namePath={highlightedMeta.namePath} />
         </div>
       )}
+    </div>
+  );
+}
+
+function SegmentedControl<T extends string>({
+  label,
+  options,
+  value,
+  onChange,
+}: {
+  label: string;
+  options: { value: T; label: string }[];
+  value: T;
+  onChange: (v: T) => void;
+}) {
+  return (
+    <div className="flex flex-col items-center gap-1">
+      <span className="text-xs text-purple-500 uppercase tracking-widest">{label}</span>
+      <div className="flex rounded-lg border border-purple-700 overflow-hidden">
+        {options.map((opt, i) => (
+          <button
+            key={opt.value}
+            onClick={() => onChange(opt.value)}
+            className={[
+              'px-3 py-1.5 text-sm font-semibold transition-colors',
+              opt.value === value
+                ? 'bg-amber-500 text-amber-900'
+                : 'bg-purple-900/60 text-purple-300 hover:bg-purple-800',
+              i > 0 ? 'border-l border-purple-700' : '',
+            ].join(' ')}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

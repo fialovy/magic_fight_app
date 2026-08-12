@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type {
   Character,
   CollisionOutcome,
+  GameConfig,
   PatternRule,
   ReactionsInfo,
   Spell,
@@ -13,9 +14,7 @@ import {
   GAME_LIFE,
   MOBILE_WIDTH_ESTIMATE,
   PATTERN_TURNS,
-  TIMER_FLOOR_MS,
-  TIMER_START_MS,
-  TIMER_STEP_MS,
+  SPEED_TIMER,
   TIMER_STEP_TURNS,
 } from '../types/game';
 import { pick } from '../engine/random';
@@ -37,6 +36,7 @@ import confetti from 'canvas-confetti';
 interface Props {
   initialPlayer: Character;
   initialOpponent: Character;
+  config: GameConfig;
   onGameOver: (
     winner: 'player' | 'opponent',
     player: Character,
@@ -240,20 +240,23 @@ function parseRule(rule: PatternRule): { isAvoid: boolean; dims: string[] } {
 export default function FightScreen({
   initialPlayer,
   initialOpponent,
+  config,
   onGameOver,
 }: Props) {
+  const speedTimer = SPEED_TIMER[config.mode][config.speed];
+  const patternTurns = PATTERN_TURNS[config.mode];
   // Refs hold live values read by async turn logic — avoids stale closures
   const livePlayerRef = useRef(initialPlayer);
   const liveOpponentRef = useRef(initialOpponent);
   const patternRef = useRef({
     rule: randomPatternRule() as PatternRule,
-    turnsLeft: PATTERN_TURNS,
+    turnsLeft: patternTurns,
   });
   const cardClickRef = useRef<((spell: Spell) => void) | null>(null);
   const playerBlastIdx = useRef(0);
   const opponentBlastIdx = useRef(0);
   const substrateFormIdxRef = useRef(0);
-  const timerDurationRef = useRef(TIMER_START_MS);
+  const timerDurationRef = useRef(speedTimer.startMs);
   const timerStepCountRef = useRef(0);
   const substrateFormDataRef = useRef<SubstrateFormOverride[] | null>(null);
   const restartTimerRef = useRef<(() => void) | null>(null);
@@ -287,9 +290,10 @@ export default function FightScreen({
     patternRef.current.rule,
   );
   const [ruleKey, setRuleKey] = useState(0);
+  const [ruleAnnounce, setRuleAnnounce] = useState<{ key: number; isAvoid: boolean } | null>(null);
   const streakRef = useRef(0);
   const [streak, setStreak] = useState(0);
-  const [timerBar, setTimerBar] = useState<{ duration: number; key: number; isAvoid: boolean } | null>(null);
+  const [timerBar, setTimerBar] = useState<{ duration: number; key: number; colorClass: string } | null>(null);
 
   const playerPortraitRef = useRef<HTMLDivElement>(null);
   const opponentPortraitRef = useRef<HTMLDivElement>(null);
@@ -486,7 +490,7 @@ export default function FightScreen({
   async function runTurn() {
     const p = livePlayerRef.current;
     const o = liveOpponentRef.current;
-    const { rule } = patternRef.current;
+    const { rule, turnsLeft } = patternRef.current;
 
     // Generate opponent spell first so hand can guarantee at least one matching card
     const oppSpell = randomSpell();
@@ -503,7 +507,10 @@ export default function FightScreen({
     // Phase 2: opponent spell reveals, countdown begins
     setOpponentSpell(oppSpell);
     setPhase('opponent-shown');
-    setTimerBar({ duration: timerDurationRef.current, key: Date.now(), isAvoid: rule.startsWith('avoid') });
+    const barColorClass = config.mode === 'follow'
+      ? (rule.startsWith('avoid') ? 'bg-rose-400' : 'bg-blue-400')
+      : 'bg-purple-400';
+    setTimerBar({ duration: timerDurationRef.current, key: Date.now(), colorClass: barColorClass });
 
     const selectedSpell = await new Promise<Spell | null>((resolve) => {
       cardClickRef.current = resolve;
@@ -629,16 +636,24 @@ export default function FightScreen({
       return;
     }
 
-    // Rule rotates every turn; timer steps down every TIMER_STEP_TURNS turns
-    const newRule = randomPatternRule();
-    patternRef.current = { rule: newRule, turnsLeft: PATTERN_TURNS };
-    setCurrentRule(newRule);
-    setRuleKey((k) => k + 1);
+    // Rotate rule based on mode; timer steps down every TIMER_STEP_TURNS turns
+    const newTurnsLeft = turnsLeft - 1;
+    if (newTurnsLeft <= 0) {
+      const newRule = randomPatternRule();
+      patternRef.current = { rule: newRule, turnsLeft: patternTurns };
+      setCurrentRule(newRule);
+      setRuleKey((k) => k + 1);
+      if (config.mode === 'guess') {
+        setRuleAnnounce({ key: Date.now(), isAvoid: newRule.startsWith('avoid') });
+      }
+    } else {
+      patternRef.current = { ...patternRef.current, turnsLeft: newTurnsLeft };
+    }
     timerStepCountRef.current += 1;
     if (timerStepCountRef.current % TIMER_STEP_TURNS === 0) {
       timerDurationRef.current = Math.max(
-        TIMER_FLOOR_MS,
-        timerDurationRef.current - TIMER_STEP_MS,
+        speedTimer.floorMs,
+        timerDurationRef.current - speedTimer.stepMs,
       );
     }
 
@@ -697,6 +712,17 @@ export default function FightScreen({
 
   return (
     <div className="min-h-dvh app-bg flex flex-col">
+      {ruleAnnounce && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+          <span
+            key={ruleAnnounce.key}
+            className={`text-5xl md:text-7xl font-extrabold tracking-widest uppercase rule-pulse select-none ${ruleAnnounce.isAvoid ? 'text-rose-400' : 'text-blue-300'}`}
+            onAnimationEnd={() => setRuleAnnounce(null)}
+          >
+            {ruleAnnounce.isAvoid ? 'AVOID' : 'MATCH'}
+          </span>
+        </div>
+      )}
       <div
         ref={projectileRef}
         className="fixed top-0 left-0 pointer-events-none"
@@ -748,9 +774,12 @@ export default function FightScreen({
             key={ruleKey}
             className={`badge-flash inline-flex gap-2 text-sm md:text-lg font-bold tracking-widest px-3 md:px-5 py-1 md:py-2 rounded-full border-2 ${currentDisplay.isAvoid ? 'text-rose-300 border-rose-600 bg-rose-950/60' : 'text-blue-300 border-blue-600 bg-blue-950/60'}`}
           >
-            {currentDisplay.dims.map((dim, i) => (
-              <span key={i} className={currentDisplay.isAvoid ? 'line-through' : undefined}>{dim}</span>
-            ))}
+            {config.mode === 'follow'
+              ? currentDisplay.dims.map((dim, i) => (
+                  <span key={i} className={currentDisplay.isAvoid ? 'line-through' : undefined}>{dim}</span>
+                ))
+              : (currentDisplay.isAvoid ? 'AVOID' : 'MATCH')
+            }
           </span>
           <span
             className={`hidden md:block text-purple-500 text-xs uppercase tracking-widest ${showOpponentSpell ? '' : 'invisible'}`}
@@ -773,7 +802,7 @@ export default function FightScreen({
             {timerBar && (
               <div
                 key={timerBar.key}
-                className={`h-full rounded-full timer-drain ${timerBar.isAvoid ? 'bg-rose-400' : 'bg-blue-400'}`}
+                className={`h-full rounded-full timer-drain ${timerBar.colorClass}`}
                 style={{ '--timer-duration': `${timerBar.duration}ms` } as React.CSSProperties}
               />
             )}
@@ -845,7 +874,7 @@ function SubstrateSegmented({
           className={[
             'px-3 py-1 text-base transition-colors',
             i === formIdx
-              ? 'bg-amber-500 text-amber-100'
+              ? 'bg-amber-500 text-amber-900'
               : 'bg-purple-900/60 text-purple-300 hover:bg-purple-800',
             i > 0 ? 'border-l border-purple-700' : '',
           ].join(' ')}
