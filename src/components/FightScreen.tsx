@@ -1017,11 +1017,9 @@ function CharacterPanel({
         <span className="text-xs text-purple-400 tabular-nums mt-0.5">
           {character.life} / {GAME_LIFE} HP
         </span>
-        {streak !== undefined && (
-          <span className={`text-xs font-bold text-amber-400 mt-0.5 ${streak >= 2 ? '' : 'invisible'}`}>
-            🔥 ×{streak}
-          </span>
-        )}
+        <span className={`text-xs font-bold text-amber-400 mt-0.5 ${streak !== undefined && streak >= 2 ? '' : 'invisible'}`}>
+          🔥 ×{streak ?? 0}
+        </span>
       </div>
     </div>
   );
