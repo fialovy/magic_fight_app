@@ -1,9 +1,10 @@
 interface Props {
   onStart: () => void;
   onGallery: () => void;
+  onLeaderboard: () => void;
 }
 
-export default function TitleScreen({ onStart, onGallery }: Props) {
+export default function TitleScreen({ onStart, onGallery, onLeaderboard }: Props) {
   return (
     <div className="min-h-screen app-bg flex flex-col items-center justify-center gap-6 px-4">
       <div className="text-center">
@@ -27,6 +28,12 @@ export default function TitleScreen({ onStart, onGallery }: Props) {
           className="px-6 py-3 text-lg rounded-xl border border-purple-700 text-purple-300 hover:bg-purple-900/60 transition-colors"
         >
           🎨 Gallery
+        </button>
+        <button
+          onClick={onLeaderboard}
+          className="px-6 py-3 text-lg rounded-xl border border-purple-700 text-purple-300 hover:bg-purple-900/60 transition-colors"
+        >
+          Leaderboard
         </button>
       </div>
     </div>

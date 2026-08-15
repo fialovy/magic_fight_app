@@ -7,6 +7,7 @@ import CharacterSelectScreen from './components/CharacterSelectScreen';
 import FightScreen from './components/FightScreen';
 import GameOverScreen from './components/GameOverScreen';
 import Gallery from './components/Gallery';
+import LeaderboardScreen from './components/LeaderboardScreen';
 
 export default function App() {
   const [screen, setScreen] = useState<GameScreen>('title');
@@ -19,6 +20,8 @@ export default function App() {
   // player got right and wrong
   const [turnHistory, setTurnHistory] = useState<TurnRecord[]>([]);
   const [gameConfig, setGameConfig] = useState<GameConfig>(DEFAULT_CONFIG);
+  const [sessionName, setSessionName] = useState<string | null>(null);
+  const [bestStreak, setBestStreak] = useState(0);
 
   function handlePlayerSelected(char: Character) {
     setPlayer(char);
@@ -35,11 +38,13 @@ export default function App() {
     p: Character,
     o: Character,
     history: TurnRecord[],
+    streak: number,
   ) {
     setWinner(w);
     setFinalPlayer(p);
     setFinalOpponent(o);
     setTurnHistory(history);
+    setBestStreak(streak);
     setScreen('game-over');
   }
 
@@ -59,6 +64,7 @@ export default function App() {
         <TitleScreen
           onStart={() => setScreen('character-select')}
           onGallery={() => setScreen('gallery')}
+          onLeaderboard={() => setScreen('leaderboard')}
         />
       );
 
@@ -102,11 +108,19 @@ export default function App() {
           player={finalPlayer}
           opponent={finalOpponent}
           turnHistory={turnHistory}
+          config={gameConfig}
+          bestStreak={bestStreak}
+          sessionName={sessionName}
+          onSetSessionName={setSessionName}
           onNewGame={resetGame}
+          onViewLeaderboard={() => setScreen('leaderboard')}
         />
       ) : null;
 
     case 'gallery':
       return <Gallery onBack={() => setScreen('title')} />;
+
+    case 'leaderboard':
+      return <LeaderboardScreen onBack={() => setScreen('title')} />;
   }
 }
