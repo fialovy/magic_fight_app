@@ -53,7 +53,7 @@ export default function Gallery({ onBack }: Props) {
             </h1>
             <p className="text-purple-400 text-sm mt-1">
               Original art, handcrafted without AI in Google Drawings by the
-              human developer (2017-2026)
+              human developer since 2017
             </p>
           </div>
           <button
