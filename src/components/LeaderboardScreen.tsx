@@ -25,6 +25,7 @@ interface SessionGroup {
   modes: string[];
   speeds: string[];
   date: string;
+  rows: LeaderboardRow[];
 }
 
 function groupIntoSessions(rows: LeaderboardRow[]): SessionGroup[] {
@@ -49,12 +50,14 @@ function groupIntoSessions(rows: LeaderboardRow[]): SessionGroup[] {
         modes: [],
         speeds: [],
         date: row.played_at,
+        rows: [],
         lastMs: ms,
       };
       sessions.push(cur);
     }
     cur.lastMs = ms;
     cur.date = row.played_at;
+    cur.rows.push(row);
     cur.totalGames += 1;
     if (row.won) cur.wins += 1;
     cur.bestStreak = Math.max(cur.bestStreak, row.best_streak);
@@ -167,51 +170,97 @@ export default function LeaderboardScreen({ onBack }: Props) {
 }
 
 function SessionRow({ session: s, rank }: { session: SessionGroup; rank: number }) {
+  const [expanded, setExpanded] = useState(false);
   const isTop3 = rank <= 3;
   const rankColor =
     rank === 1 ? 'text-amber-300' : rank === 2 ? 'text-slate-300' : rank === 3 ? 'text-amber-600' : 'text-purple-600';
 
   return (
-    <div className="bg-purple-950/50 border border-purple-800/50 rounded-xl px-4 py-3 flex items-center gap-4 flex-wrap">
-      <span className={`text-lg font-bold w-7 shrink-0 tabular-nums ${rankColor}`}>
-        {rank}
-      </span>
-
-      <div className="flex-1 min-w-0">
-        <span className={`font-bold text-sm truncate block ${isTop3 ? 'text-amber-200' : 'text-purple-100'}`}>
-          {s.name}
+    <div className="bg-purple-950/50 border border-purple-800/50 rounded-xl overflow-hidden">
+      <button
+        onClick={() => setExpanded((v) => !v)}
+        className="w-full px-4 py-3 flex items-center gap-4 flex-wrap hover:bg-purple-900/30 transition-colors text-left"
+      >
+        <span className={`text-lg font-bold w-7 shrink-0 tabular-nums ${rankColor}`}>
+          {rank}
         </span>
-        <span className="text-xs text-purple-500 truncate block">
-          {s.characters.map(toName).join(', ')}
-          {' · '}
-          {[...new Set(s.modes.map((m) => m))].join('/')}
-          {' · '}
-          {[...new Set(s.speeds)].join('/')}
+
+        <div className="flex-1 min-w-0">
+          <span className={`font-bold text-sm truncate block ${isTop3 ? 'text-amber-200' : 'text-purple-100'}`}>
+            {s.name}
+          </span>
+          <span className="text-xs text-purple-500 truncate block">
+            {s.characters.map(toName).join(', ')}
+            {' · '}
+            {[...new Set(s.modes)].join('/')}
+            {' · '}
+            {[...new Set(s.speeds)].join('/')}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-4 shrink-0 text-center">
+          <div>
+            <p className="text-base font-bold text-emerald-400 tabular-nums">
+              {s.wins}<span className="text-purple-600 text-xs font-normal">/{s.totalGames}</span>
+            </p>
+            <p className="text-xs text-purple-500">wins</p>
+          </div>
+          <div>
+            <p className="text-base font-bold text-amber-400 tabular-nums">
+              {s.bestStreak > 0 ? `🔥 ${s.bestStreak}` : '—'}
+            </p>
+            <p className="text-xs text-purple-500">streak</p>
+          </div>
+          <div>
+            <p className="text-base font-bold text-purple-300 tabular-nums">
+              {s.loreUnlocked.length > 0 ? `✦ ${s.loreUnlocked.length}` : '—'}
+            </p>
+            <p className="text-xs text-purple-500">lore</p>
+          </div>
+          <div className="hidden sm:block">
+            <p className="text-xs text-purple-400">{formatDate(s.date)}</p>
+          </div>
+          <span className={`text-purple-500 text-xs transition-transform ${expanded ? 'rotate-180' : ''}`}>
+            ▼
+          </span>
+        </div>
+      </button>
+
+      {expanded && (
+        <div className="border-t border-purple-800/40 divide-y divide-purple-800/30">
+          {[...s.rows].reverse().map((row) => (
+            <FightRow key={row.id} row={row} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function FightRow({ row }: { row: LeaderboardRow }) {
+  return (
+    <div className="px-4 py-2.5 flex items-center gap-3 flex-wrap pl-11">
+      <div className="flex-1 min-w-0">
+        <span className="text-xs text-purple-200">
+          {toName(row.character)}
+          <span className="text-purple-600"> vs </span>
+          {toName(row.opponent)}
+        </span>
+        <span className="text-xs text-purple-600 ml-2">
+          {row.mode} · {row.speed}
         </span>
       </div>
-
-      <div className="flex items-center gap-4 shrink-0 text-center">
-        <div>
-          <p className="text-base font-bold text-emerald-400 tabular-nums">
-            {s.wins}<span className="text-purple-600 text-xs font-normal">/{s.totalGames}</span>
-          </p>
-          <p className="text-xs text-purple-500">wins</p>
-        </div>
-        <div>
-          <p className="text-base font-bold text-amber-400 tabular-nums">
-            {s.bestStreak > 0 ? `🔥 ${s.bestStreak}` : '—'}
-          </p>
-          <p className="text-xs text-purple-500">streak</p>
-        </div>
-        <div>
-          <p className="text-base font-bold text-purple-300 tabular-nums">
-            {s.loreUnlocked.length > 0 ? `✦ ${s.loreUnlocked.length}` : '—'}
-          </p>
-          <p className="text-xs text-purple-500">lore</p>
-        </div>
-        <div className="hidden sm:block">
-          <p className="text-xs text-purple-400">{formatDate(s.date)}</p>
-        </div>
+      <div className="flex items-center gap-3 shrink-0 text-xs">
+        <span className={row.won ? 'text-emerald-400 font-semibold' : 'text-rose-400'}>
+          {row.won ? 'Win' : 'Loss'}
+        </span>
+        {row.best_streak >= 2 && (
+          <span className="text-amber-400">🔥 {row.best_streak}</span>
+        )}
+        {row.lore_unlocked.length > 0 && (
+          <span className="text-purple-400">✦ lore</span>
+        )}
+        <span className="text-purple-600">{formatDate(row.played_at)}</span>
       </div>
     </div>
   );
