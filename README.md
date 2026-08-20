@@ -35,6 +35,8 @@ npm run dev
 Then open the URL printed in your terminal (usually `http://localhost:5173`). You
 can also access the latest live version [here!](https://fialovy.github.io/magic_fight_app/)
 
+(or for the WIP with a leaderboard, try [this URL](https://magic-fight-app.vercel.app/)).
+
 
 #### Disclaimer
 
