@@ -38,6 +38,6 @@ function blastCountsPlugin() {
 }
 
 export default defineConfig({
-  base: '/magic_fight_app/',
+  base: '/',
   plugins: [react(), tailwindcss(), blastCountsPlugin()],
 })
