@@ -39,6 +39,7 @@ const SECRET_IMAGES: { num: number; prefix: 'norm' | 'nora' }[] = [
   { num: 9, prefix: 'nora' },
   { num: 10, prefix: 'norm' },
   { num: 11, prefix: 'norm' },
+  { num: 12, prefix: 'norm' },
 ];
 
 export default function Gallery({ onBack }: Props) {
