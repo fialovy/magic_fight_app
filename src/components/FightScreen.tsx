@@ -275,6 +275,7 @@ export default function FightScreen({
   const [opponentSpell, setOpponentSpell] = useState<Spell | null>(null);
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const [lastOutcome, setLastOutcome] = useState<CollisionOutcome | null>(null);
+  const [lastWasTimeout, setLastWasTimeout] = useState(false);
   const [blast, setBlast] = useState<BlastAnim | null>(null);
   const [hitAnim, setHitAnim] = useState<BlastAnim | null>(null);
   const [playerSpeech, setPlayerSpeech] = useState<string | null>(null);
@@ -562,6 +563,7 @@ export default function FightScreen({
     );
     turnHistoryRef.current.push({ rule, timerResult, outcome });
     setLastOutcome(outcome);
+    setLastWasTimeout(timerResult === 'timeout');
 
     const damage = OUTCOME_DAMAGE[outcome];
     let newP = { ...p };
@@ -816,8 +818,8 @@ export default function FightScreen({
           </div>
           <div className="h-5 flex items-center justify-center">
             {phase === 'resolving' && lastOutcome && (
-              <span className={`text-sm font-bold ${OUTCOME_DISPLAY[lastOutcome].color}`}>
-                {OUTCOME_DISPLAY[lastOutcome].label}
+              <span className={`text-sm font-bold ${lastWasTimeout ? 'text-purple-500' : OUTCOME_DISPLAY[lastOutcome].color}`}>
+                {lastWasTimeout ? '⏱ Timed out!' : OUTCOME_DISPLAY[lastOutcome].label}
               </span>
             )}
           </div>
