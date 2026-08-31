@@ -144,7 +144,7 @@ export default function LeaderboardScreen({ onBack }: Props) {
         </div>
 
         {error && (
-          <p className="text-rose-400 text-sm">Could not load scores. Check your connection.</p>
+          <p className="text-rose-400 text-sm">Could not load scores. You can play the game without internet, but I can't access the database to show you the leaderboard unless we're connected!</p>
         )}
 
         {!rows && !error && (
