@@ -35,7 +35,15 @@ async function downloadImage(
         data: base64,
         directory: Directory.Cache,
       });
-      await Media.savePhoto({ path: uri });
+      const albumName = 'Magic Fight';
+      const { albums } = await Media.getAlbums();
+      let album = albums.find((a) => a.name === albumName);
+      if (!album) {
+        await Media.createAlbum({ name: albumName });
+        const { albums: fresh } = await Media.getAlbums();
+        album = fresh.find((a) => a.name === albumName);
+      }
+      await Media.savePhoto({ path: uri, albumIdentifier: album?.identifier });
       onSuccess();
       return;
     }
