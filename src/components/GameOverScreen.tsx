@@ -7,21 +7,29 @@ import { loadLore } from '../engine/loader';
 import { pick } from '../engine/random';
 
 async function downloadImage(url: string, filename: string) {
-  const res = await fetch(url);
-  const blob = await res.blob();
-  const file = new File([blob], filename, { type: blob.type });
+  try {
+    const res = await fetch(url);
+    const blob = await res.blob();
+    const file = new File([blob], filename, { type: blob.type || 'image/png' });
 
-  if (navigator.canShare?.({ files: [file] })) {
-    await navigator.share({ files: [file], title: 'Magic Fight prize' });
-    return;
+    if (navigator.share) {
+      await navigator.share({ files: [file], title: 'Magic Fight prize' });
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = objectUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(objectUrl);
+  } catch (err) {
+    // AbortError = user cancelled the share sheet, which is fine
+    if (err instanceof Error && err.name === 'AbortError') return;
+    alert(`Could not save image: ${err instanceof Error ? err.message : String(err)}`);
   }
-
-  const objectUrl = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = objectUrl;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(objectUrl);
 }
 
 interface Props {
