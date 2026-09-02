@@ -1,4 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
+import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
 import type { Character, GameConfig, TurnRecord } from '../types/game';
 import { GAME_LIFE, MOBILE_WIDTH_ESTIMATE } from '../types/game';
 import { submitScore } from '../engine/leaderboard';
@@ -6,12 +9,32 @@ import confetti from 'canvas-confetti';
 import { loadLore } from '../engine/loader';
 import { pick } from '../engine/random';
 
+function blobToBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve((reader.result as string).split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
 async function downloadImage(url: string, filename: string, onError: (msg: string) => void) {
   try {
     const res = await fetch(url);
     const blob = await res.blob();
-    const file = new File([blob], filename, { type: blob.type || 'image/png' });
 
+    if (Capacitor.isNativePlatform()) {
+      const base64 = await blobToBase64(blob);
+      const { uri } = await Filesystem.writeFile({
+        path: filename,
+        data: base64,
+        directory: Directory.Cache,
+      });
+      await Share.share({ title: 'Magic Fight prize', files: [uri], dialogTitle: 'Save your prize' });
+      return;
+    }
+
+    const file = new File([blob], filename, { type: blob.type || 'image/png' });
     if (navigator.share) {
       await navigator.share({ files: [file], title: 'Magic Fight prize' });
       return;
