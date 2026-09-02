@@ -9,6 +9,13 @@ import { pick } from '../engine/random';
 async function downloadImage(url: string, filename: string) {
   const res = await fetch(url);
   const blob = await res.blob();
+  const file = new File([blob], filename, { type: blob.type });
+
+  if (navigator.canShare?.({ files: [file] })) {
+    await navigator.share({ files: [file], title: 'Magic Fight prize' });
+    return;
+  }
+
   const objectUrl = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = objectUrl;
@@ -190,7 +197,7 @@ export default function GameOverScreen({
                 }
                 className="px-5 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-semibold text-sm border border-amber-400 transition-colors"
               >
-                ⬇ Download
+                ⬇ Save
               </button>
               <button
                 onClick={() => setCarouselIdx((i) => i! + 1)}
