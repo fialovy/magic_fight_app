@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { Filesystem, Directory } from '@capacitor/filesystem';
-import { Share } from '@capacitor/share';
+import { Media } from '@capacitor-community/media';
 import type { Character, GameConfig, TurnRecord } from '../types/game';
 import { GAME_LIFE, MOBILE_WIDTH_ESTIMATE } from '../types/game';
 import { submitScore } from '../engine/leaderboard';
@@ -18,7 +18,12 @@ function blobToBase64(blob: Blob): Promise<string> {
   });
 }
 
-async function downloadImage(url: string, filename: string, onError: (msg: string) => void) {
+async function downloadImage(
+  url: string,
+  filename: string,
+  onError: (msg: string) => void,
+  onSuccess: () => void,
+) {
   try {
     const res = await fetch(url);
     const blob = await res.blob();
@@ -30,7 +35,8 @@ async function downloadImage(url: string, filename: string, onError: (msg: strin
         data: base64,
         directory: Directory.Cache,
       });
-      await Share.share({ title: 'Magic Fight prize', files: [uri], dialogTitle: 'Save your prize' });
+      await Media.savePhoto({ path: uri });
+      onSuccess();
       return;
     }
 
@@ -49,7 +55,7 @@ async function downloadImage(url: string, filename: string, onError: (msg: strin
     document.body.removeChild(a);
     URL.revokeObjectURL(objectUrl);
   } catch (err) {
-    if (err instanceof Error && err.name === 'AbortError') return;
+    if (err instanceof Error && (err.name === 'AbortError' || err.message.includes('cancel'))) return;
     onError(`${err instanceof Error ? err.name + ': ' + err.message : String(err)}`);
   }
 }
@@ -82,6 +88,7 @@ export default function GameOverScreen({
   const playerWon = winner === 'player';
   const [carouselIdx, setCarouselIdx] = useState<number | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [saveDone, setSaveDone] = useState(false);
   const [loreFact, setLoreFact] = useState<string | null>(null);
   const trophies = player.blastImagesRight;
 
@@ -212,6 +219,11 @@ export default function GameOverScreen({
               className="max-h-[60vh] max-w-full object-contain rounded-lg"
             />
 
+            {saveDone && (
+              <p className="text-emerald-400 text-xs bg-emerald-950/60 border border-emerald-700/50 rounded-lg px-3 py-2 max-w-xs text-center">
+                Saved to your gallery!
+              </p>
+            )}
             {saveError && (
               <p className="text-rose-400 text-xs bg-rose-950/60 border border-rose-700/50 rounded-lg px-3 py-2 max-w-xs text-center break-all">
                 {saveError}
@@ -228,10 +240,12 @@ export default function GameOverScreen({
               <button
                 onClick={() => {
                   setSaveError(null);
+                  setSaveDone(false);
                   downloadImage(
                     trophies[carouselIdx],
                     `${player.displayName.toLowerCase().replace(/\s+/g, '_')}_combat_${carouselIdx}.png`,
                     setSaveError,
+                    () => setSaveDone(true),
                   );
                 }}
                 className="px-5 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-semibold text-sm border border-amber-400 transition-colors"
