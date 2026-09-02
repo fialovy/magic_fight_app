@@ -6,7 +6,7 @@ import confetti from 'canvas-confetti';
 import { loadLore } from '../engine/loader';
 import { pick } from '../engine/random';
 
-async function downloadImage(url: string, filename: string) {
+async function downloadImage(url: string, filename: string, onError: (msg: string) => void) {
   try {
     const res = await fetch(url);
     const blob = await res.blob();
@@ -26,9 +26,8 @@ async function downloadImage(url: string, filename: string) {
     document.body.removeChild(a);
     URL.revokeObjectURL(objectUrl);
   } catch (err) {
-    // AbortError = user cancelled the share sheet, which is fine
     if (err instanceof Error && err.name === 'AbortError') return;
-    alert(`Could not save image: ${err instanceof Error ? err.message : String(err)}`);
+    onError(`${err instanceof Error ? err.name + ': ' + err.message : String(err)}`);
   }
 }
 
@@ -59,6 +58,7 @@ export default function GameOverScreen({
 }: Props) {
   const playerWon = winner === 'player';
   const [carouselIdx, setCarouselIdx] = useState<number | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [loreFact, setLoreFact] = useState<string | null>(null);
   const trophies = player.blastImagesRight;
 
@@ -189,6 +189,12 @@ export default function GameOverScreen({
               className="max-h-[60vh] max-w-full object-contain rounded-lg"
             />
 
+            {saveError && (
+              <p className="text-rose-400 text-xs bg-rose-950/60 border border-rose-700/50 rounded-lg px-3 py-2 max-w-xs text-center break-all">
+                {saveError}
+              </p>
+            )}
+
             <div className="flex gap-3 items-center">
               <button
                 onClick={() => setCarouselIdx((i) => i! - 1)}
@@ -197,12 +203,14 @@ export default function GameOverScreen({
                 ← Prev
               </button>
               <button
-                onClick={() =>
+                onClick={() => {
+                  setSaveError(null);
                   downloadImage(
                     trophies[carouselIdx],
                     `${player.displayName.toLowerCase().replace(/\s+/g, '_')}_combat_${carouselIdx}.png`,
-                  )
-                }
+                    setSaveError,
+                  );
+                }}
                 className="px-5 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-semibold text-sm border border-amber-400 transition-colors"
               >
                 ⬇ Save
