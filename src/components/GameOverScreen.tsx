@@ -98,7 +98,20 @@ export default function GameOverScreen({
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveDone, setSaveDone] = useState(false);
   const [loreFact, setLoreFact] = useState<string | null>(null);
+  const [showScrollHint, setShowScrollHint] = useState(true);
   const trophies = player.blastImagesRight;
+
+  useEffect(() => {
+    const timer = setTimeout(() => setShowScrollHint(false), 3000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (carouselIdx !== null) {
+      setSaveError(null);
+      setSaveDone(false);
+    }
+  }, [carouselIdx]);
 
   useEffect(() => {
     if (!playerWon) return;
@@ -198,6 +211,29 @@ export default function GameOverScreen({
         <BattleStats history={turnHistory} playerWon={playerWon} />
       )}
 
+      {/* Scroll hint */}
+      {showScrollHint && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-10 pointer-events-none animate-bounce">
+          <span className="text-purple-400/60 text-2xl select-none">↓</span>
+        </div>
+      )}
+
+      {/* Save toasts — float over everything, don't affect modal layout */}
+      {saveDone && (
+        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
+          <p className="text-emerald-400 text-sm font-semibold bg-emerald-950/90 border border-emerald-700/60 rounded-xl px-4 py-2 shadow-lg whitespace-nowrap">
+            Saved to your gallery!
+          </p>
+        </div>
+      )}
+      {saveError && (
+        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-50 max-w-xs w-full px-4">
+          <p className="text-rose-400 text-xs bg-rose-950/90 border border-rose-700/60 rounded-xl px-4 py-2 shadow-lg text-center break-all">
+            {saveError}
+          </p>
+        </div>
+      )}
+
       {/* Carousel modal */}
       {carouselIdx !== null && (
         <div
@@ -227,16 +263,6 @@ export default function GameOverScreen({
               className="max-h-[60vh] max-w-full object-contain rounded-lg"
             />
 
-            {saveDone && (
-              <p className="text-emerald-400 text-xs bg-emerald-950/60 border border-emerald-700/50 rounded-lg px-3 py-2 max-w-xs text-center">
-                Saved to your gallery!
-              </p>
-            )}
-            {saveError && (
-              <p className="text-rose-400 text-xs bg-rose-950/60 border border-rose-700/50 rounded-lg px-3 py-2 max-w-xs text-center break-all">
-                {saveError}
-              </p>
-            )}
 
             <div className="flex gap-3 items-center">
               <button
@@ -253,7 +279,10 @@ export default function GameOverScreen({
                     trophies[carouselIdx],
                     `${player.displayName.toLowerCase().replace(/\s+/g, '_')}_combat_${carouselIdx}.png`,
                     setSaveError,
-                    () => setSaveDone(true),
+                    () => {
+                      setSaveDone(true);
+                      setTimeout(() => setSaveDone(false), 2500);
+                    },
                   );
                 }}
                 className="px-5 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-semibold text-sm border border-amber-400 transition-colors"

@@ -19,7 +19,7 @@ import {
 } from '../types/game';
 import { pick } from '../engine/random';
 import { pickReaction, pickTaunt } from '../engine/combat';
-import { sampleDominantColor } from '../engine/colorSampler';
+import { sampleDominantColor, sampleEdgeColor } from '../engine/colorSampler';
 import {
   checkPattern,
   generateHand,
@@ -147,9 +147,9 @@ function isTheSubstrate(c: Character) {
 function panelClass(side: 'player' | 'opponent', character: Character): string {
   const order = side === 'player' ? 'order-3 md:order-1' : 'order-1 md:order-3';
   const height = isTheSubstrate(character)
-    ? 'h-[calc(30vh+44px)]'
-    : 'h-[30vh]';
-  return `${order} flex flex-col items-center p-2 md:p-4 w-full md:w-72 xl:w-96 md:shrink-0 md:h-auto ${height}`;
+    ? 'h-[calc(32vh+44px)]'
+    : 'h-[32vh]';
+  return `${order} flex flex-col items-center py-2 md:p-4 w-full md:w-72 xl:w-96 md:shrink-0 md:h-auto ${height}`;
 }
 
 function fireBurst(
@@ -297,6 +297,8 @@ export default function FightScreen({
   const bestStreakRef = useRef(0);
   const [streak, setStreak] = useState(0);
   const [timerBar, setTimerBar] = useState<{ duration: number; key: number; colorClass: string } | null>(null);
+  const [playerBgOverride, setPlayerBgOverride] = useState<string | null>(null);
+  const [opponentBgOverride, setOpponentBgOverride] = useState<string | null>(null);
 
   const playerPortraitRef = useRef<HTMLDivElement>(null);
   const opponentPortraitRef = useRef<HTMLDivElement>(null);
@@ -429,6 +431,8 @@ export default function FightScreen({
       hex = await sampleDominantColor(url);
       fireProjectile(hex, casterSide);
       setBlast({ url, key: Date.now(), side: casterSide });
+      if (casterSide === 'player') setPlayerBgOverride(hex);
+      else setOpponentBgOverride(hex);
     }
 
     if (decisive && images.length > 0) {
@@ -447,6 +451,8 @@ export default function FightScreen({
 
     // First hit at t=836
     const burstEmoji = firstBlastUrl ? blastEmojiFor(firstBlastUrl) : undefined;
+    if (recipientSide === 'player') setPlayerBgOverride(hitHex);
+    else setOpponentBgOverride(hitHex);
     setHitAnim({ url: hitUrl, key: Date.now(), side: recipientSide });
     if (recipientEl)
       fireBurst(recipientEl, colors, decisive ? 50 : 35, burstEmoji);
@@ -463,6 +469,8 @@ export default function FightScreen({
 
     setBlast(null);
     setHitAnim(null);
+    setPlayerBgOverride(null);
+    setOpponentBgOverride(null);
   }
 
   async function showNeutralClash(vP: Character, vO: Character) {
@@ -480,6 +488,8 @@ export default function FightScreen({
     // Both colors resolved → fire both projectiles, then start delay
     if (pUrl) fireProjectile(pColor, 'player');
     if (oUrl) fireProjectile(oColor, 'opponent', projectile2Ref.current);
+    setPlayerBgOverride(pColor);
+    setOpponentBgOverride(oColor);
 
     await delay(800);
 
@@ -488,6 +498,8 @@ export default function FightScreen({
     if (pEl) fireBurst(pEl, [pColor, oColor], 25);
     if (oEl) fireBurst(oEl, [oColor, pColor], 25);
     await delay(400);
+    setPlayerBgOverride(null);
+    setOpponentBgOverride(null);
   }
 
   async function runTurn() {
@@ -720,7 +732,7 @@ export default function FightScreen({
     : opponent;
 
   return (
-    <div className="min-h-dvh app-bg flex flex-col">
+    <div className="h-dvh app-bg flex flex-col overflow-hidden">
       {ruleAnnounce && (
         <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
           <span
@@ -766,6 +778,7 @@ export default function FightScreen({
             onDmgFloatEnd={() => setPlayerDmgFloat(null)}
             portraitRef={playerPortraitRef}
             streak={streak}
+            bgColorOverride={playerBgOverride}
             shapeshiftControl={
               isPlayerSubstrate ? (
                 <SubstrateSegmented
@@ -778,7 +791,7 @@ export default function FightScreen({
         </div>
 
         {/* Center — always middle */}
-        <div className="order-2 flex-1 flex flex-col items-center justify-center gap-1 md:gap-4 px-4 py-1 md:py-0">
+        <div className="order-2 flex-1 flex flex-col items-center justify-center gap-1.5 md:gap-4 px-4 py-0 md:py-0">
           <span
             key={ruleKey}
             className={`badge-flash inline-flex gap-2 text-sm md:text-lg font-bold tracking-widest px-3 md:px-5 py-1 md:py-2 rounded-full border-2 ${currentDisplay.isAvoid ? 'text-rose-300 border-rose-600 bg-rose-950/60' : 'text-blue-300 border-blue-600 bg-blue-950/60'}`}
@@ -837,6 +850,7 @@ export default function FightScreen({
             dmgFloat={opponentDmgFloat}
             onDmgFloatEnd={() => setOpponentDmgFloat(null)}
             portraitRef={opponentPortraitRef}
+            bgColorOverride={opponentBgOverride}
             shapeshiftControl={
               isOpponentSubstrate ? (
                 <SubstrateSegmented
@@ -850,7 +864,7 @@ export default function FightScreen({
       </div>
 
       {/* Hand row — sticky so spell choices are always visible */}
-      <div className="sticky bottom-0 z-20 py-2 md:py-5 flex justify-center gap-2 md:gap-4 border-t border-purple-800/30 bg-indigo-950/90 backdrop-blur-sm">
+      <div className="shrink-0 z-20 py-2 md:py-5 flex justify-center gap-2 md:gap-4 border-t border-purple-800/30 bg-indigo-950/90 backdrop-blur-sm">
         {hand.map((spell, i) => (
           <div key={i} className="w-20 h-20 md:w-24 md:h-24 shrink-0">
             <SpellCard
@@ -906,6 +920,7 @@ function CharacterPanel({
   onDmgFloatEnd,
   portraitRef,
   streak,
+  bgColorOverride,
   shapeshiftControl,
 }: {
   character: Character;
@@ -918,12 +933,20 @@ function CharacterPanel({
   onDmgFloatEnd: () => void;
   portraitRef?: React.RefObject<HTMLDivElement | null>;
   streak?: number;
+  bgColorOverride?: string | null;
   shapeshiftControl?: React.ReactNode;
 }) {
   const isMyBlast = blast?.side === side;
   const isMyHit = hitAnim?.side === side;
   const isMyTransition = transitionAnim?.side === side;
   const img = side === 'player' ? character.imageRight : character.imageLeft;
+
+  const [sampledColor, setSampledColor] = useState('transparent');
+  useEffect(() => {
+    sampleEdgeColor(img).then(setSampledColor).catch(() => {});
+  }, [img]);
+  const bgColor = bgColorOverride ?? sampledColor;
+
   const pct = Math.max(0, (character.life / GAME_LIFE) * 100);
   const barColor =
     pct > 60 ? 'bg-emerald-500' : pct > 30 ? 'bg-amber-500' : 'bg-rose-500';
@@ -958,14 +981,21 @@ function CharacterPanel({
       )}
 
       {shapeshiftControl && (
-        <div className="shrink-0 mb-2">{shapeshiftControl}</div>
+        <div className="shrink-0 mb-2 px-2 md:px-0">{shapeshiftControl}</div>
       )}
 
       {/* Portrait — mobile player: order-2 so name/HP (order-1) floats above it */}
       <div
         ref={portraitRef}
         className={`relative w-full flex-1 min-h-20 md:flex-none md:aspect-square${side === 'player' ? ' max-md:order-2' : ''}`}
-        style={{ maskImage: 'linear-gradient(to bottom, black 55%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to bottom, black 55%, transparent 100%)' }}
+        style={{
+          backgroundColor: bgColor,
+          transition: 'background-color 0.35s ease',
+          maskImage: 'linear-gradient(to right, transparent, black 12%, black 88%, transparent), linear-gradient(to bottom, black 60%, transparent 100%)',
+          maskComposite: 'intersect',
+          WebkitMaskImage: 'linear-gradient(to right, transparent, black 12%, black 88%, transparent), linear-gradient(to bottom, black 60%, transparent 100%)',
+          WebkitMaskComposite: 'source-in',
+        }}
       >
         <img
           src={img}
@@ -1013,7 +1043,7 @@ function CharacterPanel({
 
       {/* Name/HP — mobile player: max-md:order-1 floats above portrait; desktop always below */}
       <div
-        className={`shrink-0 w-full flex flex-col items-center max-md:mt-0.5 md:mt-3${side === 'player' ? ' max-md:order-1' : ''}`}
+        className={`shrink-0 w-full flex flex-col items-center px-2 md:px-0 max-md:mt-0.5 md:mt-3${side === 'player' ? ' max-md:order-1' : ''}`}
       >
         <span className="text-purple-200 text-base md:text-lg font-semibold">
           {character.displayName}
