@@ -147,8 +147,8 @@ function isTheSubstrate(c: Character) {
 function panelClass(side: 'player' | 'opponent', character: Character): string {
   const order = side === 'player' ? 'order-3 md:order-1' : 'order-1 md:order-3';
   const height = isTheSubstrate(character)
-    ? 'h-[min(calc(28vh_+_44px),264px)]'
-    : 'h-[min(28vh,220px)]';
+    ? 'h-[calc(30vh+44px)]'
+    : 'h-[30vh]';
   return `${order} flex flex-col items-center p-2 md:p-4 w-full md:w-72 xl:w-96 md:shrink-0 md:h-auto ${height}`;
 }
 
@@ -744,7 +744,7 @@ export default function FightScreen({
       />
 
 
-      <div className="text-center py-1 md:py-3 border-b border-purple-800">
+      <div className="hidden md:block text-center py-3 border-b border-purple-800">
         <span className="text-purple-400 text-sm tracking-widest uppercase">
           Magic Fight
         </span>
@@ -965,6 +965,7 @@ function CharacterPanel({
       <div
         ref={portraitRef}
         className={`relative w-full flex-1 min-h-20 md:flex-none md:aspect-square${side === 'player' ? ' max-md:order-2' : ''}`}
+        style={{ maskImage: 'linear-gradient(to bottom, black 55%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to bottom, black 55%, transparent 100%)' }}
       >
         <img
           src={img}
