@@ -218,14 +218,6 @@ export default function GameOverScreen({
         </div>
       )}
 
-      {/* Save toasts — float over everything, don't affect modal layout */}
-      {saveDone && (
-        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
-          <p className="text-emerald-400 text-sm font-semibold bg-emerald-950/90 border border-emerald-700/60 rounded-xl px-4 py-2 shadow-lg whitespace-nowrap">
-            Saved to your gallery!
-          </p>
-        </div>
-      )}
       {saveError && (
         <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-50 max-w-xs w-full px-4">
           <p className="text-rose-400 text-xs bg-rose-950/90 border border-rose-700/60 rounded-xl px-4 py-2 shadow-lg text-center break-all">
@@ -271,24 +263,31 @@ export default function GameOverScreen({
               >
                 ← Prev
               </button>
-              <button
-                onClick={() => {
-                  setSaveError(null);
-                  setSaveDone(false);
-                  downloadImage(
-                    trophies[carouselIdx],
-                    `${player.displayName.toLowerCase().replace(/\s+/g, '_')}_combat_${carouselIdx}.png`,
-                    setSaveError,
-                    () => {
-                      setSaveDone(true);
-                      setTimeout(() => setSaveDone(false), 2500);
-                    },
-                  );
-                }}
-                className="px-5 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-semibold text-sm border border-amber-400 transition-colors"
-              >
-                ⬇ Save
-              </button>
+              <div className="relative">
+                <button
+                  onClick={() => {
+                    setSaveError(null);
+                    setSaveDone(false);
+                    downloadImage(
+                      trophies[carouselIdx],
+                      `${player.displayName.toLowerCase().replace(/\s+/g, '_')}_combat_${carouselIdx}.png`,
+                      setSaveError,
+                      () => {
+                        setSaveDone(true);
+                        setTimeout(() => setSaveDone(false), 2500);
+                      },
+                    );
+                  }}
+                  className={`px-5 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-semibold text-sm border border-amber-400 transition-colors ${saveDone ? 'invisible' : ''}`}
+                >
+                  ⬇ Save
+                </button>
+                {saveDone && (
+                  <span className="absolute inset-0 flex items-center justify-center text-emerald-400 font-semibold text-sm whitespace-nowrap">
+                    ✓ Saved!
+                  </span>
+                )}
+              </div>
               <button
                 onClick={() => setCarouselIdx((i) => i! + 1)}
                 className={`px-4 py-2 rounded-lg border border-purple-600 text-purple-300 hover:bg-purple-800 text-sm transition-colors ${carouselIdx < trophies.length - 1 ? '' : 'invisible'}`}
