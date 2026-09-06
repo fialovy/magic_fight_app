@@ -19,7 +19,7 @@ import {
 } from '../types/game';
 import { pick } from '../engine/random';
 import { pickReaction, pickTaunt } from '../engine/combat';
-import { sampleDominantColor, sampleEdgeColor } from '../engine/colorSampler';
+import { sampleDominantColor } from '../engine/colorSampler';
 import {
   checkPattern,
   generateHand,
@@ -941,12 +941,6 @@ function CharacterPanel({
   const isMyTransition = transitionAnim?.side === side;
   const img = side === 'player' ? character.imageRight : character.imageLeft;
 
-  const [sampledColor, setSampledColor] = useState('transparent');
-  useEffect(() => {
-    sampleEdgeColor(img).then(setSampledColor).catch(() => {});
-  }, [img]);
-  const bgColor = bgColorOverride ?? sampledColor;
-
   const pct = Math.max(0, (character.life / GAME_LIFE) * 100);
   const barColor =
     pct > 60 ? 'bg-emerald-500' : pct > 30 ? 'bg-amber-500' : 'bg-rose-500';
@@ -987,20 +981,32 @@ function CharacterPanel({
       {/* Portrait — mobile player: order-2 so name/HP (order-1) floats above it */}
       <div
         ref={portraitRef}
-        className={`relative w-full flex-1 min-h-20 md:flex-none md:aspect-square${side === 'player' ? ' max-md:order-2' : ''}`}
+        className={`relative w-full flex-1 min-h-20 md:flex-none md:aspect-square overflow-hidden${side === 'player' ? ' max-md:order-2' : ''}`}
         style={{
-          backgroundColor: bgColor,
-          transition: 'background-color 0.35s ease',
-          maskImage: 'linear-gradient(to right, transparent, black 12%, black 88%, transparent), linear-gradient(to bottom, black 60%, transparent 100%)',
+          maskImage: 'linear-gradient(to right, transparent, black 22%, black 78%, transparent), linear-gradient(to bottom, black 60%, transparent 100%)',
           maskComposite: 'intersect',
-          WebkitMaskImage: 'linear-gradient(to right, transparent, black 12%, black 88%, transparent), linear-gradient(to bottom, black 60%, transparent 100%)',
+          WebkitMaskImage: 'linear-gradient(to right, transparent, black 22%, black 78%, transparent), linear-gradient(to bottom, black 60%, transparent 100%)',
           WebkitMaskComposite: 'source-in',
         }}
       >
+        {/* Blurred backdrop — same image, scaled to fill, naturally matches portrait colors in letterbox areas */}
+        <img
+          src={img}
+          aria-hidden
+          className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none"
+          style={{ filter: 'blur(20px)', transform: 'scale(1.15)' }}
+        />
+        {/* Color overlay for blast/hit animation overrides */}
+        {bgColorOverride && (
+          <div
+            className="absolute inset-0 pointer-events-none transition-opacity duration-300"
+            style={{ backgroundColor: bgColorOverride, opacity: 0.6 }}
+          />
+        )}
         <img
           src={img}
           alt={character.displayName}
-          className="w-full h-full object-contain"
+          className="absolute inset-0 w-full h-full object-contain"
         />
 
         {isMyBlast && blast && (
