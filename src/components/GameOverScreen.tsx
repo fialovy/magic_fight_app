@@ -213,8 +213,8 @@ export default function GameOverScreen({
 
       {/* Scroll hint */}
       {showScrollHint && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-10 pointer-events-none animate-bounce">
-          <span className="text-purple-400/60 text-2xl select-none">↓</span>
+        <div className="fixed bottom-16 right-6 z-10 pointer-events-none animate-bounce">
+          <span className="text-purple-300/70 text-6xl select-none">↓</span>
         </div>
       )}
 
