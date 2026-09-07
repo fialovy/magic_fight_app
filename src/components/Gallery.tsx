@@ -52,8 +52,7 @@ export default function Gallery({ onBack }: Props) {
               Gallery
             </h1>
             <p className="text-purple-400 text-sm mt-1">
-              Original art, handcrafted without AI in Google Drawings by the
-              human developer since 2017
+            All game art was created by the developer in Google Drawings over the years, without the use of AI. If you found this, I'm happy to share my silly little world with you!
             </p>
           </div>
           <button
