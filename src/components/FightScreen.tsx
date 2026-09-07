@@ -997,12 +997,14 @@ function CharacterPanel({
           style={{ filter: 'blur(20px)', transform: 'scale(1.15)' }}
         />
         {/* Color overlay for blast/hit animation overrides */}
-        {bgColorOverride && (
-          <div
-            className="absolute inset-0 pointer-events-none transition-opacity duration-300"
-            style={{ backgroundColor: bgColorOverride, opacity: 0.6 }}
-          />
-        )}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundColor: bgColorOverride ?? 'transparent',
+            opacity: bgColorOverride ? 0.6 : 0,
+            transition: 'opacity 0.3s ease',
+          }}
+        />
         <img
           src={img}
           alt={character.displayName}

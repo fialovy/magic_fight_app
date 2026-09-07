@@ -19,6 +19,7 @@ export interface CharacterMeta {
   namePath: string;
   displayName: string;
   imagePrefix: string;
+  chooseLabel?: string;
   // for now this only refers to shapeshifting, which no longer does anything
   // meaningful for the game itself, but there could be other ways to 'change' a
   // character in the future
@@ -30,54 +31,63 @@ export const CHARACTER_REGISTRY: Record<string, CharacterMeta> = {
     namePath: 'adrian',
     displayName: 'Adrian',
     imagePrefix: 'adrian',
+    chooseLabel: 'Fine. Whatever.',
     isVariant: false,
   },
   anton: {
     namePath: 'anton',
     displayName: 'Anton',
     imagePrefix: 'anton',
+    chooseLabel: 'Neat!',
     isVariant: false,
   },
   bastion: {
     namePath: 'bastion',
     displayName: 'Bastion',
     imagePrefix: 'bastion',
+    chooseLabel: 'Choose!',
     isVariant: false,
   },
   lucian: {
     namePath: 'lucian',
     displayName: 'Lucian',
     imagePrefix: 'lucian',
+    chooseLabel: 'Ready if you are!',
     isVariant: false,
   },
   nora: {
     namePath: 'nora',
     displayName: 'Nora',
     imagePrefix: 'nora',
+    chooseLabel: 'Darn right, punk!',
     isVariant: false,
   },
   sandoval: {
     namePath: 'sandoval',
     displayName: 'Sandoval',
     imagePrefix: 'sandoval',
+    chooseLabel: "Let's GOOOO!",
     isVariant: false,
   },
   stella: {
     namePath: 'stella',
     displayName: 'Stella',
     imagePrefix: 'stella',
+    chooseLabel: 'Heck yeah!',
     isVariant: false,
   },
   winfield: {
     namePath: 'winfield',
     displayName: 'Winfield',
     imagePrefix: 'winfield',
+    chooseLabel: 'Valmis.',
     isVariant: false,
   },
   winston: {
     namePath: 'winston',
     displayName: 'Winston',
     imagePrefix: 'winston',
+    chooseLabel: "Let's proceed.",
     isVariant: false,
   },
   'nora/norm': {

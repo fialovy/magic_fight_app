@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { Character, GameConfig, GameMode, GameSpeed } from '../types/game';
-import { SELECTABLE_CHARACTERS } from '../data/characters';
+import { type CharacterMeta, SELECTABLE_CHARACTERS } from '../data/characters';
 
 interface Props {
   mode: 'player' | 'opponent';
@@ -11,17 +11,7 @@ interface Props {
   onConfigChange: (c: GameConfig) => void;
 }
 
-const CHOOSE_LABEL: Record<string, string> = {
-  nora:     "Darn right, punk!",
-  winston:  "Let's proceed.",
-  winfield: "Valmis.",
-  adrian:   "Fine. Whatever.",
-  bastion:  "Choose!",
-  sandoval: "Let's GOOOO!",
-  stella:   "Heck yeah!",
-  lucian:   "Ready if you are!",
-  anton:    "Neat!",
-};
+const bioCache = new Map<string, string>();
 
 export default function CharacterSelectScreen({
   mode,
@@ -31,10 +21,11 @@ export default function CharacterSelectScreen({
   config,
   onConfigChange,
 }: Props) {
-  const [preview, setPreview] = useState<string | null>(null);
+  const [preview, setPreview] = useState<CharacterMeta | null>(null);
   const [loading, setLoading] = useState<string | null>(null);
 
-  const previewMeta = SELECTABLE_CHARACTERS.find((m) => m.namePath === preview);
+  const faceUrl = (meta: CharacterMeta) =>
+    `${import.meta.env.BASE_URL}images/characters/${meta.imagePrefix}_mf_face_${mode === 'player' ? 'right' : 'left'}.png`;
 
   async function handleSelect(namePath: string) {
     setLoading(namePath);
@@ -84,7 +75,7 @@ export default function CharacterSelectScreen({
             <button
               key={meta.namePath}
               disabled={isDisabled || loading !== null}
-              onClick={() => setPreview(meta.namePath)}
+              onClick={() => setPreview(meta)}
               className={[
                 'relative flex flex-col items-center p-3 rounded-xl border-2 transition-all duration-200',
                 isDisabled
@@ -94,7 +85,7 @@ export default function CharacterSelectScreen({
             >
               <div className="relative w-28 h-28 mb-2">
                 <img
-                  src={`${import.meta.env.BASE_URL}images/characters/${meta.imagePrefix}_mf_face_${mode === 'player' ? 'right' : 'left'}.png`}
+                  src={faceUrl(meta)}
                   alt={meta.displayName}
                   className="w-full h-full object-contain"
                 />
@@ -113,7 +104,7 @@ export default function CharacterSelectScreen({
       </div>
 
       {/* Preview modal */}
-      {previewMeta && (
+      {preview && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/70"
           onClick={() => setPreview(null)}
@@ -130,27 +121,27 @@ export default function CharacterSelectScreen({
             </button>
 
             <img
-              src={`${import.meta.env.BASE_URL}images/characters/${previewMeta.imagePrefix}_mf_face_${mode === 'player' ? 'right' : 'left'}.png`}
-              alt={previewMeta.displayName}
+              src={faceUrl(preview)}
+              alt={preview.displayName}
               className="w-40 h-40 object-contain"
             />
 
             <h2 className="text-2xl font-bold text-amber-300">
-              {previewMeta.displayName}
+              {preview.displayName}
             </h2>
 
             <div className="text-purple-200 text-sm leading-relaxed text-center">
-              <BioPreview namePath={previewMeta.namePath} />
+              <BioPreview namePath={preview.namePath} />
             </div>
 
             <button
-              onClick={() => handleSelect(previewMeta.namePath)}
+              onClick={() => handleSelect(preview.namePath)}
               disabled={loading !== null}
               className="mt-1 w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-amber-950 font-bold text-base transition-colors disabled:opacity-50"
             >
-              {loading === previewMeta.namePath
+              {loading === preview.namePath
                 ? 'Loading…'
-                : (CHOOSE_LABEL[previewMeta.namePath] ?? `Choose ${previewMeta.displayName}`)}
+                : (preview.chooseLabel ?? `Choose ${preview.displayName}`)}
             </button>
           </div>
         </div>
@@ -195,14 +186,20 @@ function SegmentedControl<T extends string>({
 }
 
 function BioPreview({ namePath }: { namePath: string }) {
-  const [bio, setBio] = useState<string | null>(null);
+  const [bio, setBio] = useState<string | null>(bioCache.get(namePath) ?? null);
 
   useEffect(() => {
-    setBio(null);
+    if (bioCache.has(namePath)) return;
     fetch(`${import.meta.env.BASE_URL}characters/${namePath}/bio.txt`)
       .then((r) => r.text())
-      .then((t) => setBio(t.trim()))
-      .catch(() => setBio(''));
+      .then((t) => {
+        bioCache.set(namePath, t.trim());
+        setBio(t.trim());
+      })
+      .catch(() => {
+        bioCache.set(namePath, '');
+        setBio('');
+      });
   }, [namePath]);
 
   if (bio === null)
