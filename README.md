@@ -6,8 +6,9 @@ Equally long ago, I wrote a Python command line game featuring these characters.
 
 And now there's AI.
 
-So I asked Claude to please use that 'serverless' buzzword we keep seeing all over the place
-and convert my original game (and art) into a web app. With, like, fancy JavaScript so everyone can throw polygons at each other.
+So I asked Claude to convert my original game into a web app. With, like, fancy JavaScript so everyone can throw polygons at each other.
+
+All game art remains 100% handmade and my own, for better or worse.
 
 ![Character art](readme_image.png)
 
