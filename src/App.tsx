@@ -22,6 +22,12 @@ export default function App() {
   const [gameConfig, setGameConfig] = useState<GameConfig>(DEFAULT_CONFIG);
   const [sessionName, setSessionName] = useState<string | null>(null);
   const [bestStreak, setBestStreak] = useState(0);
+  const [leaderboardReturn, setLeaderboardReturn] = useState<GameScreen>('title');
+
+  function goToLeaderboard(returnTo: GameScreen) {
+    setLeaderboardReturn(returnTo);
+    setScreen('leaderboard');
+  }
 
   function handlePlayerSelected(char: Character) {
     setPlayer(char);
@@ -64,7 +70,7 @@ export default function App() {
         <TitleScreen
           onStart={() => setScreen('character-select')}
           onGallery={() => setScreen('gallery')}
-          onLeaderboard={() => setScreen('leaderboard')}
+          onLeaderboard={() => goToLeaderboard('title')}
         />
       );
 
@@ -113,7 +119,7 @@ export default function App() {
           sessionName={sessionName}
           onSetSessionName={setSessionName}
           onNewGame={resetGame}
-          onViewLeaderboard={() => setScreen('leaderboard')}
+          onViewLeaderboard={() => goToLeaderboard('game-over')}
         />
       ) : null;
 
@@ -121,6 +127,6 @@ export default function App() {
       return <Gallery onBack={() => setScreen('title')} />;
 
     case 'leaderboard':
-      return <LeaderboardScreen onBack={() => setScreen('title')} />;
+      return <LeaderboardScreen onBack={() => setScreen(leaderboardReturn)} />;
   }
 }

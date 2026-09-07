@@ -1051,7 +1051,7 @@ function CharacterPanel({
 
       {/* Name/HP — mobile player: max-md:order-1 floats above portrait; desktop always below */}
       <div
-        className={`shrink-0 w-full flex flex-col items-center px-2 md:px-0 max-md:mt-0.5 md:mt-3${side === 'player' ? ' max-md:order-1' : ''}`}
+        className={`shrink-0 w-full flex flex-col items-center px-2 md:px-0 max-md:mt-0.5 max-md:pb-2 md:mt-3${side === 'player' ? ' max-md:order-1' : ''}`}
       >
         <span className="text-purple-200 text-base md:text-lg font-semibold">
           {character.displayName}
@@ -1065,7 +1065,7 @@ function CharacterPanel({
         <span className="text-xs text-purple-400 tabular-nums mt-0.5">
           {character.life} / {GAME_LIFE} HP
         </span>
-        <span className={`text-xs font-bold text-amber-400 mt-0.5 ${streak !== undefined && streak >= 2 ? '' : 'invisible'}`}>
+        <span className={`text-sm font-bold text-amber-400 mt-2 ${streak !== undefined && streak >= 2 ? '' : 'invisible'}`}>
           🔥 ×{streak ?? 0}
         </span>
       </div>
