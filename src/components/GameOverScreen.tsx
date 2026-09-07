@@ -94,12 +94,18 @@ export default function GameOverScreen({
   onViewLeaderboard,
 }: Props) {
   const playerWon = winner === 'player';
+  const [curtain, setCurtain] = useState(true);
   const [carouselIdx, setCarouselIdx] = useState<number | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveDone, setSaveDone] = useState(false);
   const [loreFact, setLoreFact] = useState<string | null>(null);
   const [showScrollHint, setShowScrollHint] = useState(true);
   const trophies = player.blastImagesRight;
+
+  useEffect(() => {
+    const t = setTimeout(() => setCurtain(false), 50);
+    return () => clearTimeout(t);
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => setShowScrollHint(false), 3000);
@@ -150,6 +156,9 @@ export default function GameOverScreen({
 
   return (
     <div className="min-h-screen app-bg flex flex-col items-center justify-center px-4 py-8">
+      <div
+        className={`fixed inset-0 bg-black z-[200] pointer-events-none transition-opacity duration-300 ${curtain ? 'opacity-100' : 'opacity-0'}`}
+      />
       <div className="text-center mb-8">
         <h1
           className={`text-5xl font-extrabold mb-2 ${playerWon ? 'text-amber-300' : 'text-rose-400'}`}
