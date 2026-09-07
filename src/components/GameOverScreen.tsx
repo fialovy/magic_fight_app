@@ -403,7 +403,7 @@ function ScorePanel({
           ) : status === 'saving' ? (
             <span className="text-teal-300 text-sm">Saving...</span>
           ) : status === 'error' ? (
-            <span className="text-rose-400 text-sm">Save failed — try again?</span>
+            <span className="text-rose-400 text-sm">Save failed — check your internet?</span>
           ) : sessionName !== null ? (
             <button
               onClick={handleSave}
