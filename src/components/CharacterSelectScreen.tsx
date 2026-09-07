@@ -19,17 +19,16 @@ export default function CharacterSelectScreen({
   config,
   onConfigChange,
 }: Props) {
-  const [highlighted, setHighlighted] = useState<string | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState<string | null>(null);
 
-  const highlightedMeta = SELECTABLE_CHARACTERS.find(
-    (m) => m.namePath === highlighted,
-  );
+  const previewMeta = SELECTABLE_CHARACTERS.find((m) => m.namePath === preview);
 
   async function handleSelect(namePath: string) {
     setLoading(namePath);
     const char = await loadCharacter(namePath);
     setLoading(null);
+    setPreview(null);
     onSelect(char);
   }
 
@@ -64,28 +63,21 @@ export default function CharacterSelectScreen({
         />
       </div>
 
-      <div className="grid grid-cols-3 gap-4 max-w-lg w-full mb-2 md:mb-6">
+      <div className="grid grid-cols-3 gap-4 max-w-lg w-full">
         {SELECTABLE_CHARACTERS.map((meta) => {
           const isDisabled = meta.namePath === disabledPath;
-          const isHighlighted = meta.namePath === highlighted;
           const isLoading = meta.namePath === loading;
 
           return (
             <button
               key={meta.namePath}
               disabled={isDisabled || loading !== null}
-              onClick={() =>
-                isHighlighted
-                  ? handleSelect(meta.namePath)
-                  : setHighlighted(meta.namePath)
-              }
+              onClick={() => setPreview(meta.namePath)}
               className={[
                 'relative flex flex-col items-center p-3 rounded-xl border-2 transition-all duration-200',
                 isDisabled
                   ? 'opacity-30 cursor-not-allowed border-slate-700 bg-slate-900/50'
-                  : isHighlighted
-                    ? 'border-amber-400 bg-purple-900/80 shadow-lg shadow-amber-500/30 scale-105'
-                    : 'border-purple-700 bg-purple-950/60 hover:border-purple-400 hover:bg-purple-900/60 cursor-pointer',
+                  : 'border-purple-700 bg-purple-950/60 hover:border-purple-400 hover:bg-purple-900/60 cursor-pointer',
               ].join(' ')}
             >
               <div className="relative w-28 h-28 mb-2">
@@ -100,27 +92,55 @@ export default function CharacterSelectScreen({
                   </div>
                 )}
               </div>
-              <span
-                className={`text-sm font-semibold ${isHighlighted ? 'text-amber-300' : 'text-purple-200'}`}
-              >
+              <span className="text-sm font-semibold text-purple-200">
                 {meta.displayName}
               </span>
-              {isHighlighted && !isDisabled && (
-                <span className="text-xs text-amber-400 mt-1">
-                  Click to confirm
-                </span>
-              )}
             </button>
           );
         })}
       </div>
 
-      {highlightedMeta && (
-        <div className="max-w-2xl w-full bg-purple-950/80 border border-purple-700 rounded-xl p-4 text-purple-200 text-sm leading-relaxed">
-          <p className="font-semibold text-amber-300 mb-1">
-            {highlightedMeta.displayName}
-          </p>
-          <BioPreview namePath={highlightedMeta.namePath} />
+      {/* Preview modal */}
+      {previewMeta && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/70"
+          onClick={() => setPreview(null)}
+        >
+          <div
+            className="relative bg-purple-950 border border-purple-600 rounded-2xl p-6 max-w-sm w-full shadow-2xl flex flex-col items-center gap-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setPreview(null)}
+              className="absolute top-3 right-4 text-purple-400 hover:text-purple-200 text-xl leading-none"
+            >
+              ×
+            </button>
+
+            <img
+              src={`${import.meta.env.BASE_URL}images/characters/${previewMeta.imagePrefix}_mf_face_${mode === 'player' ? 'right' : 'left'}.png`}
+              alt={previewMeta.displayName}
+              className="w-40 h-40 object-contain"
+            />
+
+            <h2 className="text-2xl font-bold text-amber-300">
+              {previewMeta.displayName}
+            </h2>
+
+            <div className="text-purple-200 text-sm leading-relaxed text-center">
+              <BioPreview namePath={previewMeta.namePath} />
+            </div>
+
+            <button
+              onClick={() => handleSelect(previewMeta.namePath)}
+              disabled={loading !== null}
+              className="mt-1 w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-amber-950 font-bold text-base transition-colors disabled:opacity-50"
+            >
+              {loading === previewMeta.namePath
+                ? 'Loading…'
+                : `Choose ${previewMeta.displayName}`}
+            </button>
+          </div>
         </div>
       )}
     </div>
