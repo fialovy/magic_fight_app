@@ -937,6 +937,8 @@ function CharacterPanel({
   shapeshiftControl?: React.ReactNode;
 }) {
   const isMyBlast = blast?.side === side;
+  const lastColorRef = useRef(bgColorOverride ?? null);
+  if (bgColorOverride) lastColorRef.current = bgColorOverride;
   const isMyHit = hitAnim?.side === side;
   const isMyTransition = transitionAnim?.side === side;
   const img = side === 'player' ? character.imageRight : character.imageLeft;
@@ -1000,7 +1002,7 @@ function CharacterPanel({
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            backgroundColor: bgColorOverride ?? 'transparent',
+            backgroundColor: lastColorRef.current ?? 'transparent',
             opacity: bgColorOverride ? 0.6 : 0,
             transition: 'opacity 0.3s ease',
           }}

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import FadeImage from './FadeImage';
 import type { Character, GameConfig, GameMode, GameSpeed } from '../types/game';
 import { type CharacterMeta, SELECTABLE_CHARACTERS } from '../data/characters';
 
@@ -84,11 +85,10 @@ export default function CharacterSelectScreen({
               ].join(' ')}
             >
               <div className="relative w-28 h-28 mb-2">
-                <img
+                <FadeImage
                   src={faceUrl(meta)}
                   alt={meta.displayName}
-                  className="w-full h-full object-contain opacity-0 transition-opacity duration-300"
-                  onLoad={(e) => e.currentTarget.classList.remove('opacity-0')}
+                  className="w-full h-full object-contain"
                 />
                 {isLoading && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded">
@@ -121,12 +121,10 @@ export default function CharacterSelectScreen({
               ×
             </button>
 
-            <img
-              ref={(el) => { if (el?.complete) el.classList.remove('opacity-0'); }}
+            <FadeImage
               src={faceUrl(preview)}
               alt={preview.displayName}
-              className="w-40 h-40 object-contain opacity-0 transition-opacity duration-300"
-              onLoad={(e) => e.currentTarget.classList.remove('opacity-0')}
+              className="w-40 h-40 object-contain"
             />
 
             <h2 className="text-2xl font-bold text-amber-300">

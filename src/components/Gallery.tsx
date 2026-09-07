@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import FadeImage from './FadeImage';
 import { CHARACTER_REGISTRY } from '../data/characters';
 import type { CharacterMeta } from '../data/characters';
 import { BLAST_COUNTS } from 'virtual:blast-counts';
@@ -80,12 +81,14 @@ export default function Gallery({ onBack }: Props) {
 }
 
 function useBlastImages(imagePrefix: string, showLeft: boolean): string[] {
-  const blastCount = BLAST_COUNTS[imagePrefix] ?? 0;
-  return Array.from(
-    { length: blastCount },
-    (_, i) =>
-      `${import.meta.env.BASE_URL}images/characters/on_cast/${imagePrefix}_mf_blast_${i}_face_${showLeft ? 'left' : 'right'}.png`,
-  );
+  return useMemo(() => {
+    const blastCount = BLAST_COUNTS[imagePrefix] ?? 0;
+    return Array.from(
+      { length: blastCount },
+      (_, i) =>
+        `${import.meta.env.BASE_URL}images/characters/on_cast/${imagePrefix}_mf_blast_${i}_face_${showLeft ? 'left' : 'right'}.png`,
+    );
+  }, [imagePrefix, showLeft]);
 }
 
 function SubstrateGallerySection() {
@@ -100,10 +103,10 @@ function SubstrateGallerySection() {
   return (
     <div className="mb-10">
       <div className="flex items-center gap-3 mb-4 flex-wrap">
-        <img
+        <FadeImage
           src={`${import.meta.env.BASE_URL}images/characters/${meta.imagePrefix}_mf_face_right.png`}
           alt={meta.displayName}
-          className="w-10 h-10 object-contain shrink-0 opacity-0 transition-opacity duration-300" onLoad={(e) => e.currentTarget.classList.remove('opacity-0')}
+          className="w-10 h-10 object-contain shrink-0"
         />
         {/* Fixed-width name so the segmented control never shifts position */}
         <h2 className="text-xl font-bold text-amber-300 w-44 shrink-0">
@@ -166,12 +169,11 @@ function SubstrateGallerySection() {
               key={num}
               className="aspect-square bg-purple-950/60 border border-rose-900/40 rounded-xl p-2 flex items-center justify-center relative group"
             >
-              <img
+              <FadeImage
                 src={`${import.meta.env.BASE_URL}images/characters/secret/${prefix}_secret_${num}.png`}
                 alt={`${prefix} secret ${num}`}
                 loading="lazy"
-                className="max-w-full max-h-full object-contain opacity-0 transition-opacity duration-300"
-                onLoad={(e) => e.currentTarget.classList.remove('opacity-0')}
+                className="max-w-full max-h-full object-contain"
                 onError={(e) => {
                   (e.target as HTMLImageElement).style.opacity = '0.2';
                 }}
@@ -196,11 +198,10 @@ function CharacterGallerySection({ meta }: { meta: CharacterMeta }) {
   return (
     <div className="mb-10">
       <div className="flex items-center gap-3 mb-4">
-        <img
+        <FadeImage
           src={`${import.meta.env.BASE_URL}images/characters/${meta.imagePrefix}_mf_face_right.png`}
           alt={meta.displayName}
-          className="w-10 h-10 object-contain opacity-0 transition-opacity duration-300"
-          onLoad={(e) => e.currentTarget.classList.remove('opacity-0')}
+          className="w-10 h-10 object-contain"
         />
         <h2 className="text-xl font-bold text-amber-300">{meta.displayName}</h2>
         <button
@@ -227,11 +228,10 @@ function BlastGrid({
   return (
     <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
       <div className="aspect-square bg-purple-950/60 border border-purple-800 rounded-xl p-2 flex items-center justify-center">
-        <img
+        <FadeImage
           src={`${import.meta.env.BASE_URL}images/characters/${meta.imagePrefix}_mf_face_${showLeft ? 'left' : 'right'}.png`}
           alt={`${meta.displayName} portrait`}
-          className="max-w-full max-h-full object-contain opacity-0 transition-opacity duration-300"
-          onLoad={(e) => e.currentTarget.classList.remove('opacity-0')}
+          className="max-w-full max-h-full object-contain"
         />
       </div>
       {blastImages.map((url, i) => (
@@ -239,12 +239,11 @@ function BlastGrid({
           key={i}
           className="aspect-square bg-purple-950/60 border border-purple-800 rounded-xl p-2 flex items-center justify-center relative group"
         >
-          <img
+          <FadeImage
             src={url}
             alt={`${meta.displayName} blast ${i}`}
             loading="lazy"
-            className="max-w-full max-h-full object-contain opacity-0 transition-opacity duration-300"
-            onLoad={(e) => e.currentTarget.classList.remove('opacity-0')}
+            className="max-w-full max-h-full object-contain"
             onError={(e) => {
               (e.target as HTMLImageElement).style.opacity = '0.2';
             }}
@@ -285,13 +284,14 @@ const ROTATION_PREVIEWS: Spell[] = SPELL_ROTATIONS.map((rotation, i) => ({
   rotation,
 }));
 
+const SPELL_CATEGORIES = [
+  { label: `${SPELL_COLORS.length} colors`, previews: COLOR_PREVIEWS, keyPrefix: 'color' },
+  { label: `${SPELL_SHAPES.length} shapes`, previews: SHAPE_PREVIEWS, keyPrefix: 'shape' },
+  { label: `${SPELL_FILLS.length} fills`, previews: FILL_PREVIEWS, keyPrefix: 'fill' },
+  { label: `${SPELL_ROTATIONS.length} rotations`, previews: ROTATION_PREVIEWS, keyPrefix: 'rot' },
+];
+
 function SpellPreviewSection() {
-  const categories = [
-    { label: `${SPELL_COLORS.length} colors`, previews: COLOR_PREVIEWS, keyPrefix: 'color' },
-    { label: `${SPELL_SHAPES.length} shapes`, previews: SHAPE_PREVIEWS, keyPrefix: 'shape' },
-    { label: `${SPELL_FILLS.length} fills`, previews: FILL_PREVIEWS, keyPrefix: 'fill' },
-    { label: `${SPELL_ROTATIONS.length} rotations`, previews: ROTATION_PREVIEWS, keyPrefix: 'rot' },
-  ];
 
   return (
     <div className="mb-10 pt-6 border-t border-purple-800/40">
@@ -299,7 +299,7 @@ function SpellPreviewSection() {
         ✦ Spell system preview
       </p>
       <div className="flex flex-col gap-6">
-        {categories.map(({ label, previews, keyPrefix }) => (
+        {SPELL_CATEGORIES.map(({ label, previews, keyPrefix }) => (
           <div key={keyPrefix}>
             <p className="text-purple-600 text-xs uppercase tracking-widest mb-2">{label}</p>
             <div className="flex flex-wrap gap-3">
