@@ -44,23 +44,21 @@ const SECRET_IMAGES: { num: number; prefix: 'norm' | 'nora' }[] = [
 
 export default function Gallery({ onBack }: Props) {
   return (
-    <div className="min-h-screen app-bg px-4 py-8">
+    <div className="min-h-screen app-bg px-4 pt-16 pb-8">
+      <button
+        onClick={onBack}
+        className="fixed top-4 right-4 z-10 px-4 py-2 rounded-lg border border-purple-700 bg-purple-950/90 text-purple-300 hover:bg-purple-900 transition-colors backdrop-blur-sm"
+      >
+        ← Back
+      </button>
       <div className="max-w-5xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-purple-200 tracking-widest uppercase">
-              Gallery
-            </h1>
-            <p className="text-purple-400 text-sm mt-1">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-purple-200 tracking-widest uppercase">
+            Gallery
+          </h1>
+          <p className="text-purple-400 text-sm mt-3 max-w-lg">
             All game art was created by the developer in Google Drawings over the years, without the use of AI. If you found this, I'm happy to share my silly little world with you!
-            </p>
-          </div>
-          <button
-            onClick={onBack}
-            className="px-4 py-2 rounded-lg border border-purple-700 text-purple-300 hover:bg-purple-900/60 transition-colors"
-          >
-            ← Back
-          </button>
+          </p>
         </div>
 
         {Object.values(CHARACTER_REGISTRY)

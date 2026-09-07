@@ -394,51 +394,52 @@ function ScorePanel({
   }
 
   return (
-    <div className="w-full max-w-lg flex items-center gap-3 mb-6 flex-wrap">
-      {status === 'saved' ? (
-        <span className="text-emerald-400 text-sm font-semibold">✓ Score saved!</span>
-      ) : status === 'saving' ? (
-        <span className="text-purple-400 text-sm">Saving...</span>
-      ) : status === 'error' ? (
-        <span className="text-rose-400 text-sm">Save failed — try again?</span>
-      ) : sessionName !== null ? (
-        <button
-          onClick={handleSave}
-          className="px-4 py-1.5 text-sm rounded-lg bg-purple-800 hover:bg-purple-700 border border-purple-600 text-purple-200 transition-colors"
-        >
-          Save score as {sessionName}
-        </button>
-      ) : (
+    <div className="w-full max-w-lg mb-6 rounded-2xl border border-teal-500/40 bg-teal-800/20 overflow-hidden">
+      <div className="px-4 pt-3 pb-4">
+        <p className="text-xs text-teal-400 font-semibold uppercase tracking-widest mb-3">✦ Leaderboard</p>
         <div className="flex items-center gap-2">
-          <div className="relative group">
-            <input
-              value={nameInput}
-              onChange={(e) => setNameInput(e.target.value.slice(0, 20))}
-              onKeyDown={(e) => e.key === 'Enter' && handleSave()}
-              placeholder="Your name (optional)"
-              maxLength={20}
-              className="px-3 py-1.5 text-sm rounded-lg bg-purple-950 border border-purple-700 text-purple-100 placeholder-purple-600 focus:outline-none focus:border-amber-500 w-52"
-            />
-            {/* tooltip text */}
-            <div className="pointer-events-none absolute bottom-full left-0 mb-2 px-2.5 py-1.5 text-xs bg-purple-900 border border-purple-700 rounded-lg text-purple-200 whitespace-nowrap opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
-              Join the leaderboard if you want!
-            </div>
-          </div>
-          <button
-            onClick={handleSave}
-            disabled={!nameInput.trim() || !NAME_RE.test(nameInput.trim())}
-            className="px-4 py-1.5 text-sm rounded-lg bg-purple-700 hover:bg-purple-600 border border-purple-500 text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            Save
-          </button>
+          {status === 'saved' ? (
+            <span className="text-emerald-400 text-sm font-semibold">✓ Score saved!</span>
+          ) : status === 'saving' ? (
+            <span className="text-teal-300 text-sm">Saving...</span>
+          ) : status === 'error' ? (
+            <span className="text-rose-400 text-sm">Save failed — try again?</span>
+          ) : sessionName !== null ? (
+            <button
+              onClick={handleSave}
+              className="px-4 py-1.5 text-sm rounded-lg bg-teal-800/50 hover:bg-teal-700/50 border border-teal-500/60 text-teal-200 transition-colors"
+            >
+              Save score as {sessionName}
+            </button>
+          ) : (
+            <>
+              <input
+                value={nameInput}
+                onChange={(e) => setNameInput(e.target.value.slice(0, 20))}
+                onKeyDown={(e) => e.key === 'Enter' && handleSave()}
+                placeholder="Your name (optional)"
+                maxLength={20}
+                className="flex-1 min-w-0 px-3 py-1.5 text-sm rounded-lg bg-teal-900/60 border border-teal-500/60 text-teal-100 placeholder-teal-500 focus:outline-none focus:border-teal-300 transition-colors"
+              />
+              <button
+                onClick={handleSave}
+                disabled={!nameInput.trim() || !NAME_RE.test(nameInput.trim())}
+                className="px-4 py-1.5 text-sm rounded-lg bg-teal-700/70 hover:bg-teal-600/70 border border-teal-500/60 text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Save
+              </button>
+            </>
+          )}
         </div>
-      )}
-      <button
-        onClick={onViewLeaderboard}
-        className="ml-auto text-sm text-purple-400 hover:text-purple-200 transition-colors"
-      >
-        Leaderboard →
-      </button>
+      </div>
+      <div className="border-t border-teal-600/30">
+        <button
+          onClick={onViewLeaderboard}
+          className="w-full py-2.5 text-teal-300 hover:bg-teal-800/40 hover:text-teal-100 transition-colors text-sm font-semibold"
+        >
+          View Leaderboard →
+        </button>
+      </div>
     </div>
   );
 }
