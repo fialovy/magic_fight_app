@@ -11,6 +11,18 @@ interface Props {
   onConfigChange: (c: GameConfig) => void;
 }
 
+const CHOOSE_LABEL: Record<string, string> = {
+  nora:     "Darn right, punk!",
+  winston:  "Let's proceed.",
+  winfield: "Valmis.",
+  adrian:   "Fine. Whatever.",
+  bastion:  "Choose!",
+  sandoval: "Let's GOOOO!",
+  stella:   "Heck yeah!",
+  lucian:   "Ready if you are!",
+  anton:    "Neat!",
+};
+
 export default function CharacterSelectScreen({
   mode,
   disabledPath,
@@ -107,12 +119,12 @@ export default function CharacterSelectScreen({
           onClick={() => setPreview(null)}
         >
           <div
-            className="relative bg-purple-950 border border-purple-600 rounded-2xl p-6 max-w-sm w-full shadow-2xl flex flex-col items-center gap-4"
+            className="animate-modal-in relative bg-purple-950 border border-purple-600 rounded-2xl p-6 max-w-sm w-full shadow-2xl flex flex-col items-center gap-4"
             onClick={(e) => e.stopPropagation()}
           >
             <button
               onClick={() => setPreview(null)}
-              className="absolute top-3 right-4 text-purple-400 hover:text-purple-200 text-xl leading-none"
+              className="absolute top-3 right-3 w-9 h-9 flex items-center justify-center text-purple-400 hover:text-purple-200 text-2xl leading-none rounded-lg hover:bg-purple-800/60 transition-colors"
             >
               ×
             </button>
@@ -138,7 +150,7 @@ export default function CharacterSelectScreen({
             >
               {loading === previewMeta.namePath
                 ? 'Loading…'
-                : `Choose ${previewMeta.displayName}`}
+                : (CHOOSE_LABEL[previewMeta.namePath] ?? `Choose ${previewMeta.displayName}`)}
             </button>
           </div>
         </div>
