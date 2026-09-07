@@ -249,7 +249,7 @@ function BlastGrid({
   );
 }
 
-// One card per shape (solid, cycling colors) + one per non-solid fill (cycling shapes/colors).
+// One card per shape (solid, cycling colors) + one per fill (cycling shapes/colors).
 // Automatically includes any new shapes or fills added to the spell system.
 const COLOR_PREVIEWS: Spell[] = SPELL_COLORS.map((color) => ({
   color,
@@ -265,14 +265,12 @@ const SHAPE_PREVIEWS: Spell[] = SPELL_SHAPES.map((shape, i) => ({
   rotation: 'clockwise',
 }));
 
-const FILL_PREVIEWS: Spell[] = SPELL_FILLS.filter((f) => f !== 'solid').map(
-  (fill, i) => ({
-    color: SPELL_COLORS[(i + 1) % SPELL_COLORS.length],
-    shape: SPELL_SHAPES[i % SPELL_SHAPES.length],
-    fill,
-    rotation: 'clockwise',
-  }),
-);
+const FILL_PREVIEWS: Spell[] = SPELL_FILLS.map((fill, i) => ({
+  color: SPELL_COLORS[i % SPELL_COLORS.length],
+  shape: SPELL_SHAPES[i % SPELL_SHAPES.length],
+  fill,
+  rotation: 'clockwise',
+}));
 
 const ROTATION_PREVIEWS: Spell[] = SPELL_ROTATIONS.map((rotation, i) => ({
   color: SPELL_COLORS[i % SPELL_COLORS.length],
@@ -282,30 +280,28 @@ const ROTATION_PREVIEWS: Spell[] = SPELL_ROTATIONS.map((rotation, i) => ({
 }));
 
 function SpellPreviewSection() {
+  const categories = [
+    { label: `${SPELL_COLORS.length} colors`, previews: COLOR_PREVIEWS, keyPrefix: 'color' },
+    { label: `${SPELL_SHAPES.length} shapes`, previews: SHAPE_PREVIEWS, keyPrefix: 'shape' },
+    { label: `${SPELL_FILLS.length} fills`, previews: FILL_PREVIEWS, keyPrefix: 'fill' },
+    { label: `${SPELL_ROTATIONS.length} rotations`, previews: ROTATION_PREVIEWS, keyPrefix: 'rot' },
+  ];
+
   return (
     <div className="mb-10 pt-6 border-t border-purple-800/40">
-      <p className="text-purple-400 text-sm font-semibold tracking-wide uppercase mb-1">
+      <p className="text-purple-400 text-sm font-semibold tracking-wide uppercase mb-4">
         ✦ Spell system preview
       </p>
-      <p className="text-purple-600 text-xs mb-4">
-        {SPELL_COLORS.length} colors · {SPELL_SHAPES.length} shapes ·{' '}
-        {SPELL_FILLS.length} fills · {SPELL_ROTATIONS.length} rotations
-      </p>
-      <div className="flex flex-wrap gap-3">
-        {COLOR_PREVIEWS.map((spell, i) => (
-          <SpellCard key={`color-${i}`} spell={spell} size={80} />
-        ))}
-        <div className="w-px bg-purple-800/40 mx-1" />
-        {SHAPE_PREVIEWS.map((spell, i) => (
-          <SpellCard key={`shape-${i}`} spell={spell} size={80} />
-        ))}
-        <div className="w-px bg-purple-800/40 mx-1" />
-        {FILL_PREVIEWS.map((spell, i) => (
-          <SpellCard key={`fill-${i}`} spell={spell} size={80} />
-        ))}
-        <div className="w-px bg-purple-800/40 mx-1" />
-        {ROTATION_PREVIEWS.map((spell, i) => (
-          <SpellCard key={`rot-${i}`} spell={spell} size={80} />
+      <div className="flex flex-col gap-6">
+        {categories.map(({ label, previews, keyPrefix }) => (
+          <div key={keyPrefix}>
+            <p className="text-purple-600 text-xs uppercase tracking-widest mb-2">{label}</p>
+            <div className="flex flex-wrap gap-3">
+              {previews.map((spell, i) => (
+                <SpellCard key={`${keyPrefix}-${i}`} spell={spell} size={80} />
+              ))}
+            </div>
+          </div>
         ))}
       </div>
     </div>
