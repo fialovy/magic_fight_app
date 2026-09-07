@@ -280,14 +280,8 @@ export default function FightScreen({
   const [hitAnim, setHitAnim] = useState<BlastAnim | null>(null);
   const [playerSpeech, setPlayerSpeech] = useState<string | null>(null);
   const [opponentSpeech, setOpponentSpeech] = useState<string | null>(null);
-  const [playerDmgFloat, setPlayerDmgFloat] = useState<{
-    text: string;
-    key: number;
-  } | null>(null);
-  const [opponentDmgFloat, setOpponentDmgFloat] = useState<{
-    text: string;
-    key: number;
-  } | null>(null);
+  const [playerDmgFloat, setPlayerDmgFloat] = useState<{ text: string; key: number; cls: string } | null>(null);
+  const [opponentDmgFloat, setOpponentDmgFloat] = useState<{ text: string; key: number; cls: string } | null>(null);
   const [currentRule, setCurrentRule] = useState<PatternRule>(
     patternRef.current.rule,
   );
@@ -616,14 +610,18 @@ export default function FightScreen({
     livePlayerRef.current = newP;
     liveOpponentRef.current = newO;
 
-    // Floating damage number over the hit character's portrait
+    // Floating text over portraits — damage on the hit character, affinity hint on the attacker
+    const now = Date.now();
     if (damage > 0) {
-      const float = { text: `−${damage}`, key: Date.now() };
       if (outcome === 'win' || outcome === 'decisive-win')
-        setOpponentDmgFloat(float);
+        setOpponentDmgFloat({ text: `−${damage}`, key: now, cls: 'text-amber-300 text-6xl font-black' });
       else if (outcome === 'loss' || outcome === 'decisive-loss')
-        setPlayerDmgFloat(float);
+        setPlayerDmgFloat({ text: `−${damage}`, key: now, cls: 'text-rose-400 text-6xl font-black' });
     }
+    if (outcome === 'decisive-win')
+      setPlayerDmgFloat({ text: '✦ Affinity!', key: now + 1, cls: 'text-amber-300 text-xl font-bold' });
+    else if (outcome === 'decisive-loss')
+      setOpponentDmgFloat({ text: '✦ Affinity!', key: now + 1, cls: 'text-amber-300 text-xl font-bold' });
 
     // Speech bubbles
     if ((outcome === 'loss' || outcome === 'decisive-loss') && damage > 0) {
@@ -931,7 +929,7 @@ function CharacterPanel({
   hitAnim: BlastAnim | null;
   transitionAnim: BlastAnim | null;
   speech: string | null;
-  dmgFloat: { text: string; key: number } | null;
+  dmgFloat: { text: string; key: number; cls: string } | null;
   onDmgFloatEnd: () => void;
   portraitRef?: React.RefObject<HTMLDivElement | null>;
   streak?: number;
@@ -948,7 +946,6 @@ function CharacterPanel({
   const pct = Math.max(0, (character.life / GAME_LIFE) * 100);
   const barColor =
     pct > 60 ? 'bg-emerald-500' : pct > 30 ? 'bg-amber-500' : 'bg-rose-500';
-  const dmgColor = side === 'player' ? 'text-rose-400' : 'text-amber-300';
 
   return (
     <div className="flex flex-col items-center md:justify-center w-full flex-1 min-h-0 relative">
@@ -1041,7 +1038,7 @@ function CharacterPanel({
         {dmgFloat && (
           <div
             key={dmgFloat.key}
-            className={`absolute left-1/2 top-1/4 damage-float text-6xl font-black select-none z-10 ${dmgColor}`}
+            className={`absolute left-1/2 top-1/4 damage-float select-none z-10 ${dmgFloat.cls}`}
             style={{
               textShadow: '0 2px 8px rgba(0,0,0,0.9), 0 0 20px rgba(0,0,0,0.6)',
             }}
