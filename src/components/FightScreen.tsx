@@ -954,12 +954,11 @@ function CharacterPanel({
       {speech && (
         <div
           className={[
-            'absolute z-20 w-36',
-            'left-1/2 -translate-x-1/2 bottom-14 md:bottom-auto',
-            'md:top-1/4 md:translate-x-0',
+            'absolute z-20 w-28 md:w-36',
+            'top-1/2 -translate-y-1/2 md:translate-y-0 md:top-1/4',
             side === 'player'
-              ? 'md:left-full md:ml-3'
-              : 'md:left-auto md:right-full md:mr-3',
+              ? 'left-2 md:left-full md:ml-3'
+              : 'right-2 md:left-auto md:right-full md:mr-3',
           ].join(' ')}
         >
           <div className="relative bg-purple-950/90 border border-purple-500 rounded-xl px-3 py-2 text-sm text-purple-100 text-center break-words animate-fade-in">
