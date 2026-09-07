@@ -34,7 +34,7 @@ export default function CharacterSelectScreen({
   }
 
   return (
-    <div className="min-h-screen app-bg flex flex-col items-center px-4 py-2 md:py-8">
+    <div className="min-h-screen app-bg flex flex-col items-center px-4 pt-10 pb-2 md:py-8">
       <h1 className="text-4xl font-bold text-purple-200 mb-2 tracking-widest uppercase">
         Magic Fight
       </h1>
