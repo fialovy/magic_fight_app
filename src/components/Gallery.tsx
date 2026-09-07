@@ -103,7 +103,7 @@ function SubstrateGallerySection() {
         <img
           src={`${import.meta.env.BASE_URL}images/characters/${meta.imagePrefix}_mf_face_right.png`}
           alt={meta.displayName}
-          className="w-10 h-10 object-contain shrink-0"
+          className="w-10 h-10 object-contain shrink-0 opacity-0 transition-opacity duration-300" onLoad={(e) => e.currentTarget.classList.remove('opacity-0')}
         />
         {/* Fixed-width name so the segmented control never shifts position */}
         <h2 className="text-xl font-bold text-amber-300 w-44 shrink-0">
@@ -169,7 +169,9 @@ function SubstrateGallerySection() {
               <img
                 src={`${import.meta.env.BASE_URL}images/characters/secret/${prefix}_secret_${num}.png`}
                 alt={`${prefix} secret ${num}`}
-                className="max-w-full max-h-full object-contain"
+                loading="lazy"
+                className="max-w-full max-h-full object-contain opacity-0 transition-opacity duration-300"
+                onLoad={(e) => e.currentTarget.classList.remove('opacity-0')}
                 onError={(e) => {
                   (e.target as HTMLImageElement).style.opacity = '0.2';
                 }}
@@ -197,7 +199,8 @@ function CharacterGallerySection({ meta }: { meta: CharacterMeta }) {
         <img
           src={`${import.meta.env.BASE_URL}images/characters/${meta.imagePrefix}_mf_face_right.png`}
           alt={meta.displayName}
-          className="w-10 h-10 object-contain"
+          className="w-10 h-10 object-contain opacity-0 transition-opacity duration-300"
+          onLoad={(e) => e.currentTarget.classList.remove('opacity-0')}
         />
         <h2 className="text-xl font-bold text-amber-300">{meta.displayName}</h2>
         <button
@@ -227,7 +230,8 @@ function BlastGrid({
         <img
           src={`${import.meta.env.BASE_URL}images/characters/${meta.imagePrefix}_mf_face_${showLeft ? 'left' : 'right'}.png`}
           alt={`${meta.displayName} portrait`}
-          className="max-w-full max-h-full object-contain"
+          className="max-w-full max-h-full object-contain opacity-0 transition-opacity duration-300"
+          onLoad={(e) => e.currentTarget.classList.remove('opacity-0')}
         />
       </div>
       {blastImages.map((url, i) => (
@@ -238,7 +242,9 @@ function BlastGrid({
           <img
             src={url}
             alt={`${meta.displayName} blast ${i}`}
-            className="max-w-full max-h-full object-contain"
+            loading="lazy"
+            className="max-w-full max-h-full object-contain opacity-0 transition-opacity duration-300"
+            onLoad={(e) => e.currentTarget.classList.remove('opacity-0')}
             onError={(e) => {
               (e.target as HTMLImageElement).style.opacity = '0.2';
             }}

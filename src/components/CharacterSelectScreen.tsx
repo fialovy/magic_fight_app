@@ -87,7 +87,8 @@ export default function CharacterSelectScreen({
                 <img
                   src={faceUrl(meta)}
                   alt={meta.displayName}
-                  className="w-full h-full object-contain"
+                  className="w-full h-full object-contain opacity-0 transition-opacity duration-300"
+                  onLoad={(e) => e.currentTarget.classList.remove('opacity-0')}
                 />
                 {isLoading && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded">
@@ -121,9 +122,11 @@ export default function CharacterSelectScreen({
             </button>
 
             <img
+              ref={(el) => { if (el?.complete) el.classList.remove('opacity-0'); }}
               src={faceUrl(preview)}
               alt={preview.displayName}
-              className="w-40 h-40 object-contain"
+              className="w-40 h-40 object-contain opacity-0 transition-opacity duration-300"
+              onLoad={(e) => e.currentTarget.classList.remove('opacity-0')}
             />
 
             <h2 className="text-2xl font-bold text-amber-300">
