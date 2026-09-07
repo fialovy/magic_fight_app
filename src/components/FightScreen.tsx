@@ -293,7 +293,6 @@ export default function FightScreen({
   const [timerBar, setTimerBar] = useState<{ duration: number; key: number; colorClass: string } | null>(null);
   const [playerBgOverride, setPlayerBgOverride] = useState<string | null>(null);
   const [opponentBgOverride, setOpponentBgOverride] = useState<string | null>(null);
-  const [fadingOut, setFadingOut] = useState(false);
 
   const playerPortraitRef = useRef<HTMLDivElement>(null);
   const opponentPortraitRef = useRef<HTMLDivElement>(null);
@@ -647,12 +646,14 @@ export default function FightScreen({
           substrateFormDataRef.current,
         )
       : newO;
-    const endGame = (winner: 'player' | 'opponent') => {
-      setFadingOut(true);
-      setTimeout(() => onGameOver(winner, finalP, finalO, turnHistoryRef.current, bestStreakRef.current), 350);
-    };
-    if (newO.life <= 0) { endGame('player'); return; }
-    if (newP.life <= 0) { endGame('opponent'); return; }
+    if (newO.life <= 0) {
+      onGameOver('player', finalP, finalO, turnHistoryRef.current, bestStreakRef.current);
+      return;
+    }
+    if (newP.life <= 0) {
+      onGameOver('opponent', finalP, finalO, turnHistoryRef.current, bestStreakRef.current);
+      return;
+    }
 
     // Rotate rule based on mode; timer steps down every TIMER_STEP_TURNS turns
     const newTurnsLeft = turnsLeft - 1;
@@ -730,9 +731,6 @@ export default function FightScreen({
 
   return (
     <div className="h-dvh app-bg flex flex-col overflow-hidden">
-      {fadingOut && (
-        <div className="fixed inset-0 bg-black z-[200] animate-fade-in pointer-events-none" />
-      )}
       {ruleAnnounce && (
         <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
           <span
