@@ -280,6 +280,27 @@ export default function FightScreen({
   const [hitAnim, setHitAnim] = useState<BlastAnim | null>(null);
   const [playerSpeech, setPlayerSpeech] = useState<string | null>(null);
   const [opponentSpeech, setOpponentSpeech] = useState<string | null>(null);
+  const playerSpeechTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const opponentSpeechTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const SPEECH_MS = 5000;
+
+  function setPlayerSpeechTimed(text: string) {
+    if (playerSpeechTimerRef.current) return;
+    setPlayerSpeech(text);
+    playerSpeechTimerRef.current = setTimeout(() => {
+      setPlayerSpeech(null);
+      playerSpeechTimerRef.current = null;
+    }, SPEECH_MS);
+  }
+
+  function setOpponentSpeechTimed(text: string) {
+    if (opponentSpeechTimerRef.current) return;
+    setOpponentSpeech(text);
+    opponentSpeechTimerRef.current = setTimeout(() => {
+      setOpponentSpeech(null);
+      opponentSpeechTimerRef.current = null;
+    }, SPEECH_MS);
+  }
   const [playerDmgFloat, setPlayerDmgFloat] = useState<{ text: string; key: number; cls: string } | null>(null);
   const [opponentDmgFloat, setOpponentDmgFloat] = useState<{ text: string; key: number; cls: string } | null>(null);
   const [currentRule, setCurrentRule] = useState<PatternRule>(
@@ -539,8 +560,6 @@ export default function FightScreen({
     });
     restartTimerRef.current = null;
 
-    setPlayerSpeech(null);
-    setOpponentSpeech(null);
     setPhase('resolving');
     setTimerBar(null);
 
@@ -625,10 +644,10 @@ export default function FightScreen({
     // Speech bubbles
     if ((outcome === 'loss' || outcome === 'decisive-loss') && damage > 0) {
       const reaction = pickReaction(vP, vO.namePath);
-      if (reaction) setPlayerSpeech(reaction);
+      if (reaction) setPlayerSpeechTimed(reaction);
     }
     const newTaunt = pickTaunt(vO, vP.namePath);
-    if (newTaunt) setOpponentSpeech(newTaunt);
+    if (newTaunt) setOpponentSpeechTimed(newTaunt);
 
     await delay(800);
 
