@@ -3,7 +3,6 @@ import FadeImage from './FadeImage';
 import { CHARACTER_REGISTRY } from '../data/characters';
 import type { CharacterMeta } from '../data/characters';
 import { BLAST_COUNTS } from 'virtual:blast-counts';
-import type { Spell } from '../types/game';
 import {
   SPELL_COLORS,
   SPELL_FILLS,
@@ -167,7 +166,7 @@ function SubstrateGallerySection() {
           {SECRET_IMAGES.map(({ num, prefix }) => (
             <div
               key={num}
-              className="aspect-square bg-purple-950/60 border border-rose-900/40 rounded-xl p-2 flex items-center justify-center relative group"
+              className="aspect-square bg-purple-950/60 border border-rose-900/40 rounded-xl p-2 flex items-center justify-center"
             >
               <FadeImage
                 src={`${import.meta.env.BASE_URL}images/characters/secret/${prefix}_secret_${num}.png`}
@@ -178,9 +177,6 @@ function SubstrateGallerySection() {
                   (e.target as HTMLImageElement).style.opacity = '0.2';
                 }}
               />
-              <span className="absolute bottom-1 right-2 text-xs text-rose-700/50 group-hover:text-rose-300 transition-colors">
-                {num}
-              </span>
             </div>
           ))}
         </div>
@@ -254,44 +250,49 @@ function BlastGrid({
   );
 }
 
-// One card per shape (solid, cycling colors) + one per fill (cycling shapes/colors).
-// Automatically includes any new shapes or fills added to the spell system.
-const COLOR_PREVIEWS: Spell[] = SPELL_COLORS.map((color) => ({
-  color,
-  shape: 'heart',
-  fill: 'solid',
-  rotation: 'clockwise',
-}));
-
-const SHAPE_PREVIEWS: Spell[] = SPELL_SHAPES.map((shape, i) => ({
-  color: SPELL_COLORS[i % SPELL_COLORS.length],
-  shape,
-  fill: 'solid',
-  rotation: 'clockwise',
-}));
-
-const FILL_PREVIEWS: Spell[] = SPELL_FILLS.map((fill, i) => ({
-  color: SPELL_COLORS[i % SPELL_COLORS.length],
-  shape: SPELL_SHAPES[i % SPELL_SHAPES.length],
-  fill,
-  rotation: 'clockwise',
-}));
-
-const ROTATION_PREVIEWS: Spell[] = SPELL_ROTATIONS.map((rotation, i) => ({
-  color: SPELL_COLORS[i % SPELL_COLORS.length],
-  shape: 'heart',
-  fill: 'vertical-stripe',
-  rotation,
-}));
-
-const SPELL_CATEGORIES = [
-  { label: `${SPELL_COLORS.length} colors`, previews: COLOR_PREVIEWS, keyPrefix: 'color' },
-  { label: `${SPELL_SHAPES.length} shapes`, previews: SHAPE_PREVIEWS, keyPrefix: 'shape' },
-  { label: `${SPELL_FILLS.length} fills`, previews: FILL_PREVIEWS, keyPrefix: 'fill' },
-  { label: `${SPELL_ROTATIONS.length} rotations`, previews: ROTATION_PREVIEWS, keyPrefix: 'rot' },
-];
-
 function SpellPreviewSection() {
+  const [selColor, setSelColor] = useState(SPELL_COLORS[0]);
+  const [selShape, setSelShape] = useState(SPELL_SHAPES[0]);
+  const [selFill, setSelFill] = useState(SPELL_FILLS[0]);
+  const [selRotation, setSelRotation] = useState(SPELL_ROTATIONS[0]);
+  const [spinKey, setSpinKey] = useState(0);
+
+  const spinCls = selRotation === 'clockwise' ? 'card-spin-once-cw' : 'card-spin-once-ccw';
+
+  const categories = [
+    {
+      label: `${SPELL_COLORS.length} colors`,
+      keyPrefix: 'color',
+      isRotation: false,
+      selectedIndex: SPELL_COLORS.indexOf(selColor),
+      spells: SPELL_COLORS.map((c) => ({ color: c, shape: selShape, fill: selFill, rotation: selRotation })),
+      onCardClick: (i: number) => setSelColor(SPELL_COLORS[i]),
+    },
+    {
+      label: `${SPELL_SHAPES.length} shapes`,
+      keyPrefix: 'shape',
+      isRotation: false,
+      selectedIndex: SPELL_SHAPES.indexOf(selShape),
+      spells: SPELL_SHAPES.map((s) => ({ color: selColor, shape: s, fill: selFill, rotation: selRotation })),
+      onCardClick: (i: number) => setSelShape(SPELL_SHAPES[i]),
+    },
+    {
+      label: `${SPELL_FILLS.length} fills`,
+      keyPrefix: 'fill',
+      isRotation: false,
+      selectedIndex: SPELL_FILLS.indexOf(selFill),
+      spells: SPELL_FILLS.map((f) => ({ color: selColor, shape: selShape, fill: f, rotation: selRotation })),
+      onCardClick: (i: number) => setSelFill(SPELL_FILLS[i]),
+    },
+    {
+      label: `${SPELL_ROTATIONS.length} rotations`,
+      keyPrefix: 'rot',
+      isRotation: true,
+      selectedIndex: SPELL_ROTATIONS.indexOf(selRotation),
+      spells: SPELL_ROTATIONS.map((r) => ({ color: selColor, shape: selShape, fill: selFill, rotation: r })),
+      onCardClick: (i: number) => { setSelRotation(SPELL_ROTATIONS[i]); setSpinKey((k) => k + 1); },
+    },
+  ];
 
   return (
     <div className="mb-10 pt-6 border-t border-purple-800/40">
@@ -299,12 +300,20 @@ function SpellPreviewSection() {
         ✦ Spell system preview
       </p>
       <div className="flex flex-col gap-6">
-        {SPELL_CATEGORIES.map(({ label, previews, keyPrefix }) => (
+        {categories.map(({ label, spells, keyPrefix, isRotation, selectedIndex, onCardClick }) => (
           <div key={keyPrefix}>
             <p className="text-purple-600 text-xs uppercase tracking-widest mb-2">{label}</p>
             <div className="flex flex-wrap gap-3">
-              {previews.map((spell, i) => (
-                <SpellCard key={`${keyPrefix}-${i}`} spell={spell} size={80} />
+              {spells.map((spell, i) => (
+                <SpellCard
+                  key={isRotation ? `${keyPrefix}-${i}` : `${keyPrefix}-${i}-${spinKey}`}
+                  spell={spell}
+                  size={80}
+                  selected={i === selectedIndex}
+                  onClick={() => onCardClick(i)}
+                  staticDisplay={!isRotation}
+                  className={!isRotation && spinKey > 0 ? spinCls : undefined}
+                />
               ))}
             </div>
           </div>

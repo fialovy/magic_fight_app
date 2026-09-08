@@ -89,6 +89,13 @@ body {
   animation: spin-ccw 2s linear infinite;
 }
 
+.card-spin-once-cw {
+  animation: spin-cw 2s linear 1;
+}
+.card-spin-once-ccw {
+  animation: spin-ccw 2s linear 1;
+}
+
 @keyframes rule-pulse {
   0% {
     opacity: 0;

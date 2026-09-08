@@ -36,6 +36,8 @@ interface Props {
   /** Explicit pixel size. Omit to let the parent CSS container control width/height. */
   size?: number;
   className?: string;
+  /** Suppress the continuous spin animation (for gallery static previews). */
+  staticDisplay?: boolean;
 }
 
 export default function SpellCard({
@@ -46,6 +48,7 @@ export default function SpellCard({
   glowing,
   size,
   className,
+  staticDisplay,
 }: Props) {
   const uid = useId();
   const color = SPELL_COLOR_HEX[spell.color];
@@ -149,7 +152,9 @@ export default function SpellCard({
         </defs>
         <g
           className={
-            spell.rotation === 'clockwise' ? 'spell-spin-cw' : 'spell-spin-ccw'
+            staticDisplay
+              ? ''
+              : spell.rotation === 'clockwise' ? 'spell-spin-cw' : 'spell-spin-ccw'
           }
         >
           <ShapePath
