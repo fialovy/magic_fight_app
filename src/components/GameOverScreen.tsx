@@ -149,7 +149,8 @@ export default function GameOverScreen({
   }, [playerWon]);
 
   return (
-    <div className="min-h-screen app-bg flex flex-col items-center justify-center px-4 py-8 animate-screen-in">
+    <div className="min-h-screen app-bg">
+      <div className="flex flex-col items-center justify-center px-4 py-8 animate-screen-in">
       <div className="text-center mb-8">
         <h1
           className={`text-5xl font-extrabold mb-2 ${playerWon ? 'text-amber-300' : 'text-rose-400'}`}
@@ -210,6 +211,8 @@ export default function GameOverScreen({
       {turnHistory.length > 0 && (
         <BattleStats history={turnHistory} playerWon={playerWon} />
       )}
+
+      </div>
 
       {/* Scroll hint */}
       {showScrollHint && (
