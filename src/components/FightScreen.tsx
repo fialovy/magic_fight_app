@@ -120,6 +120,20 @@ const ORB_SHAPES: { clipPath: string; borderRadius: string }[] = [
 ];
 
 const delay = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+const SPEECH_MS = 5000;
+
+function setSpeechTimed(
+  timerRef: { current: ReturnType<typeof setTimeout> | null },
+  setter: (v: string | null) => void,
+  text: string,
+) {
+  if (timerRef.current) return;
+  setter(text);
+  timerRef.current = setTimeout(() => {
+    setter(null);
+    timerRef.current = null;
+  }, SPEECH_MS);
+}
 
 const SUBSTRATE_FORM_DEFS = [
   { emoji: '♀️', prefix: 'nora', path: 'nora', displayName: 'Nora' },
@@ -282,25 +296,6 @@ export default function FightScreen({
   const [opponentSpeech, setOpponentSpeech] = useState<string | null>(null);
   const playerSpeechTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const opponentSpeechTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const SPEECH_MS = 5000;
-
-  function setPlayerSpeechTimed(text: string) {
-    if (playerSpeechTimerRef.current) return;
-    setPlayerSpeech(text);
-    playerSpeechTimerRef.current = setTimeout(() => {
-      setPlayerSpeech(null);
-      playerSpeechTimerRef.current = null;
-    }, SPEECH_MS);
-  }
-
-  function setOpponentSpeechTimed(text: string) {
-    if (opponentSpeechTimerRef.current) return;
-    setOpponentSpeech(text);
-    opponentSpeechTimerRef.current = setTimeout(() => {
-      setOpponentSpeech(null);
-      opponentSpeechTimerRef.current = null;
-    }, SPEECH_MS);
-  }
   const [playerDmgFloat, setPlayerDmgFloat] = useState<{ text: string; key: number; cls: string } | null>(null);
   const [opponentDmgFloat, setOpponentDmgFloat] = useState<{ text: string; key: number; cls: string } | null>(null);
   const [currentRule, setCurrentRule] = useState<PatternRule>(
@@ -644,10 +639,10 @@ export default function FightScreen({
     // Speech bubbles
     if ((outcome === 'loss' || outcome === 'decisive-loss') && damage > 0) {
       const reaction = pickReaction(vP, vO.namePath);
-      if (reaction) setPlayerSpeechTimed(reaction);
+      if (reaction) setSpeechTimed(playerSpeechTimerRef, setPlayerSpeech, reaction);
     }
     const newTaunt = pickTaunt(vO, vP.namePath);
-    if (newTaunt) setOpponentSpeechTimed(newTaunt);
+    if (newTaunt) setSpeechTimed(opponentSpeechTimerRef, setOpponentSpeech, newTaunt);
 
     await delay(800);
 

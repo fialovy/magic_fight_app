@@ -233,7 +233,7 @@ function BlastGrid({
       {blastImages.map((url, i) => (
         <div
           key={i}
-          className="aspect-square bg-purple-950/60 border border-purple-800 rounded-xl p-2 flex items-center justify-center relative group"
+          className="aspect-square bg-purple-950/60 border border-purple-800 rounded-xl p-2 flex items-center justify-center"
         >
           <FadeImage
             src={url}

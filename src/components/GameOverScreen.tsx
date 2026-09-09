@@ -258,7 +258,6 @@ export default function GameOverScreen({
               className="max-h-[60vh] max-w-full object-contain rounded-lg"
             />
 
-
             <div className="flex gap-3 items-center">
               <button
                 onClick={() => setCarouselIdx((i) => i! - 1)}
