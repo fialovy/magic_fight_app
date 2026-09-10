@@ -82,7 +82,7 @@ export default function TutorialModal({ onDone }: { onDone: () => void }) {
 function RuleStep() {
   return (
     <>
-      <h2 className="text-xl font-bold text-purple-100 text-center">Cast your spell</h2>
+      <h2 className="text-xl font-bold text-purple-100 text-center">How to play</h2>
       <div className="flex items-center gap-4">
         <SpellCard
           spell={{ color: 'purple', shape: 'heart', fill: 'solid', rotation: 'clockwise' }}
@@ -101,9 +101,10 @@ function RuleStep() {
         />
       </div>
       <p className="text-purple-300 text-sm text-center leading-relaxed">
-        Each turn both fighters cast a spell. The current rule tells you how yours should{' '}
-        <span className="text-amber-300 font-semibold">match</span> — or{' '}
-        <span className="text-rose-300 font-semibold">avoid</span> — the opponent's.
+        Each turn, both players cast a spell. Your opponent's spell is revealed
+        in the middle, and a rule appears telling you to{' '}
+        <span className="text-amber-300 font-semibold">match</span>{' '}or{' '}
+        <span className="text-rose-300 font-semibold">avoid</span>{' '}it.
       </p>
     </>
   );
@@ -119,7 +120,7 @@ function TimerStep() {
         <TimerBar label="Late game" widthPct={28} color="bg-rose-500" />
       </div>
       <p className="text-purple-300 text-sm text-center leading-relaxed">
-        You have limited time each turn, and it shrinks as the fight goes on. Pick your spell fast — a timeout counts as a wrong answer!
+        You have limited time each turn, and it shrinks over time. Pick your spell fast — a timeout counts as a wrong answer!
       </p>
     </>
   );
@@ -159,7 +160,7 @@ function AffinityStep() {
       </div>
       <p className="text-purple-300 text-sm text-center leading-relaxed">
         Every character has a secret affinity. Spells that match their{' '}
-        <span className="text-amber-300 font-semibold">primary dimension</span> hit harder — learn them to gain an edge!
+        <span className="text-amber-300 font-semibold">primary dimension</span> hit harder. Learn them to gain an edge.
       </p>
     </>
   );
@@ -200,7 +201,7 @@ function GoStep() {
       />
       <h2 className="text-xl font-bold text-purple-100 text-center">You're ready!</h2>
       <p className="text-purple-300 text-sm text-center leading-relaxed">
-        Pick your fighter, study the rule, and cast the right spell before time runs out. Good luck!
+        Pick your fighter, figure out the rule, and cast the right spell before time runs out. Good luck!
       </p>
     </>
   );
