@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useState } from 'react';
+import { type ReactNode, useEffect, useRef, useState } from 'react';
 import type { Spell } from '../types/game';
 import SpellCard from './SpellCard';
 
@@ -12,19 +12,46 @@ const STEPS = [
 export default function TutorialModal({ onDone }: { onDone: () => void }) {
   const [stepIdx, setStepIdx] = useState(0);
   const step = STEPS[stepIdx];
+  const [visible, setVisible] = useState(true);
+  const swipeStartX = useRef<number | null>(null);
+
+  function navigate(action: () => void) {
+    setVisible(false);
+    setTimeout(() => {
+      action();
+      setVisible(true);
+    }, 150);
+  }
 
   function next() {
-    if (stepIdx < STEPS.length - 1) setStepIdx((i) => i + 1);
+    if (stepIdx < STEPS.length - 1) navigate(() => setStepIdx((i) => i + 1));
     else onDone();
   }
 
   function prev() {
-    setStepIdx((i) => Math.max(0, i - 1));
+    navigate(() => setStepIdx((i) => Math.max(0, i - 1)));
+  }
+
+  function handleTouchStart(e: React.TouchEvent) {
+    swipeStartX.current = e.touches[0].clientX;
+  }
+
+  function handleTouchEnd(e: React.TouchEvent) {
+    if (swipeStartX.current === null) return;
+    const delta = e.changedTouches[0].clientX - swipeStartX.current;
+    swipeStartX.current = null;
+    if (Math.abs(delta) < 50) return;
+    if (delta < 0) next();
+    else prev();
   }
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80">
-      <div className="animate-modal-in bg-indigo-950 border border-purple-600 rounded-2xl p-6 max-w-sm w-full shadow-2xl flex flex-col gap-5">
+      <div
+        className="animate-modal-in bg-indigo-950 border border-purple-600 rounded-2xl p-6 max-w-sm w-full shadow-2xl flex flex-col gap-5"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
 
         {/* Dot indicators */}
         <div className="flex justify-center gap-2">
@@ -40,7 +67,7 @@ export default function TutorialModal({ onDone }: { onDone: () => void }) {
         </div>
 
         {/* Step content */}
-        <div className="flex flex-col items-center gap-4 min-h-[220px] justify-center">
+        <div className={`flex flex-col items-center gap-4 min-h-[220px] justify-center transition-opacity duration-150 ${visible ? 'opacity-100' : 'opacity-0'}`}>
           {step === 'rule' && <RuleStep />}
           {step === 'affinity' && <AffinityStep />}
           {step === 'go' && <GoStep />}
