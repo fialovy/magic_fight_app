@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
+import type { Spell } from '../types/game';
 import SpellCard from './SpellCard';
 
 const BASE = import.meta.env.BASE_URL;
 
 const STEPS = [
   'rule',
-  'timer',
   'affinity',
   'go',
 ] as const;
@@ -42,7 +42,6 @@ export default function TutorialModal({ onDone }: { onDone: () => void }) {
         {/* Step content */}
         <div className="flex flex-col items-center gap-4 min-h-[220px] justify-center">
           {step === 'rule' && <RuleStep />}
-          {step === 'timer' && <TimerStep />}
           {step === 'affinity' && <AffinityStep />}
           {step === 'go' && <GoStep />}
         </div>
@@ -79,64 +78,140 @@ export default function TutorialModal({ onDone }: { onDone: () => void }) {
   );
 }
 
+function RuleBadge({ avoid, active, children }: { avoid: boolean; active?: boolean; children: ReactNode }) {
+  return (
+    <span className={[
+      'inline-flex gap-1.5 text-[11px] font-bold tracking-widest px-2.5 py-0.5 rounded-full border-2 transition-all duration-300',
+      avoid
+        ? active
+          ? 'text-rose-200 border-rose-400 bg-rose-900/80'
+          : 'text-rose-300 border-rose-600 bg-rose-950/60'
+        : active
+          ? 'text-blue-100 border-blue-400 bg-blue-900/80'
+          : 'text-blue-300 border-blue-600 bg-blue-950/60',
+    ].join(' ')}>
+      {children}
+    </span>
+  );
+}
+
+const OPPONENT_SPELL: Spell = { color: 'purple', shape: 'heart', fill: 'solid', rotation: 'clockwise' };
+const PLAYER_CHOICES: Spell[] = [
+  { color: 'purple', shape: 'star',     fill: 'dots',            rotation: 'counter-clockwise' }, // 0: purple → correct for COLOR / MATCH
+  { color: 'red',    shape: 'square',   fill: 'crosshatch',      rotation: 'clockwise' },
+  { color: 'green',  shape: 'triangle', fill: 'vertical-stripe', rotation: 'clockwise' },          // 2: not heart+solid → correct for ~~SHAPE FILL~~ / AVOID
+  { color: 'orange', shape: 'heart',    fill: 'crosshatch',      rotation: 'counter-clockwise' },
+];
+
+const ANIM_CYCLES = [
+  { group: 0, inGroup: 0, cardIdx: 0, why: "matches purple" },
+  { group: 0, inGroup: 1, cardIdx: 2, why: 'different shape, different fill' },
+  { group: 1, inGroup: 0, cardIdx: 0, why: 'matches the rule' },
+  { group: 1, inGroup: 1, cardIdx: 2, why: 'avoids the rule' },
+] as const;
+
+const RULE_REVEAL_MS = 900;
+const CYCLE_MS = 2600;
+
 function RuleStep() {
+  const [cycleIdx, setCycleIdx] = useState(0);
+  const [showCard, setShowCard] = useState(false);
+  const [shownWhy, setShownWhy] = useState('');
+
+  useEffect(() => {
+    setShowCard(false);
+    const { why } = ANIM_CYCLES[cycleIdx];
+    const cardTimer = setTimeout(() => {
+      setShownWhy(why);
+      setShowCard(true);
+    }, RULE_REVEAL_MS);
+    const nextTimer = setTimeout(
+      () => setCycleIdx((i) => (i + 1) % ANIM_CYCLES.length),
+      CYCLE_MS,
+    );
+    return () => { clearTimeout(cardTimer); clearTimeout(nextTimer); };
+  }, [cycleIdx]);
+
+  const { group: activeGroup, inGroup: activeInGroup, cardIdx: activeCard } = ANIM_CYCLES[cycleIdx];
+
+  function badgeActive(group: number, inGroup: number) {
+    return group === activeGroup && inGroup === activeInGroup;
+  }
+
   return (
     <>
       <h2 className="text-xl font-bold text-purple-100 text-center">How to play</h2>
-      <div className="flex items-center gap-4">
-        <SpellCard
-          spell={{ color: 'purple', shape: 'heart', fill: 'solid', rotation: 'clockwise' }}
-          size={72}
-          staticDisplay
-        />
-        <div className="flex flex-col items-center gap-1">
-          <span className="text-amber-400 font-bold text-lg">✦</span>
-          <span className="text-purple-400 text-xs text-center leading-tight">match<br/>color</span>
+      <div className="flex gap-2 w-full items-center">
+
+        {/* Opponent */}
+        <div className="flex flex-col items-center gap-1.5 shrink-0">
+          <span className="text-purple-500 text-xs uppercase tracking-wider">opponent</span>
+          <SpellCard spell={OPPONENT_SPELL} size={58} staticDisplay />
         </div>
-        <SpellCard
-          spell={{ color: 'purple', shape: 'star', fill: 'dots', rotation: 'counter-clockwise' }}
-          size={72}
-          staticDisplay
-          selected
-        />
+
+        {/* Rule badges */}
+        <div className="flex-1 flex flex-col items-center justify-center gap-5">
+          {([
+            { label: 'follow mode', badges: [
+              { avoid: false, content: <>COLOR</> },
+              { avoid: true,  content: <><span className="line-through">SHAPE</span><span className="line-through">FILL</span></> },
+            ]},
+            { label: 'guess mode', badges: [
+              { avoid: false, content: <>MATCH</> },
+              { avoid: true,  content: <>AVOID</> },
+            ]},
+          ] as const).map((group, gi) => (
+            <div key={gi} className="flex flex-col items-center gap-1.5">
+              <span className={[
+                'text-xs uppercase tracking-wider transition-colors duration-300',
+                activeGroup === gi ? 'text-purple-400' : 'text-purple-700',
+              ].join(' ')}>
+                {group.label}
+              </span>
+              {group.badges.map((badge, bi) => (
+                <div key={bi} className={[
+                  'transition-all duration-300',
+                  badgeActive(gi, bi) ? 'scale-110' : 'opacity-30',
+                ].join(' ')}>
+                  <RuleBadge avoid={badge.avoid} active={badgeActive(gi, bi)}>{badge.content}</RuleBadge>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+
+        {/* Player choices */}
+        <div className="flex flex-col items-center gap-1.5 shrink-0">
+          <span className="text-purple-500 text-xs uppercase tracking-wider">you</span>
+          {PLAYER_CHOICES.map((spell, i) => (
+            <div
+              key={i}
+              className={[
+                'rounded-xl transition-all duration-300',
+                showCard && i === activeCard
+                  ? 'ring-2 ring-amber-400 shadow-lg shadow-amber-400/50'
+                  : '',
+              ].join(' ')}
+            >
+              <SpellCard spell={spell} size={44} staticDisplay glowing={showCard && i === activeCard} />
+            </div>
+          ))}
+        </div>
+
       </div>
+      <p className={[
+        'text-xs font-semibold text-amber-300 text-center transition-opacity duration-300 h-4',
+        showCard ? 'opacity-100' : 'opacity-0',
+      ].join(' ')}>
+        ✦ {shownWhy}
+      </p>
       <p className="text-purple-300 text-sm text-center leading-relaxed">
-        Each turn, both players cast a spell. Your opponent's spell is revealed
-        in the middle, and a rule appears telling you to{' '}
-        <span className="text-amber-300 font-semibold">match</span>{' '}or{' '}
-        <span className="text-rose-300 font-semibold">avoid</span>{' '}it.
+        Each turn, your opponent's spell is revealed and a rule tells you to{' '}
+        <span className="text-amber-300 font-semibold">match</span> or{' '}
+        <span className="text-rose-300 font-semibold">avoid</span> something about it.
+        Pick the right spell from your hand!
       </p>
     </>
-  );
-}
-
-function TimerStep() {
-  return (
-    <>
-      <h2 className="text-xl font-bold text-purple-100 text-center">Beat the clock</h2>
-      <div className="w-full flex flex-col gap-3">
-        <TimerBar label="Early game" widthPct={85} color="bg-emerald-500" />
-        <TimerBar label="Mid game" widthPct={55} color="bg-amber-400" />
-        <TimerBar label="Late game" widthPct={28} color="bg-rose-500" />
-      </div>
-      <p className="text-purple-300 text-sm text-center leading-relaxed">
-        You have limited time each turn, and it shrinks over time. Pick your spell fast — a timeout counts as a wrong answer!
-      </p>
-    </>
-  );
-}
-
-function TimerBar({ label, widthPct, color }: { label: string; widthPct: number; color: string }) {
-  return (
-    <div className="flex items-center gap-3">
-      <span className="text-xs text-purple-500 w-20 shrink-0">{label}</span>
-      <div className="flex-1 h-3 bg-purple-900/60 rounded-full overflow-hidden">
-        <div
-          className={`h-full rounded-full ${color}`}
-          style={{ width: `${widthPct}%` }}
-        />
-      </div>
-    </div>
   );
 }
 
@@ -144,7 +219,7 @@ function AffinityStep() {
   return (
     <>
       <h2 className="text-xl font-bold text-purple-100 text-center">Hidden affinities</h2>
-      <div className="flex gap-6 justify-center">
+      <div className="flex gap-6 justify-center mb-3">
         <CharacterAffinityCard
           headSrc={`${BASE}images/characters/norm_mf_head.png`}
           name="Norm"
@@ -154,13 +229,12 @@ function AffinityStep() {
         <CharacterAffinityCard
           headSrc={`${BASE}images/characters/adrian_mf_head.png`}
           name="Adrian"
-          primarySpell={{ color: 'purple', shape: 'triangle', fill: 'solid', rotation: 'clockwise' }}
+          primarySpell={{ color: 'orange', shape: 'triangle', fill: 'vertical-stripe', rotation: 'clockwise' }}
           primaryLabel="triangle"
         />
       </div>
       <p className="text-purple-300 text-sm text-center leading-relaxed">
-        Every character has a secret affinity. Spells that match their{' '}
-        <span className="text-amber-300 font-semibold">primary dimension</span> hit harder. Learn them to gain an edge.
+        Every character has a secret affinity that makes their spells hit harder. Learn the affinities to gain an edge!
       </p>
     </>
   );
