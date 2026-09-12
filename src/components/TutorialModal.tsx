@@ -131,10 +131,10 @@ const PLAYER_CHOICES: Spell[] = [
 ];
 
 const ANIM_CYCLES = [
-  { group: 0, inGroup: 0, cardIdx: 0, why: "matches purple" },
-  { group: 0, inGroup: 1, cardIdx: 2, why: 'different shape, different fill' },
-  { group: 1, inGroup: 0, cardIdx: 0, why: 'matches the rule' },
-  { group: 1, inGroup: 1, cardIdx: 2, why: 'avoids the rule' },
+  { group: 0, inGroup: 0, cardIdx: 0, avoid: false, why: 'matches purple' },
+  { group: 0, inGroup: 1, cardIdx: 2, avoid: true,  why: 'different shape, different fill' },
+  { group: 1, inGroup: 0, cardIdx: 0, avoid: false, why: 'matches the rule' },
+  { group: 1, inGroup: 1, cardIdx: 2, avoid: true,  why: 'avoids the rule' },
 ] as const;
 
 const RULE_REVEAL_MS = 900;
@@ -144,12 +144,14 @@ function RuleStep() {
   const [cycleIdx, setCycleIdx] = useState(0);
   const [showCard, setShowCard] = useState(false);
   const [shownWhy, setShownWhy] = useState('');
+  const [shownAvoid, setShownAvoid] = useState(false);
 
   useEffect(() => {
     setShowCard(false);
-    const { why } = ANIM_CYCLES[cycleIdx];
+    const { why, avoid } = ANIM_CYCLES[cycleIdx];
     const cardTimer = setTimeout(() => {
       setShownWhy(why);
+      setShownAvoid(avoid);
       setShowCard(true);
     }, RULE_REVEAL_MS);
     const nextTimer = setTimeout(
@@ -216,7 +218,9 @@ function RuleStep() {
               className={[
                 'rounded-xl transition-all duration-300',
                 showCard && i === activeCard
-                  ? 'ring-2 ring-amber-400 shadow-lg shadow-amber-400/50'
+                  ? shownAvoid
+                    ? 'ring-2 ring-rose-400 shadow-lg shadow-rose-400/50'
+                    : 'ring-2 ring-amber-400 shadow-lg shadow-amber-400/50'
                   : '',
               ].join(' ')}
             >
@@ -227,7 +231,8 @@ function RuleStep() {
 
       </div>
       <p className={[
-        'text-xs font-semibold text-amber-300 text-center transition-opacity duration-300 h-4',
+        'text-xs font-semibold text-center transition-opacity duration-300 h-4',
+        shownAvoid ? 'text-rose-300' : 'text-amber-300',
         showCard ? 'opacity-100' : 'opacity-0',
       ].join(' ')}>
         ✦ {shownWhy}
