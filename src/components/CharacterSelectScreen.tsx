@@ -58,9 +58,10 @@ export default function CharacterSelectScreen({
         <SegmentedControl
           label="Speed"
           options={[
-            { value: 'slow',   label: 'Slow'   },
-            { value: 'medium', label: 'Medium' },
-            { value: 'fast',   label: 'Fast'   },
+            { value: 'relaxed',   label: 'Relaxed'   },
+            { value: 'standard',  label: 'Standard'  },
+            { value: 'challenge', label: 'Challenge' },
+            { value: 'none',      label: 'No Timer'  },
           ] as { value: GameSpeed; label: string }[]}
           value={config.speed}
           onChange={(v) => onConfigChange({ ...config, speed: v })}

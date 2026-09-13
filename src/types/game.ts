@@ -61,26 +61,27 @@ export const GAME_LIFE = 20;
 export const TIMER_STEP_TURNS = 5;
 
 export type GameMode = 'guess' | 'follow';
-export type GameSpeed = 'slow' | 'medium' | 'fast';
+export type GameSpeed = 'relaxed' | 'standard' | 'challenge' | 'none';
+export type TimedGameSpeed = Exclude<GameSpeed, 'none'>;
 export interface GameConfig {
   mode: GameMode;
   speed: GameSpeed;
 }
-export const DEFAULT_CONFIG: GameConfig = { mode: 'follow', speed: 'medium' };
+export const DEFAULT_CONFIG: GameConfig = { mode: 'follow', speed: 'standard' };
 
 // patternTurns: how many turns a rule lasts before rotating
 export const PATTERN_TURNS: Record<GameMode, number> = { follow: 1, guess: 4 };
 
-export const SPEED_TIMER: Record<GameMode, Record<GameSpeed, { startMs: number; stepMs: number; floorMs: number }>> = {
+export const SPEED_TIMER: Record<GameMode, Record<TimedGameSpeed, { startMs: number; stepMs: number; floorMs: number }>> = {
   guess: {
-    slow:   { startMs: 3000, stepMs: 200, floorMs: 1500 },
-    medium: { startMs: 2000, stepMs: 175, floorMs: 1000 },
-    fast:   { startMs: 1400, stepMs: 175, floorMs: 700  },
+    relaxed:   { startMs: 6000, stepMs: 100, floorMs: 4000 },
+    standard:  { startMs: 3000, stepMs: 200, floorMs: 1500 },
+    challenge: { startMs: 1400, stepMs: 175, floorMs: 700  },
   },
   follow: {
-    slow:   { startMs: 2000, stepMs: 175, floorMs: 1000 },
-    medium: { startMs: 1400, stepMs: 175, floorMs: 700  },
-    fast:   { startMs: 900,  stepMs: 125, floorMs: 450  },
+    relaxed:   { startMs: 4000, stepMs: 100, floorMs: 2500 },
+    standard:  { startMs: 2000, stepMs: 175, floorMs: 1000 },
+    challenge: { startMs: 900,  stepMs: 125, floorMs: 450  },
   },
 };
 

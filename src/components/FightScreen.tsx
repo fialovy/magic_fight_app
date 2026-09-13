@@ -258,7 +258,7 @@ export default function FightScreen({
   config,
   onGameOver,
 }: Props) {
-  const speedTimer = SPEED_TIMER[config.mode][config.speed];
+  const speedTimer = config.speed !== 'none' ? SPEED_TIMER[config.mode][config.speed] : null;
   const patternTurns = PATTERN_TURNS[config.mode];
   // Refs hold live values read by async turn logic — avoids stale closures
   const livePlayerRef = useRef(initialPlayer);
@@ -271,7 +271,7 @@ export default function FightScreen({
   const playerBlastIdx = useRef(0);
   const opponentBlastIdx = useRef(0);
   const substrateFormIdxRef = useRef(0);
-  const timerDurationRef = useRef(speedTimer.startMs);
+  const timerDurationRef = useRef(speedTimer?.startMs ?? 0);
   const timerStepCountRef = useRef(0);
   const substrateFormDataRef = useRef<SubstrateFormOverride[] | null>(null);
   const restartTimerRef = useRef<(() => void) | null>(null);
@@ -532,13 +532,16 @@ export default function FightScreen({
     // Phase 2: opponent spell reveals, countdown begins
     setOpponentSpell(oppSpell);
     setPhase('opponent-shown');
-    const barColorClass = config.mode === 'follow'
-      ? (rule.startsWith('avoid') ? 'bg-rose-400' : 'bg-blue-400')
-      : 'bg-purple-400';
-    setTimerBar({ duration: timerDurationRef.current, key: Date.now(), colorClass: barColorClass });
+    if (speedTimer) {
+      const barColorClass = config.mode === 'follow'
+        ? (rule.startsWith('avoid') ? 'bg-rose-400' : 'bg-blue-400')
+        : 'bg-purple-400';
+      setTimerBar({ duration: timerDurationRef.current, key: Date.now(), colorClass: barColorClass });
+    }
 
     const selectedSpell = await new Promise<Spell | null>((resolve) => {
       cardClickRef.current = resolve;
+      if (!speedTimer) return;
       let timeoutId: ReturnType<typeof setTimeout>;
       const arm = () => {
         clearTimeout(timeoutId);
@@ -682,12 +685,14 @@ export default function FightScreen({
     } else {
       patternRef.current = { ...patternRef.current, turnsLeft: newTurnsLeft };
     }
-    timerStepCountRef.current += 1;
-    if (timerStepCountRef.current % TIMER_STEP_TURNS === 0) {
-      timerDurationRef.current = Math.max(
-        speedTimer.floorMs,
-        timerDurationRef.current - speedTimer.stepMs,
-      );
+    if (speedTimer) {
+      timerStepCountRef.current += 1;
+      if (timerStepCountRef.current % TIMER_STEP_TURNS === 0) {
+        timerDurationRef.current = Math.max(
+          speedTimer.floorMs,
+          timerDurationRef.current - speedTimer.stepMs,
+        );
+      }
     }
 
     await delay(400);
