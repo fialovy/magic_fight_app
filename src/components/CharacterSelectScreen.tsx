@@ -25,6 +25,17 @@ export default function CharacterSelectScreen({
   const [preview, setPreview] = useState<CharacterMeta | null>(null);
   const [loading, setLoading] = useState<string | null>(null);
 
+  // Prefetch all bios so the modal opens with text already ready
+  useEffect(() => {
+    SELECTABLE_CHARACTERS.forEach(({ namePath }) => {
+      if (bioCache.has(namePath)) return;
+      fetch(`${import.meta.env.BASE_URL}characters/${namePath}/bio.txt`)
+        .then((r) => r.text())
+        .then((t) => bioCache.set(namePath, t.trim()))
+        .catch(() => bioCache.set(namePath, ''));
+    });
+  }, []);
+
   const faceUrl = (meta: CharacterMeta) =>
     `${import.meta.env.BASE_URL}images/characters/${meta.imagePrefix}_mf_face_${mode === 'player' ? 'right' : 'left'}.png`;
 
