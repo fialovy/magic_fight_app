@@ -9,6 +9,7 @@ const STEPS = [
   'affinity',
   'go',
 ] as const;
+
 export default function TutorialModal({ onDone }: { onDone: () => void }) {
   const [stepIdx, setStepIdx] = useState(0);
   const step = STEPS[stepIdx];
@@ -280,7 +281,7 @@ function CharacterAffinityCard({
 }: {
   headSrc: string;
   name: string;
-  primarySpell: Parameters<typeof SpellCard>[0]['spell'];
+  primarySpell: Spell;
   primaryLabel: string;
 }) {
   return (

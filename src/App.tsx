@@ -29,10 +29,6 @@ export default function App() {
     setWarningAcknowledged(true);
   }
 
-  function dismissTutorial() {
-    try { localStorage.setItem(TUTORIAL_KEY, 'yes'); } catch { /* ignore */ }
-    setTutorialDone(true);
-  }
   const [player, setPlayer] = useState<Character | null>(null);
   const [opponent, setOpponent] = useState<Character | null>(null);
   const [winner, setWinner] = useState<'player' | 'opponent' | null>(null);
@@ -84,6 +80,11 @@ export default function App() {
     setFinalOpponent(null);
     setTurnHistory([]);
     setScreen('title');
+  }
+
+  function dismissTutorial() {
+    try { localStorage.setItem(TUTORIAL_KEY, 'yes'); } catch { /* ignore */ }
+    setTutorialDone(true);
   }
 
   function handleStart() {
