@@ -302,9 +302,9 @@ function GoStep() {
   return (
     <>
       <img
-        src={`${BASE}images/characters/nora_mf_face_right.png`}
-        alt="Nora"
-        className="w-24 h-24 object-contain"
+        src={`${BASE}images/characters/meadow_sprite_mf_celebrate.png`}
+        alt="Meadow Sprite celebrating"
+        className="w-28 h-28 object-contain"
       />
       <h2 className="text-xl font-bold text-purple-100 text-center">You're ready!</h2>
       <p className="text-purple-300 text-sm text-center leading-relaxed">
