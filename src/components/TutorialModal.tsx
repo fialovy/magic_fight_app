@@ -4,6 +4,19 @@ import SpellCard from './SpellCard';
 
 const BASE = import.meta.env.BASE_URL;
 
+const TUTORIAL_IMAGES = [
+  `${BASE}images/characters/norm_mf_head.png`,
+  `${BASE}images/characters/adrian_mf_head.png`,
+  `${BASE}images/characters/meadow_sprite_mf_celebrate.png`,
+];
+
+let imagesPreloaded = false;
+function preloadTutorialImages() {
+  if (imagesPreloaded) return;
+  imagesPreloaded = true;
+  TUTORIAL_IMAGES.forEach((src) => { new Image().src = src; });
+}
+
 const STEPS = [
   'rule',
   'affinity',
@@ -11,6 +24,8 @@ const STEPS = [
 ] as const;
 
 export default function TutorialModal({ onDone }: { onDone: () => void }) {
+  useEffect(() => { preloadTutorialImages(); }, []);
+
   const [stepIdx, setStepIdx] = useState(0);
   const step = STEPS[stepIdx];
   const [visible, setVisible] = useState(true);
