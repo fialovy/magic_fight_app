@@ -15,6 +15,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     },
     body: JSON.stringify(req.body),
   });
-  if (!upstream.ok) return res.status(502).json({ error: 'upstream error' });
+  if (!upstream.ok) {
+    const detail = await upstream.text();
+    console.error('leaderboard submit failed', upstream.status, detail);
+    return res
+      .status(502)
+      .json({ error: 'upstream error', status: upstream.status, detail });
+  }
   res.status(201).end();
 }
