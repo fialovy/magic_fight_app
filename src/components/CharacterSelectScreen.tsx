@@ -96,7 +96,7 @@ export default function CharacterSelectScreen({
                   : 'border-purple-700 bg-purple-950/60 hover:border-purple-400 hover:bg-purple-900/60 cursor-pointer',
               ].join(' ')}
             >
-              <div className="relative w-28 h-28 mb-2">
+              <div className="relative w-full max-w-28 aspect-square mb-2">
                 <FadeImage
                   src={faceUrl(meta)}
                   alt={meta.displayName}
