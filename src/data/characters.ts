@@ -20,6 +20,10 @@ export interface CharacterMeta {
   displayName: string;
   imagePrefix: string;
   chooseLabel?: string;
+  // shown on the per-form lore tabs for characters that have shapeshift forms
+  formEmoji?: string;
+  // shorter tab label when displayName is too long for the narrow form tabs
+  formLabel?: string;
   // for now this only refers to shapeshifting, which no longer does anything
   // meaningful for the game itself, but there could be other ways to 'change' a
   // character in the future
@@ -60,6 +64,7 @@ export const CHARACTER_REGISTRY: Record<string, CharacterMeta> = {
     displayName: 'Nora',
     imagePrefix: 'nora',
     chooseLabel: 'Darn right, punk!',
+    formEmoji: '♀️',
     isVariant: false,
   },
   sandoval: {
@@ -94,12 +99,15 @@ export const CHARACTER_REGISTRY: Record<string, CharacterMeta> = {
     namePath: 'nora/norm',
     displayName: 'Norm',
     imagePrefix: 'norm',
+    formEmoji: '♂️',
     isVariant: true,
   },
   'nora/meadow_sprite': {
     namePath: 'nora/meadow_sprite',
     displayName: 'Meadow Sprite',
     imagePrefix: 'meadow_sprite',
+    formEmoji: '🌿',
+    formLabel: 'Sprite',
     isVariant: true,
   },
 };

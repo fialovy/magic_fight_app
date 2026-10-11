@@ -79,7 +79,7 @@ export default function App() {
     setFinalPlayer(null);
     setFinalOpponent(null);
     setTurnHistory([]);
-    setScreen('title');
+    setScreen('character-select');
   }
 
   function dismissTutorial() {
@@ -126,6 +126,8 @@ export default function App() {
           loadCharacter={loadCharacter}
           config={gameConfig}
           onConfigChange={setGameConfig}
+          onBack={() => setScreen('title')}
+          backLabel="Title"
         />
       );
 
@@ -138,6 +140,8 @@ export default function App() {
           loadCharacter={loadCharacter}
           config={gameConfig}
           onConfigChange={setGameConfig}
+          onBack={() => setScreen('character-select')}
+          backLabel="Back"
         />
       );
 

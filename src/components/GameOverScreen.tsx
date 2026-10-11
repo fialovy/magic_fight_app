@@ -7,7 +7,12 @@ import { GAME_LIFE, MOBILE_WIDTH_ESTIMATE } from '../types/game';
 import { submitScore } from '../engine/leaderboard';
 import confetti from 'canvas-confetti';
 import { loadLore } from '../engine/loader';
-import { pick } from '../engine/random';
+import {
+  getCharacterProgress,
+  loadProgress,
+  pickLoreIndex,
+  recordWin,
+} from '../engine/progress';
 
 function blobToBase64(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -113,12 +118,19 @@ export default function GameOverScreen({
     }
   }, [carouselIdx]);
 
+  // Ref guard: StrictMode runs effects twice in dev, which would otherwise
+  // unlock two lore entries for a single win
+  const winRecorded = useRef(false);
   useEffect(() => {
-    if (!playerWon) return;
+    if (!playerWon || winRecorded.current) return;
+    winRecorded.current = true;
     loadLore(player.namePath).then((facts) => {
-      if (facts.length > 0) setLoreFact(pick(facts));
+      const unlocked = getCharacterProgress(loadProgress(), player.namePath).lore;
+      const idx = facts.length > 0 ? pickLoreIndex(facts.length, unlocked) : null;
+      recordWin(player.namePath, opponent.namePath, idx);
+      if (idx !== null) setLoreFact(facts[idx]);
     });
-  }, [playerWon, player.namePath]);
+  }, [playerWon, player.namePath, opponent.namePath]);
 
   useEffect(() => {
     if (!playerWon) return;

@@ -19,9 +19,21 @@ async function fetchJSON<T>(path: string): Promise<T | null> {
   }
 }
 
-export async function loadLore(namePath: string): Promise<string[]> {
-  const facts = await fetchJSON<string[]>(`${DATA_BASE}${namePath}/lore.json`);
-  return (facts ?? []).filter((f) => f.length > 0);
+const loreCache = new Map<string, Promise<string[]>>();
+
+export function loadLore(namePath: string): Promise<string[]> {
+  const cached = loreCache.get(namePath);
+  if (cached) return cached;
+  const pending = fetchJSON<string[]>(`${DATA_BASE}${namePath}/lore.json`).then(
+    (facts) => {
+      const lore = (facts ?? []).filter((f) => f.length > 0);
+      // Don't cache a failed/empty fetch, so a flaky connection can retry later
+      if (lore.length === 0) loreCache.delete(namePath);
+      return lore;
+    },
+  );
+  loreCache.set(namePath, pending);
+  return pending;
 }
 
 export async function loadCharacter(
