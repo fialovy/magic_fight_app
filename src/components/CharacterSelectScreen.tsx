@@ -445,6 +445,10 @@ function ProgressDetails({
           })}
         </div>
       </section>
+
+      <p className="-mt-2 text-center text-[11px] italic text-purple-500">
+        Progress is saved on this device only.
+      </p>
     </div>
   );
 }
