@@ -3,10 +3,9 @@ import { useRef } from 'react';
 interface Props {
   onStart: () => void;
   onGallery: () => void;
-  onLeaderboard: () => void;
 }
 
-export default function TitleScreen({ onStart, onGallery, onLeaderboard }: Props) {
+export default function TitleScreen({ onStart, onGallery }: Props) {
   const clickCount = useRef(0);
   const resetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -43,12 +42,6 @@ export default function TitleScreen({ onStart, onGallery, onLeaderboard }: Props
           className="px-8 py-3 text-lg font-bold rounded-xl bg-purple-700 hover:bg-purple-600 text-white border border-purple-500 transition-all hover:scale-105 shadow-lg shadow-purple-900/50"
         >
           Start Game
-        </button>
-        <button
-          onClick={onLeaderboard}
-          className="px-6 py-3 text-lg rounded-xl border border-purple-700 text-purple-300 hover:bg-purple-900/60 transition-colors"
-        >
-          Leaderboard
         </button>
       </div>
     </div>

@@ -2,9 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Media } from '@capacitor-community/media';
-import type { Character, GameConfig, TurnRecord } from '../types/game';
+import type { Character, TurnRecord } from '../types/game';
 import { GAME_LIFE, MOBILE_WIDTH_ESTIMATE } from '../types/game';
-import { submitScore } from '../engine/leaderboard';
 import confetti from 'canvas-confetti';
 import { loadLore } from '../engine/loader';
 import {
@@ -78,12 +77,7 @@ interface Props {
   player: Character;
   opponent: Character;
   turnHistory: TurnRecord[];
-  config: GameConfig;
-  bestStreak: number;
-  sessionName: string | null;
-  onSetSessionName: (name: string) => void;
   onNewGame: () => void;
-  onViewLeaderboard: () => void;
 }
 
 export default function GameOverScreen({
@@ -91,12 +85,7 @@ export default function GameOverScreen({
   player,
   opponent,
   turnHistory,
-  config,
-  bestStreak,
-  sessionName,
-  onSetSessionName,
   onNewGame,
-  onViewLeaderboard,
 }: Props) {
   const playerWon = winner === 'player';
   const [carouselIdx, setCarouselIdx] = useState<number | null>(null);
@@ -197,17 +186,6 @@ export default function GameOverScreen({
           <TrophyButton onClick={() => setCarouselIdx(0)} />
         )}
       </div>
-
-      <ScorePanel
-        player={player}
-        opponent={opponent}
-        config={config}
-        playerWon={playerWon}
-        bestStreak={bestStreak}
-        sessionName={sessionName}
-        onSetSessionName={onSetSessionName}
-        onViewLeaderboard={onViewLeaderboard}
-      />
 
       {loreFact && (
         <div className="w-full max-w-lg bg-amber-800/20 border border-amber-500/40 rounded-2xl p-5 mb-6">
@@ -357,103 +335,6 @@ function CharacterDisplay({
       <span className="text-xs text-purple-400 tabular-nums">
         {character.life} / {GAME_LIFE} HP
       </span>
-    </div>
-  );
-}
-
-const NAME_RE = /^[a-zA-Z0-9 !?.'_\-]{1,20}$/;
-
-function ScorePanel({
-  player,
-  opponent,
-  config,
-  playerWon,
-  bestStreak,
-  sessionName,
-  onSetSessionName,
-  onViewLeaderboard,
-}: {
-  player: Character;
-  opponent: Character;
-  config: GameConfig;
-  playerWon: boolean;
-  bestStreak: number;
-  sessionName: string | null;
-  onSetSessionName: (name: string) => void;
-  onViewLeaderboard: () => void;
-}) {
-  const [nameInput, setNameInput] = useState(sessionName ?? '');
-  const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
-
-  async function handleSave() {
-    const name = (sessionName ?? nameInput).trim();
-    if (!name || !NAME_RE.test(name)) return;
-    setStatus('saving');
-    try {
-      await submitScore({
-        name,
-        character: player.namePath,
-        opponent: opponent.namePath,
-        mode: config.mode,
-        speed: config.speed,
-        won: playerWon,
-        best_streak: bestStreak,
-        lore_unlocked: playerWon ? [player.namePath] : [],
-      });
-      onSetSessionName(name);
-      setStatus('saved');
-    } catch {
-      setStatus('error');
-    }
-  }
-
-  return (
-    <div className="w-full max-w-lg mb-6 rounded-2xl border border-teal-500/40 bg-teal-800/20 overflow-hidden">
-      <div className="px-4 pt-3 pb-4">
-        <p className="text-xs text-teal-400 font-semibold uppercase tracking-widest mb-3">✦ Leaderboard</p>
-        <div className="flex items-center gap-2">
-          {status === 'saved' ? (
-            <span className="text-emerald-400 text-sm font-semibold">✓ Score saved!</span>
-          ) : status === 'saving' ? (
-            <span className="text-teal-300 text-sm">Saving...</span>
-          ) : status === 'error' ? (
-            <span className="text-rose-400 text-sm">Save failed — check your internet?</span>
-          ) : sessionName !== null ? (
-            <button
-              onClick={handleSave}
-              className="px-4 py-1.5 text-sm rounded-lg bg-teal-800/50 hover:bg-teal-700/50 border border-teal-500/60 text-teal-200 transition-colors"
-            >
-              Save score as {sessionName}
-            </button>
-          ) : (
-            <>
-              <input
-                value={nameInput}
-                onChange={(e) => setNameInput(e.target.value.slice(0, 20))}
-                onKeyDown={(e) => e.key === 'Enter' && handleSave()}
-                placeholder="Your name (optional)"
-                maxLength={20}
-                className="flex-1 min-w-0 px-3 py-1.5 text-sm rounded-lg bg-teal-900/60 border border-teal-500/60 text-teal-100 placeholder-teal-500 focus:outline-none focus:border-teal-300 transition-colors"
-              />
-              <button
-                onClick={handleSave}
-                disabled={!nameInput.trim() || !NAME_RE.test(nameInput.trim())}
-                className="px-4 py-1.5 text-sm rounded-lg bg-teal-700/70 hover:bg-teal-600/70 border border-teal-500/60 text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                Save
-              </button>
-            </>
-          )}
-        </div>
-      </div>
-      <div className="border-t border-teal-600/30">
-        <button
-          onClick={onViewLeaderboard}
-          className="w-full py-2.5 text-teal-300 hover:bg-teal-800/40 hover:text-teal-100 transition-colors text-sm font-semibold"
-        >
-          View Leaderboard →
-        </button>
-      </div>
     </div>
   );
 }

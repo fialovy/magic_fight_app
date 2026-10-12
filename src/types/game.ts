@@ -130,8 +130,7 @@ export type GameScreen =
   | 'opponent-select'
   | 'fight'
   | 'game-over'
-  | 'gallery'
-  | 'leaderboard';
+  | 'gallery';
 
 export interface TurnRecord {
   rule: PatternRule;

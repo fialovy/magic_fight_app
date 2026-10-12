@@ -7,7 +7,6 @@ import CharacterSelectScreen from './components/CharacterSelectScreen';
 import FightScreen from './components/FightScreen';
 import GameOverScreen from './components/GameOverScreen';
 import Gallery from './components/Gallery';
-import LeaderboardScreen from './components/LeaderboardScreen';
 import FlashingWarning from './components/FlashingWarning';
 import TutorialModal from './components/TutorialModal';
 
@@ -38,14 +37,6 @@ export default function App() {
   // player got right and wrong
   const [turnHistory, setTurnHistory] = useState<TurnRecord[]>([]);
   const [gameConfig, setGameConfig] = useState<GameConfig>(DEFAULT_CONFIG);
-  const [sessionName, setSessionName] = useState<string | null>(null);
-  const [bestStreak, setBestStreak] = useState(0);
-  const [leaderboardReturn, setLeaderboardReturn] = useState<GameScreen>('title');
-
-  function goToLeaderboard(returnTo: GameScreen) {
-    setLeaderboardReturn(returnTo);
-    setScreen('leaderboard');
-  }
 
   function handlePlayerSelected(char: Character) {
     setPlayer(char);
@@ -62,13 +53,11 @@ export default function App() {
     p: Character,
     o: Character,
     history: TurnRecord[],
-    streak: number,
   ) {
     setWinner(w);
     setFinalPlayer(p);
     setFinalOpponent(o);
     setTurnHistory(history);
-    setBestStreak(streak);
     setScreen('game-over');
   }
 
@@ -112,7 +101,6 @@ export default function App() {
           <TitleScreen
             onStart={handleStart}
             onGallery={() => setScreen('gallery')}
-            onLeaderboard={() => goToLeaderboard('title')}
           />
           {showingTutorial && <TutorialModal onDone={handleTutorialDone} />}
         </>
@@ -162,19 +150,11 @@ export default function App() {
           player={finalPlayer}
           opponent={finalOpponent}
           turnHistory={turnHistory}
-          config={gameConfig}
-          bestStreak={bestStreak}
-          sessionName={sessionName}
-          onSetSessionName={setSessionName}
           onNewGame={resetGame}
-          onViewLeaderboard={() => goToLeaderboard('game-over')}
         />
       ) : null;
 
     case 'gallery':
       return <Gallery onBack={() => setScreen('title')} />;
-
-    case 'leaderboard':
-      return <LeaderboardScreen onBack={() => setScreen(leaderboardReturn)} />;
   }
 }

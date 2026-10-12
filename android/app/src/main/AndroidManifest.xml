@@ -30,7 +30,6 @@
         </provider>
     </application>
 
-    <!-- Permissions -->
-
-    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- No permissions: everything the game loads is bundled in the app, and
+         progress is stored on the device -->
 </manifest>

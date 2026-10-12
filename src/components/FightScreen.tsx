@@ -42,7 +42,6 @@ interface Props {
     player: Character,
     opponent: Character,
     history: TurnRecord[],
-    bestStreak: number,
   ) => void;
 }
 
@@ -304,7 +303,6 @@ export default function FightScreen({
   const [ruleKey, setRuleKey] = useState(0);
   const [ruleAnnounce, setRuleAnnounce] = useState<{ key: number; isAvoid: boolean } | null>(null);
   const streakRef = useRef(0);
-  const bestStreakRef = useRef(0);
   const [streak, setStreak] = useState(0);
   const [timerBar, setTimerBar] = useState<{ duration: number; key: number; colorClass: string } | null>(null);
   const [playerBgOverride, setPlayerBgOverride] = useState<string | null>(null);
@@ -571,7 +569,6 @@ export default function FightScreen({
 
     if (timerResult === 'correct') {
       streakRef.current += 1;
-      if (streakRef.current > bestStreakRef.current) bestStreakRef.current = streakRef.current;
     } else {
       streakRef.current = 0;
     }
@@ -664,11 +661,11 @@ export default function FightScreen({
         )
       : newO;
     if (newO.life <= 0) {
-      onGameOver('player', finalP, finalO, turnHistoryRef.current, bestStreakRef.current);
+      onGameOver('player', finalP, finalO, turnHistoryRef.current);
       return;
     }
     if (newP.life <= 0) {
-      onGameOver('opponent', finalP, finalO, turnHistoryRef.current, bestStreakRef.current);
+      onGameOver('opponent', finalP, finalO, turnHistoryRef.current);
       return;
     }
 
