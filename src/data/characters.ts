@@ -24,6 +24,8 @@ export interface CharacterMeta {
   formEmoji?: string;
   // shorter tab label when displayName is too long for the narrow form tabs
   formLabel?: string;
+  // used in sentences like "unlock all of her lore"; falls back to "their"
+  possessive?: string;
   // for now this only refers to shapeshifting, which no longer does anything
   // meaningful for the game itself, but there could be other ways to 'change' a
   // character in the future
@@ -37,6 +39,7 @@ export const CHARACTER_REGISTRY: Record<string, CharacterMeta> = {
     imagePrefix: 'adrian',
     chooseLabel: 'Fine. Whatever.',
     isVariant: false,
+    possessive: 'his',
   },
   anton: {
     namePath: 'anton',
@@ -44,6 +47,7 @@ export const CHARACTER_REGISTRY: Record<string, CharacterMeta> = {
     imagePrefix: 'anton',
     chooseLabel: 'Neat!',
     isVariant: false,
+    possessive: 'his',
   },
   bastion: {
     namePath: 'bastion',
@@ -51,6 +55,7 @@ export const CHARACTER_REGISTRY: Record<string, CharacterMeta> = {
     imagePrefix: 'bastion',
     chooseLabel: 'Choose!',
     isVariant: false,
+    possessive: 'his',
   },
   lucian: {
     namePath: 'lucian',
@@ -58,6 +63,7 @@ export const CHARACTER_REGISTRY: Record<string, CharacterMeta> = {
     imagePrefix: 'lucian',
     chooseLabel: 'Ready if you are!',
     isVariant: false,
+    possessive: 'his',
   },
   nora: {
     namePath: 'nora',
@@ -66,6 +72,7 @@ export const CHARACTER_REGISTRY: Record<string, CharacterMeta> = {
     chooseLabel: 'Darn right, punk!',
     formEmoji: '♀️',
     isVariant: false,
+    possessive: 'her/his/its',
   },
   sandoval: {
     namePath: 'sandoval',
@@ -73,6 +80,7 @@ export const CHARACTER_REGISTRY: Record<string, CharacterMeta> = {
     imagePrefix: 'sandoval',
     chooseLabel: "Let's GOOOO!",
     isVariant: false,
+    possessive: 'his',
   },
   stella: {
     namePath: 'stella',
@@ -80,6 +88,7 @@ export const CHARACTER_REGISTRY: Record<string, CharacterMeta> = {
     imagePrefix: 'stella',
     chooseLabel: 'Heck yeah!',
     isVariant: false,
+    possessive: 'her',
   },
   winfield: {
     namePath: 'winfield',
@@ -87,6 +96,7 @@ export const CHARACTER_REGISTRY: Record<string, CharacterMeta> = {
     imagePrefix: 'winfield',
     chooseLabel: 'Valmis.',
     isVariant: false,
+    possessive: 'his',
   },
   winston: {
     namePath: 'winston',
@@ -94,6 +104,7 @@ export const CHARACTER_REGISTRY: Record<string, CharacterMeta> = {
     imagePrefix: 'winston',
     chooseLabel: "Let's proceed.",
     isVariant: false,
+    possessive: 'his',
   },
   'nora/norm': {
     namePath: 'nora/norm',
@@ -101,6 +112,7 @@ export const CHARACTER_REGISTRY: Record<string, CharacterMeta> = {
     imagePrefix: 'norm',
     formEmoji: '♂️',
     isVariant: true,
+    possessive: 'his',
   },
   'nora/meadow_sprite': {
     namePath: 'nora/meadow_sprite',
@@ -109,6 +121,7 @@ export const CHARACTER_REGISTRY: Record<string, CharacterMeta> = {
     formEmoji: '🌿',
     formLabel: 'Sprite',
     isVariant: true,
+    possessive: 'its',
   },
 };
 

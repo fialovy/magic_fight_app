@@ -141,8 +141,9 @@ function LockedGallerySection({
       </div>
       <div className="rounded-xl border-2 border-dashed border-purple-800 bg-purple-950/40 px-4 py-5 text-center">
         <p className="text-sm text-purple-300">
-          Beat all of {meta.displayName}'s opponents and unlock all of their
-          lore{hasForms ? ' (in every form)' : ''} to reveal this art.
+          Beat all of {meta.displayName}'s opponents and unlock all of{' '}
+          {meta.possessive ?? 'their'} lore
+          {hasForms ? ' (in every form)' : ''} to reveal this art.
         </p>
         <p className="mt-2 text-xs text-purple-500">
           <span className="text-teal-300/80">
