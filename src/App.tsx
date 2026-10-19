@@ -37,6 +37,16 @@ export default function App() {
   // player got right and wrong
   const [turnHistory, setTurnHistory] = useState<TurnRecord[]>([]);
   const [gameConfig, setGameConfig] = useState<GameConfig>(DEFAULT_CONFIG);
+  const [galleryFrom, setGalleryFrom] = useState<GameScreen>('character-select');
+
+  // unlockAll is for the dev-only title shortcut, so the gallery can be checked
+  // without completing every character
+  const [galleryUnlockAll, setGalleryUnlockAll] = useState(false);
+  function goToGallery(from: GameScreen, unlockAll: boolean) {
+    setGalleryFrom(from);
+    setGalleryUnlockAll(unlockAll);
+    setScreen('gallery');
+  }
 
   function handlePlayerSelected(char: Character) {
     setPlayer(char);
@@ -100,7 +110,9 @@ export default function App() {
         <>
           <TitleScreen
             onStart={handleStart}
-            onGallery={() => setScreen('gallery')}
+            onGallery={
+              import.meta.env.DEV ? () => goToGallery('title', true) : undefined
+            }
           />
           {showingTutorial && <TutorialModal onDone={handleTutorialDone} />}
         </>
@@ -116,6 +128,7 @@ export default function App() {
           onConfigChange={setGameConfig}
           onBack={() => setScreen('title')}
           backLabel="Title"
+          onGallery={() => goToGallery('character-select', false)}
         />
       );
 
@@ -155,6 +168,11 @@ export default function App() {
       ) : null;
 
     case 'gallery':
-      return <Gallery onBack={() => setScreen('title')} />;
+      return (
+        <Gallery
+          onBack={() => setScreen(galleryFrom)}
+          unlockAll={galleryUnlockAll}
+        />
+      );
   }
 }

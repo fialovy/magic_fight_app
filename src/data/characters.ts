@@ -119,3 +119,17 @@ export function findMeta(namePath: string): CharacterMeta | undefined {
 export const SELECTABLE_CHARACTERS = Object.values(CHARACTER_REGISTRY).filter(
   (m) => !m.isVariant,
 );
+
+export function opponentsOf(meta: CharacterMeta): CharacterMeta[] {
+  return SELECTABLE_CHARACTERS.filter((m) => m.namePath !== meta.namePath);
+}
+
+// A character plus any shapeshift forms nested under it (e.g. nora, nora/norm)
+export function formsOf(meta: CharacterMeta): CharacterMeta[] {
+  return [
+    meta,
+    ...Object.values(CHARACTER_REGISTRY).filter((m) =>
+      m.namePath.startsWith(`${meta.namePath}/`),
+    ),
+  ];
+}

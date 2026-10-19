@@ -3,11 +3,13 @@ import FadeImage from './FadeImage';
 import LoreScrolls from './LoreScrolls';
 import type { Character, GameConfig, GameMode, GameSpeed } from '../types/game';
 import {
-  CHARACTER_REGISTRY,
   type CharacterMeta,
   SELECTABLE_CHARACTERS,
+  formsOf,
+  opponentsOf,
 } from '../data/characters';
-import { loadLore } from '../engine/loader';
+import { summarizeCompletion } from '../engine/completion';
+import { useLoreByPath } from '../hooks/useLoreByPath';
 import {
   type CharacterProgress,
   type ProgressStore,
@@ -24,6 +26,8 @@ interface Props {
   onConfigChange: (c: GameConfig) => void;
   onBack: () => void;
   backLabel: string;
+  // Only passed on the player-select screen, where the gallery button lives
+  onGallery?: () => void;
 }
 
 const bioCache = new Map<string, string>();
@@ -37,12 +41,19 @@ export default function CharacterSelectScreen({
   onConfigChange,
   onBack,
   backLabel,
+  onGallery,
 }: Props) {
   const [preview, setPreview] = useState<CharacterMeta | null>(null);
   const [loading, setLoading] = useState<string | null>(null);
   const [progress] = useState(loadProgress);
-  const [loreByPath, setLoreByPath] = useState<Record<string, string[]>>({});
   const showProgress = mode === 'player';
+  // Lore counts drive the progress dots, so the number of lore entries per
+  // character can change without touching the code
+  const loreByPath = useLoreByPath(showProgress);
+  const galleryUnlocked = SELECTABLE_CHARACTERS.some(
+    (m) => summarizeCompletion(m, progress, loreByPath).complete,
+  );
+  const [galleryHint, setGalleryHint] = useState(false);
 
   // Prefetch all bios so the modal opens with text already ready
   useEffect(() => {
@@ -54,18 +65,6 @@ export default function CharacterSelectScreen({
         .catch(() => bioCache.set(namePath, ''));
     });
   }, []);
-
-  // Lore counts drive the progress dots, so the number of lore entries per
-  // character can change without touching the code
-  useEffect(() => {
-    if (!showProgress) return;
-    // All registry entries, so shapeshift forms' lore is ready for their tabs
-    Object.values(CHARACTER_REGISTRY).forEach(({ namePath }) => {
-      loadLore(namePath).then((lore) =>
-        setLoreByPath((prev) => ({ ...prev, [namePath]: lore })),
-      );
-    });
-  }, [showProgress]);
 
   const faceUrl = (meta: CharacterMeta) =>
     `${import.meta.env.BASE_URL}images/characters/${meta.imagePrefix}_mf_face_${mode === 'player' ? 'right' : 'left'}.png`;
@@ -160,6 +159,29 @@ export default function CharacterSelectScreen({
           );
         })}
       </div>
+
+      {onGallery && (
+        <div className="flex flex-col items-center mt-6">
+          <button
+            onClick={() => (galleryUnlocked ? onGallery() : setGalleryHint(true))}
+            aria-label={galleryUnlocked ? 'Gallery' : 'Gallery (locked)'}
+            className={[
+              'px-5 py-2 rounded-xl border-2 text-sm font-semibold transition-colors',
+              galleryUnlocked
+                ? 'border-amber-500/60 bg-amber-900/20 text-amber-300 hover:bg-amber-800/30'
+                : 'border-purple-800 bg-purple-900/40 text-purple-600',
+            ].join(' ')}
+          >
+            {galleryUnlocked ? '✦ Gallery' : '🔒 Gallery'}
+          </button>
+          {/* Reserved line, so showing the hint doesn't shift the layout */}
+          <p className="min-h-4 mt-2 max-w-xs text-center text-xs italic text-purple-400">
+            {galleryHint &&
+              !galleryUnlocked &&
+              'Complete a character to open the gallery: beat all of their opponents and unlock all of their lore.'}
+          </p>
+        </div>
+      )}
 
       {/* Preview modal */}
       {preview && (
@@ -286,10 +308,6 @@ function BioPreview({ namePath }: { namePath: string }) {
   );
 }
 
-function opponentsOf(meta: CharacterMeta): CharacterMeta[] {
-  return SELECTABLE_CHARACTERS.filter((m) => m.namePath !== meta.namePath);
-}
-
 function TileProgress({
   loreTotal,
   progress,
@@ -340,16 +358,6 @@ function TileProgress({
       </div>
     </div>
   );
-}
-
-// A character plus any shapeshift forms nested under it (e.g. nora, nora/norm)
-function formsOf(meta: CharacterMeta): CharacterMeta[] {
-  return [
-    meta,
-    ...Object.values(CHARACTER_REGISTRY).filter((m) =>
-      m.namePath.startsWith(`${meta.namePath}/`),
-    ),
-  ];
 }
 
 function ProgressDetails({

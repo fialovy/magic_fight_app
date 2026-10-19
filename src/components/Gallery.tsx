@@ -1,7 +1,14 @@
 import { useMemo, useState } from 'react';
 import FadeImage from './FadeImage';
-import { CHARACTER_REGISTRY } from '../data/characters';
+import { CHARACTER_REGISTRY, formsOf } from '../data/characters';
 import type { CharacterMeta } from '../data/characters';
+import {
+  type CompletionSummary,
+  isEverythingComplete,
+  summarizeCompletion,
+} from '../engine/completion';
+import { loadProgress } from '../engine/progress';
+import { useLoreByPath } from '../hooks/useLoreByPath';
 import { BLAST_COUNTS } from 'virtual:blast-counts';
 import {
   SPELL_COLORS,
@@ -13,6 +20,8 @@ import SpellCard from './SpellCard';
 
 interface Props {
   onBack: () => void;
+  // Dev-only shortcut: show everything regardless of progress
+  unlockAll?: boolean;
 }
 
 const SUBSTRATE_FORMS: { emoji: string; meta: CharacterMeta }[] = [
@@ -42,7 +51,12 @@ const SECRET_IMAGES: { num: number; prefix: 'norm' | 'nora' }[] = [
   { num: 12, prefix: 'norm' },
 ];
 
-export default function Gallery({ onBack }: Props) {
+export default function Gallery({ onBack, unlockAll = false }: Props) {
+  const [progress] = useState(loadProgress);
+  const loreByPath = useLoreByPath();
+  const secretUnlocked =
+    unlockAll || isEverythingComplete(progress, loreByPath);
+
   return (
     <div className="min-h-screen app-bg px-4 pt-16 pb-8">
       <button
@@ -57,7 +71,7 @@ export default function Gallery({ onBack }: Props) {
             Gallery
           </h1>
           <p className="text-purple-400 text-sm mt-3 max-w-lg">
-            All game art was created by the developer in Google Drawings over the years, without the use of AI. If you found this, I'm happy to share my silly little world with you!
+            All game art was created by the developer in Google Drawings over the years, without AI assistance. If you made it here, I'm happy to share my silly little world with you!
           </p>
         </div>
 
@@ -65,13 +79,26 @@ export default function Gallery({ onBack }: Props) {
           .filter(
             (m) => !SUBSTRATE_PATHS.has(m.namePath) || m.namePath === 'nora',
           )
-          .map((meta) =>
-            meta.namePath === 'nora' ? (
-              <SubstrateGallerySection key="nora" />
+          .map((meta) => {
+            const summary = summarizeCompletion(meta, progress, loreByPath);
+            if (!unlockAll && !summary.complete) {
+              return (
+                <LockedGallerySection
+                  key={meta.namePath}
+                  meta={meta}
+                  summary={summary}
+                />
+              );
+            }
+            return meta.namePath === 'nora' ? (
+              <SubstrateGallerySection
+                key="nora"
+                secretUnlocked={secretUnlocked}
+              />
             ) : (
               <CharacterGallerySection key={meta.namePath} meta={meta} />
-            ),
-          )}
+            );
+          })}
 
         <SpellPreviewSection />
       </div>
@@ -90,10 +117,54 @@ function useBlastImages(imagePrefix: string, showLeft: boolean): string[] {
   }, [imagePrefix, showLeft]);
 }
 
-function SubstrateGallerySection() {
+// Shown in place of a character's art until they're complete
+function LockedGallerySection({
+  meta,
+  summary,
+}: {
+  meta: CharacterMeta;
+  summary: CompletionSummary;
+}) {
+  const hasForms = formsOf(meta).length > 1;
+  return (
+    <div className="mb-10">
+      <div className="flex items-center gap-3 mb-4">
+        <FadeImage
+          src={`${import.meta.env.BASE_URL}images/characters/${meta.imagePrefix}_mf_face_right.png`}
+          alt=""
+          className="w-10 h-10 object-contain grayscale opacity-30 blur-[2px]"
+        />
+        <h2 className="text-xl font-bold text-purple-500">{meta.displayName}</h2>
+        <span className="ml-auto text-purple-600" aria-label="Locked">
+          🔒
+        </span>
+      </div>
+      <div className="rounded-xl border-2 border-dashed border-purple-800 bg-purple-950/40 px-4 py-5 text-center">
+        <p className="text-sm text-purple-300">
+          Beat all of {meta.displayName}'s opponents and unlock all of their
+          lore{hasForms ? ' (in every form)' : ''} to reveal this art.
+        </p>
+        <p className="mt-2 text-xs text-purple-500">
+          <span className="text-teal-300/80">
+            Opponents {summary.beaten}/{summary.opponents}
+          </span>
+          {' · '}
+          <span className="text-amber-300/80">
+            Lore {summary.loreUnlocked}/{summary.loreTotal}
+          </span>
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function SubstrateGallerySection({
+  secretUnlocked,
+}: {
+  secretUnlocked: boolean;
+}) {
   const [formIdx, setFormIdx] = useState(0);
   const [showLeft, setShowLeft] = useState(false);
-  const [secretFound, setSecretFound] = useState(false);
 
   const isSecret = formIdx === SECRET_FORM_IDX;
   const { meta } = SUBSTRATE_FORMS[isSecret ? 0 : formIdx];
@@ -132,23 +203,22 @@ function SubstrateGallerySection() {
               </button>
             ))}
           </div>
-          {/* Hidden heart button — lives outside overflow-hidden so no border bleeds through */}
-          <button
-            onClick={() => {
-              setSecretFound(true);
-              setFormIdx(SECRET_FORM_IDX);
-            }}
-            className={[
-              'px-3 py-1.5 text-base rounded-lg border transition-all duration-300',
-              formIdx === SECRET_FORM_IDX
-                ? 'bg-rose-800/80 text-rose-200 border-purple-700'
-                : secretFound
-                  ? 'bg-purple-900/60 text-rose-300/70 hover:bg-purple-800 border-purple-700'
-                  : 'opacity-0 hover:opacity-100 hover:bg-purple-900/30 hover:text-purple-400/60 border-transparent hover:border-purple-600/30',
-            ].join(' ')}
-          >
-            ❤️
-          </button>
+          {/* Heart button, the 100% reward. Lives outside overflow-hidden so
+              no border bleeds through */}
+          {secretUnlocked && (
+            <button
+              onClick={() => setFormIdx(SECRET_FORM_IDX)}
+              title="N + W"
+              className={[
+                'px-3 py-1.5 text-base rounded-lg border transition-all duration-300',
+                formIdx === SECRET_FORM_IDX
+                  ? 'bg-rose-800/80 text-rose-200 border-purple-700'
+                  : 'bg-purple-900/60 text-rose-300/70 hover:bg-purple-800 border-purple-700',
+              ].join(' ')}
+            >
+              ❤️
+            </button>
+          )}
         </div>
 
         {!isSecret && (
