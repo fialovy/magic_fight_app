@@ -9,6 +9,23 @@ const ON_CAST = `${IMG_BASE}on_cast/`;
 const ON_IMPACT = `${IMG_BASE}on_impact/`;
 const DATA_BASE = `${BASE}characters/`;
 
+type Facing = 'left' | 'right';
+
+export function faceUrl(imagePrefix: string, facing: Facing): string {
+  return `${IMG_BASE}${imagePrefix}_mf_face_${facing}.png`;
+}
+
+export function hitUrl(imagePrefix: string, facing: Facing): string {
+  return `${ON_IMPACT}${imagePrefix}_mf_hit_face_${facing}.png`;
+}
+
+export function blastUrls(imagePrefix: string, facing: Facing): string[] {
+  return Array.from(
+    { length: BLAST_COUNTS[imagePrefix] ?? 0 },
+    (_, i) => `${ON_CAST}${imagePrefix}_mf_blast_${i}_face_${facing}.png`,
+  );
+}
+
 async function fetchJSON<T>(path: string): Promise<T | null> {
   try {
     const res = await fetch(path);
@@ -36,6 +53,30 @@ export function loadLore(namePath: string): Promise<string[]> {
   return pending;
 }
 
+const bioCache = new Map<string, Promise<string>>();
+// Resolved bios, so a popup can show an already-loaded bio without a flash
+const bioText = new Map<string, string>();
+
+export function loadBio(namePath: string): Promise<string> {
+  const cached = bioCache.get(namePath);
+  if (cached) return cached;
+  const pending = fetch(`${DATA_BASE}${namePath}/bio.txt`)
+    .then((r) => (r.ok ? r.text() : ''))
+    .catch(() => '')
+    .then((t) => {
+      const bio = t.trim();
+      if (bio) bioText.set(namePath, bio);
+      else bioCache.delete(namePath); // retry later rather than cache a failure
+      return bio;
+    });
+  bioCache.set(namePath, pending);
+  return pending;
+}
+
+export function peekBio(namePath: string): string | undefined {
+  return bioText.get(namePath);
+}
+
 export async function loadCharacter(
   namePath: string,
   inheritLife?: number,
@@ -45,7 +86,6 @@ export async function loadCharacter(
 
   const { imagePrefix } = meta;
   const base = `${DATA_BASE}${namePath}/`;
-  const blastCount = BLAST_COUNTS[imagePrefix] ?? 0;
 
   const [tauntsInfo, reactionsInfo] = await Promise.all([
     fetchJSON<TauntsInfo>(`${base}taunts.json`),
@@ -59,17 +99,11 @@ export async function loadCharacter(
     tauntsInfo: tauntsInfo ?? null,
     reactionsInfo: reactionsInfo ?? null,
     affinity: CHARACTER_AFFINITIES[imagePrefix]!,
-    imageLeft: `${IMG_BASE}${imagePrefix}_mf_face_left.png`,
-    imageRight: `${IMG_BASE}${imagePrefix}_mf_face_right.png`,
-    hitImageLeft: `${ON_IMPACT}${imagePrefix}_mf_hit_face_left.png`,
-    hitImageRight: `${ON_IMPACT}${imagePrefix}_mf_hit_face_right.png`,
-    blastImagesLeft: Array.from(
-      { length: blastCount },
-      (_, i) => `${ON_CAST}${imagePrefix}_mf_blast_${i}_face_left.png`,
-    ),
-    blastImagesRight: Array.from(
-      { length: blastCount },
-      (_, i) => `${ON_CAST}${imagePrefix}_mf_blast_${i}_face_right.png`,
-    ),
+    imageLeft: faceUrl(imagePrefix, 'left'),
+    imageRight: faceUrl(imagePrefix, 'right'),
+    hitImageLeft: hitUrl(imagePrefix, 'left'),
+    hitImageRight: hitUrl(imagePrefix, 'right'),
+    blastImagesLeft: blastUrls(imagePrefix, 'left'),
+    blastImagesRight: blastUrls(imagePrefix, 'right'),
   };
 }

@@ -1,6 +1,10 @@
 import { useMemo, useState } from 'react';
 import FadeImage from './FadeImage';
-import { CHARACTER_REGISTRY, formsOf } from '../data/characters';
+import {
+  CHARACTER_REGISTRY,
+  SELECTABLE_CHARACTERS,
+  formsOf,
+} from '../data/characters';
 import type { CharacterMeta } from '../data/characters';
 import {
   type CompletionSummary,
@@ -9,7 +13,7 @@ import {
 } from '../engine/completion';
 import { loadProgress } from '../engine/progress';
 import { useLoreByPath } from '../hooks/useLoreByPath';
-import { BLAST_COUNTS } from 'virtual:blast-counts';
+import { blastUrls, faceUrl } from '../engine/loader';
 import {
   SPELL_COLORS,
   SPELL_FILLS,
@@ -24,13 +28,8 @@ interface Props {
   unlockAll?: boolean;
 }
 
-const SUBSTRATE_FORMS: { emoji: string; meta: CharacterMeta }[] = [
-  { emoji: '♀️', meta: CHARACTER_REGISTRY['nora']! },
-  { emoji: '♂️', meta: CHARACTER_REGISTRY['nora/norm']! },
-  { emoji: '🌿', meta: CHARACTER_REGISTRY['nora/meadow_sprite']! },
-];
-
-const SUBSTRATE_PATHS = new Set(SUBSTRATE_FORMS.map((f) => f.meta.namePath));
+// Nora's shapeshift forms, in tab order: Nora, Norm, Meadow Sprite
+const SUBSTRATE_FORMS = formsOf(CHARACTER_REGISTRY['nora']!);
 const SECRET_FORM_IDX = SUBSTRATE_FORMS.length;
 
 // Shared-index sequence for the secret gallery, which has both of the primary forms
@@ -75,30 +74,26 @@ export default function Gallery({ onBack, unlockAll = false }: Props) {
           </p>
         </div>
 
-        {Object.values(CHARACTER_REGISTRY)
-          .filter(
-            (m) => !SUBSTRATE_PATHS.has(m.namePath) || m.namePath === 'nora',
-          )
-          .map((meta) => {
-            const summary = summarizeCompletion(meta, progress, loreByPath);
-            if (!unlockAll && !summary.complete) {
-              return (
-                <LockedGallerySection
-                  key={meta.namePath}
-                  meta={meta}
-                  summary={summary}
-                />
-              );
-            }
-            return meta.namePath === 'nora' ? (
-              <SubstrateGallerySection
-                key="nora"
-                secretUnlocked={secretUnlocked}
+        {SELECTABLE_CHARACTERS.map((meta) => {
+          const summary = summarizeCompletion(meta, progress, loreByPath);
+          if (!unlockAll && !summary.complete) {
+            return (
+              <LockedGallerySection
+                key={meta.namePath}
+                meta={meta}
+                summary={summary}
               />
-            ) : (
-              <CharacterGallerySection key={meta.namePath} meta={meta} />
             );
-          })}
+          }
+          return meta.namePath === 'nora' ? (
+            <SubstrateGallerySection
+              key="nora"
+              secretUnlocked={secretUnlocked}
+            />
+          ) : (
+            <CharacterGallerySection key={meta.namePath} meta={meta} />
+          );
+        })}
 
         <SpellPreviewSection />
       </div>
@@ -108,12 +103,7 @@ export default function Gallery({ onBack, unlockAll = false }: Props) {
 
 function useBlastImages(imagePrefix: string, showLeft: boolean): string[] {
   return useMemo(() => {
-    const blastCount = BLAST_COUNTS[imagePrefix] ?? 0;
-    return Array.from(
-      { length: blastCount },
-      (_, i) =>
-        `${import.meta.env.BASE_URL}images/characters/on_cast/${imagePrefix}_mf_blast_${i}_face_${showLeft ? 'left' : 'right'}.png`,
-    );
+    return blastUrls(imagePrefix, showLeft ? 'left' : 'right');
   }, [imagePrefix, showLeft]);
 }
 
@@ -130,7 +120,7 @@ function LockedGallerySection({
     <div className="mb-10">
       <div className="flex items-center gap-3 mb-4">
         <FadeImage
-          src={`${import.meta.env.BASE_URL}images/characters/${meta.imagePrefix}_mf_face_right.png`}
+          src={faceUrl(meta.imagePrefix, 'right')}
           alt=""
           className="w-10 h-10 object-contain grayscale opacity-30 blur-[2px]"
         />
@@ -168,14 +158,14 @@ function SubstrateGallerySection({
   const [showLeft, setShowLeft] = useState(false);
 
   const isSecret = formIdx === SECRET_FORM_IDX;
-  const { meta } = SUBSTRATE_FORMS[isSecret ? 0 : formIdx];
+  const meta = SUBSTRATE_FORMS[isSecret ? 0 : formIdx];
   const blastImages = useBlastImages(meta.imagePrefix, showLeft);
 
   return (
     <div className="mb-10">
       <div className="flex items-center gap-3 mb-4 flex-wrap">
         <FadeImage
-          src={`${import.meta.env.BASE_URL}images/characters/${meta.imagePrefix}_mf_face_right.png`}
+          src={faceUrl(meta.imagePrefix, 'right')}
           alt={meta.displayName}
           className="w-10 h-10 object-contain shrink-0"
         />
@@ -191,7 +181,7 @@ function SubstrateGallerySection({
               <button
                 key={i}
                 onClick={() => setFormIdx(i)}
-                title={form.meta.displayName}
+                title={form.displayName}
                 className={[
                   'px-3 py-1.5 text-base transition-colors',
                   i === formIdx
@@ -200,7 +190,7 @@ function SubstrateGallerySection({
                   i > 0 ? 'border-l border-purple-700' : '',
                 ].join(' ')}
               >
-                {form.emoji}
+                {form.formEmoji}
               </button>
             ))}
           </div>
@@ -266,7 +256,7 @@ function CharacterGallerySection({ meta }: { meta: CharacterMeta }) {
     <div className="mb-10">
       <div className="flex items-center gap-3 mb-4">
         <FadeImage
-          src={`${import.meta.env.BASE_URL}images/characters/${meta.imagePrefix}_mf_face_right.png`}
+          src={faceUrl(meta.imagePrefix, 'right')}
           alt={meta.displayName}
           className="w-10 h-10 object-contain"
         />
@@ -296,7 +286,7 @@ function BlastGrid({
     <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
       <div className="aspect-square bg-purple-950/60 border border-purple-800 rounded-xl p-2 flex items-center justify-center">
         <FadeImage
-          src={`${import.meta.env.BASE_URL}images/characters/${meta.imagePrefix}_mf_face_${showLeft ? 'left' : 'right'}.png`}
+          src={faceUrl(meta.imagePrefix, showLeft ? 'left' : 'right')}
           alt={`${meta.displayName} portrait`}
           className="max-w-full max-h-full object-contain"
         />

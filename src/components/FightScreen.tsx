@@ -4,10 +4,8 @@ import type {
   CollisionOutcome,
   GameConfig,
   PatternRule,
-  ReactionsInfo,
   Spell,
   TimerResult,
-  TauntsInfo,
   TurnRecord,
 } from '../types/game';
 import {
@@ -30,7 +28,8 @@ import {
   resolveCollision,
 } from '../data/spells';
 import SpellCard from './SpellCard';
-import { BLAST_COUNTS } from 'virtual:blast-counts';
+import { CHARACTER_REGISTRY, formsOf } from '../data/characters';
+import { loadCharacter } from '../engine/loader';
 import confetti from 'canvas-confetti';
 
 interface Props {
@@ -134,26 +133,14 @@ function setSpeechTimed(
   }, SPEECH_MS);
 }
 
-const SUBSTRATE_FORM_DEFS = [
-  { emoji: '♀️', prefix: 'nora', path: 'nora', displayName: 'Nora' },
-  { emoji: '♂️', prefix: 'norm', path: 'nora/norm', displayName: 'Norm' },
-  {
-    emoji: '🌿',
-    prefix: 'meadow_sprite',
-    path: 'nora/meadow_sprite',
-    displayName: 'Meadow Sprite',
-  },
-] as const;
-
-const SUBSTRATE_NAME_PATHS: Set<string> = new Set(
-  SUBSTRATE_FORM_DEFS.map((f) => f.path),
+// Nora's shapeshift forms, in toggle order: Nora, Norm, Meadow Sprite
+const SUBSTRATE_FORMS = formsOf(CHARACTER_REGISTRY['nora']!);
+const SPRITE_IDX = SUBSTRATE_FORMS.findIndex(
+  (m) => m.namePath === 'nora/meadow_sprite',
 );
-const SUBSTRATE_IDX = Object.fromEntries(
-  SUBSTRATE_FORM_DEFS.map((f, i) => [f.prefix, i]),
-) as Record<(typeof SUBSTRATE_FORM_DEFS)[number]['prefix'], number>;
 
 function isTheSubstrate(c: Character) {
-  return SUBSTRATE_NAME_PATHS.has(c.namePath);
+  return SUBSTRATE_FORMS.some((m) => m.namePath === c.namePath);
 }
 
 // for desktop vs. mobile placement of player vs. opponent
@@ -194,42 +181,15 @@ function fireBurst(
   }
 }
 
-interface SubstrateFormOverride {
-  tauntsInfo: TauntsInfo | null;
-  reactionsInfo: ReactionsInfo | null;
-}
-
-// When Norm/Nora changes forms, we have to override all of the character
-// metadata including their images of course
-function applySubstrateShapeshift(
+// Shapeshifting swaps in the loaded form wholesale (art, taunts, name), keeping
+// only the substrate's current life. Until the forms have loaded, stay as-is.
+function applyShapeshift(
   c: Character,
   formIdx: number,
-  overrides?: SubstrateFormOverride[] | null,
+  forms: Character[] | null,
 ): Character {
-  const { prefix, path, displayName } = SUBSTRATE_FORM_DEFS[formIdx];
-  const count = BLAST_COUNTS[prefix] ?? 0;
-  const ov = overrides?.[formIdx];
-  return {
-    ...c,
-    namePath: path,
-    displayName,
-    tauntsInfo: ov ? ov.tauntsInfo : c.tauntsInfo,
-    reactionsInfo: ov ? ov.reactionsInfo : c.reactionsInfo,
-    imageLeft: `${import.meta.env.BASE_URL}images/characters/${prefix}_mf_face_left.png`,
-    imageRight: `${import.meta.env.BASE_URL}images/characters/${prefix}_mf_face_right.png`,
-    hitImageLeft: `${import.meta.env.BASE_URL}images/characters/on_impact/${prefix}_mf_hit_face_left.png`,
-    hitImageRight: `${import.meta.env.BASE_URL}images/characters/on_impact/${prefix}_mf_hit_face_right.png`,
-    blastImagesLeft: Array.from(
-      { length: count },
-      (_, i) =>
-        `${import.meta.env.BASE_URL}images/characters/on_cast/${prefix}_mf_blast_${i}_face_left.png`,
-    ),
-    blastImagesRight: Array.from(
-      { length: count },
-      (_, i) =>
-        `${import.meta.env.BASE_URL}images/characters/on_cast/${prefix}_mf_blast_${i}_face_right.png`,
-    ),
-  };
+  const form = forms?.[formIdx];
+  return form ? { ...form, life: c.life } : c;
 }
 
 const OUTCOME_DISPLAY: Record<
@@ -272,7 +232,9 @@ export default function FightScreen({
   const substrateFormIdxRef = useRef(0);
   const timerDurationRef = useRef(speedTimer?.startMs ?? 0);
   const timerStepCountRef = useRef(0);
-  const substrateFormDataRef = useRef<SubstrateFormOverride[] | null>(null);
+  const substrateFormsRef = useRef<Character[] | null>(null);
+  // Re-render once the forms load, since render reads them from the ref
+  const [, setFormsLoaded] = useState(false);
   const restartTimerRef = useRef<(() => void) | null>(null);
   const turnHistoryRef = useRef<TurnRecord[]>([]);
 
@@ -315,8 +277,7 @@ export default function FightScreen({
 
   async function showShapeshiftEffect(fromIdx: number, toIdx: number) {
     const isSprite =
-      fromIdx === SUBSTRATE_IDX.meadow_sprite ||
-      toIdx === SUBSTRATE_IDX.meadow_sprite;
+      fromIdx === SPRITE_IDX || toIdx === SPRITE_IDX;
     // The splat effect picture is different depending on what forms we are
     // going between 🏳️‍🌈
     const suffix = isSprite
@@ -596,17 +557,17 @@ export default function FightScreen({
 
     // Collision visuals — use form-overridden images if the substrate is fighting
     const vP = isTheSubstrate(p)
-      ? applySubstrateShapeshift(
+      ? applyShapeshift(
           p,
           substrateFormIdxRef.current,
-          substrateFormDataRef.current,
+          substrateFormsRef.current,
         )
       : p;
     const vO = isTheSubstrate(o)
-      ? applySubstrateShapeshift(
+      ? applyShapeshift(
           o,
           substrateFormIdxRef.current,
-          substrateFormDataRef.current,
+          substrateFormsRef.current,
         )
       : o;
     if (outcome === 'win' || outcome === 'decisive-win') {
@@ -647,17 +608,17 @@ export default function FightScreen({
     await delay(800);
 
     const finalP = isTheSubstrate(newP)
-      ? applySubstrateShapeshift(
+      ? applyShapeshift(
           newP,
           substrateFormIdxRef.current,
-          substrateFormDataRef.current,
+          substrateFormsRef.current,
         )
       : newP;
     const finalO = isTheSubstrate(newO)
-      ? applySubstrateShapeshift(
+      ? applyShapeshift(
           newO,
           substrateFormIdxRef.current,
-          substrateFormDataRef.current,
+          substrateFormsRef.current,
         )
       : newO;
     if (newO.life <= 0) {
@@ -701,28 +662,16 @@ export default function FightScreen({
     runTurn();
   }, []);
 
-  // make sure the substrate's stuff is always up to date
+  // Load every form up front so shapeshifting is instant
   useEffect(() => {
     if (!isTheSubstrate(initialPlayer) && !isTheSubstrate(initialOpponent))
       return;
-    Promise.all(
-      SUBSTRATE_FORM_DEFS.map(async ({ path }) => {
-        const [taunts, reactions] = await Promise.all([
-          fetch(`${import.meta.env.BASE_URL}characters/${path}/taunts.json`)
-            .then((r) => (r.ok ? r.json() : null))
-            .catch(() => null),
-          fetch(`${import.meta.env.BASE_URL}characters/${path}/reactions.json`)
-            .then((r) => (r.ok ? r.json() : null))
-            .catch(() => null),
-        ]);
-        return {
-          tauntsInfo: taunts,
-          reactionsInfo: reactions,
-        } as SubstrateFormOverride;
-      }),
-    ).then((data) => {
-      substrateFormDataRef.current = data;
-    });
+    Promise.all(SUBSTRATE_FORMS.map((m) => loadCharacter(m.namePath))).then(
+      (forms) => {
+        substrateFormsRef.current = forms;
+        setFormsLoaded(true);
+      },
+    );
   }, []);
 
   const showOpponentSpell =
@@ -731,17 +680,17 @@ export default function FightScreen({
   const isPlayerSubstrate = isTheSubstrate(player);
   const isOpponentSubstrate = isTheSubstrate(opponent);
   const displayPlayer = isPlayerSubstrate
-    ? applySubstrateShapeshift(
+    ? applyShapeshift(
         player,
         substrateForm.idx,
-        substrateFormDataRef.current,
+        substrateFormsRef.current,
       )
     : player;
   const displayOpponent = isOpponentSubstrate
-    ? applySubstrateShapeshift(
+    ? applyShapeshift(
         opponent,
         substrateForm.idx,
-        substrateFormDataRef.current,
+        substrateFormsRef.current,
       )
     : opponent;
 
@@ -904,10 +853,11 @@ function SubstrateSegmented({
 }) {
   return (
     <div className="flex rounded-lg border border-purple-700 overflow-hidden">
-      {SUBSTRATE_FORM_DEFS.map((f, i) => (
+      {SUBSTRATE_FORMS.map((f, i) => (
         <button
-          key={i}
+          key={f.namePath}
           onClick={() => onChange(i)}
+          title={f.displayName}
           className={[
             'px-3 py-1 text-base transition-colors',
             i === formIdx
@@ -916,7 +866,7 @@ function SubstrateSegmented({
             i > 0 ? 'border-l border-purple-700' : '',
           ].join(' ')}
         >
-          {f.emoji}
+          {f.formEmoji}
         </button>
       ))}
     </div>

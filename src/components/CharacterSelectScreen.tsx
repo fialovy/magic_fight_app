@@ -8,10 +8,14 @@ import {
   formsOf,
   opponentsOf,
 } from '../data/characters';
-import { summarizeCompletion } from '../engine/completion';
+import {
+  beatenCount,
+  summarizeCompletion,
+  unlockedLoreCount,
+} from '../engine/completion';
+import { faceUrl, loadBio, peekBio } from '../engine/loader';
 import { useLoreByPath } from '../hooks/useLoreByPath';
 import {
-  type CharacterProgress,
   type ProgressStore,
   getCharacterProgress,
   loadProgress,
@@ -29,8 +33,6 @@ interface Props {
   // Only passed on the player-select screen, where the gallery button lives
   onGallery?: () => void;
 }
-
-const bioCache = new Map<string, string>();
 
 export default function CharacterSelectScreen({
   mode,
@@ -57,17 +59,11 @@ export default function CharacterSelectScreen({
 
   // Prefetch all bios so the modal opens with text already ready
   useEffect(() => {
-    SELECTABLE_CHARACTERS.forEach(({ namePath }) => {
-      if (bioCache.has(namePath)) return;
-      fetch(`${import.meta.env.BASE_URL}characters/${namePath}/bio.txt`)
-        .then((r) => r.text())
-        .then((t) => bioCache.set(namePath, t.trim()))
-        .catch(() => bioCache.set(namePath, ''));
-    });
+    SELECTABLE_CHARACTERS.forEach(({ namePath }) => loadBio(namePath));
   }, []);
 
-  const faceUrl = (meta: CharacterMeta) =>
-    `${import.meta.env.BASE_URL}images/characters/${meta.imagePrefix}_mf_face_${mode === 'player' ? 'right' : 'left'}.png`;
+  const portraitUrl = (meta: CharacterMeta) =>
+    faceUrl(meta.imagePrefix, mode === 'player' ? 'right' : 'left');
 
   async function handleSelect(namePath: string) {
     setLoading(namePath);
@@ -135,7 +131,7 @@ export default function CharacterSelectScreen({
             >
               <div className="relative w-full max-w-28 aspect-square mb-2">
                 <FadeImage
-                  src={faceUrl(meta)}
+                  src={portraitUrl(meta)}
                   alt={meta.displayName}
                   className="w-full h-full object-contain"
                 />
@@ -150,9 +146,15 @@ export default function CharacterSelectScreen({
               </span>
               {showProgress && (
                 <TileProgress
-                  loreTotal={loreByPath[meta.namePath]?.length ?? 0}
-                  progress={getCharacterProgress(progress, meta.namePath)}
-                  opponents={opponentsOf(meta)}
+                  loreGroups={formsOf(meta).map((f) => {
+                    const total = loreByPath[f.namePath]?.length ?? 0;
+                    return {
+                      total,
+                      unlocked: unlockedLoreCount(progress, f.namePath, total),
+                    };
+                  })}
+                  beaten={beatenCount(progress, meta)}
+                  opponentCount={opponentsOf(meta).length}
                 />
               )}
             </button>
@@ -204,7 +206,7 @@ export default function CharacterSelectScreen({
 
             <div className="overflow-y-auto p-6 flex flex-col items-center gap-4">
               <FadeImage
-                src={faceUrl(preview)}
+                src={portraitUrl(preview)}
                 alt={preview.displayName}
                 className="w-40 h-40 object-contain"
               />
@@ -279,20 +281,11 @@ function SegmentedControl<T extends string>({
 }
 
 function BioPreview({ namePath }: { namePath: string }) {
-  const [bio, setBio] = useState<string | null>(bioCache.get(namePath) ?? null);
+  const [bio, setBio] = useState<string | null>(peekBio(namePath) ?? null);
 
   useEffect(() => {
-    if (bioCache.has(namePath)) return;
-    fetch(`${import.meta.env.BASE_URL}characters/${namePath}/bio.txt`)
-      .then((r) => r.text())
-      .then((t) => {
-        bioCache.set(namePath, t.trim());
-        setBio(t.trim());
-      })
-      .catch(() => {
-        bioCache.set(namePath, '');
-        setBio('');
-      });
+    if (peekBio(namePath) !== undefined) return;
+    loadBio(namePath).then(setBio);
   }, [namePath]);
 
   if (bio === null)
@@ -308,20 +301,21 @@ function BioPreview({ namePath }: { namePath: string }) {
   );
 }
 
+// loreGroups has one entry per shapeshift form (just one for most characters);
+// multi-form characters get one small cluster of dots per form
 function TileProgress({
-  loreTotal,
-  progress,
-  opponents,
+  loreGroups,
+  beaten,
+  opponentCount,
 }: {
-  loreTotal: number;
-  progress: CharacterProgress;
-  opponents: CharacterMeta[];
+  loreGroups: { total: number; unlocked: number }[];
+  beaten: number;
+  opponentCount: number;
 }) {
-  const loreCount = progress.lore.filter((i) => i < loreTotal).length;
-  const beatenCount = opponents.filter((o) =>
-    progress.beaten.includes(o.namePath),
-  ).length;
-  const summary = `${loreCount} of ${loreTotal} lore unlocked, ${beatenCount} of ${opponents.length} opponents beaten`;
+  const loreTotal = loreGroups.reduce((n, g) => n + g.total, 0);
+  const loreCount = loreGroups.reduce((n, g) => n + g.unlocked, 0);
+  const clustered = loreGroups.length > 1;
+  const summary = `${loreCount} of ${loreTotal} lore unlocked, ${beaten} of ${opponentCount} opponents beaten`;
 
   return (
     <div
@@ -330,26 +324,31 @@ function TileProgress({
       title={summary}
       className="flex flex-col items-center gap-1.5 mt-1.5 w-full"
     >
-      <div className="flex gap-1 h-1.5">
-        {Array.from({ length: loreTotal }, (_, i) => (
-          <span
-            key={i}
-            className={[
-              'w-1.5 h-1.5 rounded-full',
-              i < loreCount
-                ? 'bg-amber-300 shadow-[0_0_6px_rgba(252,211,77,0.9)]'
-                : 'bg-purple-800',
-            ].join(' ')}
-          />
+      <div className={`flex items-center h-1.5 ${clustered ? 'gap-1.5' : ''}`}>
+        {loreGroups.map((group, g) => (
+          <div key={g} className={`flex ${clustered ? 'gap-0.5' : 'gap-1'}`}>
+            {Array.from({ length: group.total }, (_, i) => (
+              <span
+                key={i}
+                className={[
+                  'rounded-full',
+                  clustered ? 'w-1 h-1' : 'w-1.5 h-1.5',
+                  i < group.unlocked
+                    ? 'bg-amber-300 shadow-[0_0_6px_rgba(252,211,77,0.9)]'
+                    : 'bg-purple-800',
+                ].join(' ')}
+              />
+            ))}
+          </div>
         ))}
       </div>
       <div className="flex gap-0.5 w-full max-w-20 h-1">
-        {opponents.map((o, i) => (
+        {Array.from({ length: opponentCount }, (_, i) => (
           <span
-            key={o.namePath}
+            key={i}
             className={[
               'flex-1 rounded-full',
-              i < beatenCount
+              i < beaten
                 ? 'bg-teal-300 shadow-[0_0_4px_rgba(94,234,212,0.8)]'
                 : 'bg-purple-800',
             ].join(' ')}
@@ -377,20 +376,15 @@ function ProgressDetails({
   const progress = getCharacterProgress(store, meta.namePath);
 
   const opponents = opponentsOf(meta);
-  const unlockedOf = (f: CharacterMeta) => {
-    const count = loreByPath[f.namePath]?.length ?? 0;
-    return getCharacterProgress(store, f.namePath).lore.filter((i) => i < count)
-      .length;
-  };
-  const beatenCount = opponents.filter((o) =>
-    progress.beaten.includes(o.namePath),
-  ).length;
+  // Lore totals span every form, e.g. 9 for Nora (3 each for Nora, Norm, Sprite)
+  const loreSummary = summarizeCompletion(meta, store, loreByPath);
+  const beaten = beatenCount(store, meta);
 
   return (
     <div className="w-full mt-2 border-t border-purple-800 pt-4 flex flex-col gap-5">
       <section>
         <h3 className="text-amber-500 text-xs font-semibold tracking-widest uppercase mb-3">
-          ✦ Lore · {unlockedOf(form)}/{lore.length}
+          ✦ Lore · {loreSummary.loreUnlocked}/{loreSummary.loreTotal}
         </h3>
         {forms.length > 1 && (
           <div className="flex rounded-lg border border-purple-700 overflow-hidden mb-4">
@@ -421,7 +415,7 @@ function ProgressDetails({
 
       <section>
         <h3 className="text-teal-300 text-xs font-semibold tracking-widest uppercase mb-2">
-          Opponents beaten · {beatenCount}/{opponents.length}
+          Opponents beaten · {beaten}/{opponents.length}
         </h3>
         <div className="grid grid-cols-4 gap-2">
           {opponents.map((o) => {
@@ -435,7 +429,7 @@ function ProgressDetails({
                   ].join(' ')}
                 >
                   <FadeImage
-                    src={`${import.meta.env.BASE_URL}images/characters/${o.imagePrefix}_mf_face_left.png`}
+                    src={faceUrl(o.imagePrefix, 'left')}
                     alt=""
                     className={[
                       'w-full h-full object-cover scale-150 origin-[50%_25%]',

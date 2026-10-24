@@ -14,6 +14,23 @@ export interface CompletionSummary {
   complete: boolean;
 }
 
+// Unlocked entries among a character's (or form's) loreCount lore entries.
+// Stored indices are unique, so counting the in-range ones is enough.
+export function unlockedLoreCount(
+  store: ProgressStore,
+  namePath: string,
+  loreCount: number,
+): number {
+  return getCharacterProgress(store, namePath).lore.filter((i) => i < loreCount)
+    .length;
+}
+
+// How many of a character's possible opponents they've beaten
+export function beatenCount(store: ProgressStore, meta: CharacterMeta): number {
+  const beaten = getCharacterProgress(store, meta.namePath).beaten;
+  return opponentsOf(meta).filter((o) => beaten.includes(o.namePath)).length;
+}
+
 // A character is complete once they've beaten every opponent and every lore
 // entry is unlocked, across all of their shapeshift forms. Lore that hasn't
 // loaded yet counts as incomplete, so nothing unlocks early.
@@ -23,10 +40,7 @@ export function summarizeCompletion(
   loreByPath: Record<string, string[]>,
 ): CompletionSummary {
   const opponents = opponentsOf(meta);
-  const beatenList = getCharacterProgress(store, meta.namePath).beaten;
-  const beaten = opponents.filter((o) =>
-    beatenList.includes(o.namePath),
-  ).length;
+  const beaten = beatenCount(store, meta);
 
   let loreUnlocked = 0;
   let loreTotal = 0;
@@ -37,9 +51,8 @@ export function summarizeCompletion(
       loreLoaded = false;
       continue;
     }
-    const unlocked = getCharacterProgress(store, form.namePath).lore;
     loreTotal += lore.length;
-    loreUnlocked += lore.filter((_, i) => unlocked.includes(i)).length;
+    loreUnlocked += unlockedLoreCount(store, form.namePath, lore.length);
   }
 
   return {
