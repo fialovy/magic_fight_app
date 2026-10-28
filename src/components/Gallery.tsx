@@ -70,7 +70,9 @@ export default function Gallery({ onBack, unlockAll = false }: Props) {
             Gallery
           </h1>
           <p className="text-purple-400 text-sm mt-3 max-w-lg">
-            All game art was created by the developer in Google Drawings over the years, without AI assistance. If you made it here, I'm happy to share my silly little world with you!
+            All game art was created by the developer in Google Drawings over
+            the years, without AI assistance. If you made it here, I'm happy to
+            share my silly little world with you!
           </p>
         </div>
 
@@ -124,7 +126,9 @@ function LockedGallerySection({
           alt=""
           className="w-10 h-10 object-contain grayscale opacity-30 blur-[2px]"
         />
-        <h2 className="text-xl font-bold text-purple-500">{meta.displayName}</h2>
+        <h2 className="text-xl font-bold text-purple-500">
+          {meta.displayName}
+        </h2>
         <span className="ml-auto text-purple-600" aria-label="Locked">
           🔒
         </span>
@@ -318,7 +322,8 @@ function SpellPreviewSection() {
   const [selRotation, setSelRotation] = useState(SPELL_ROTATIONS[0]);
   const [spinKey, setSpinKey] = useState(0);
 
-  const spinCls = selRotation === 'clockwise' ? 'card-spin-once-cw' : 'card-spin-once-ccw';
+  const spinCls =
+    selRotation === 'clockwise' ? 'card-spin-once-cw' : 'card-spin-once-ccw';
 
   const categories = [
     {
@@ -326,7 +331,12 @@ function SpellPreviewSection() {
       keyPrefix: 'color',
       isRotation: false,
       selectedIndex: SPELL_COLORS.indexOf(selColor),
-      spells: SPELL_COLORS.map((c) => ({ color: c, shape: selShape, fill: selFill, rotation: selRotation })),
+      spells: SPELL_COLORS.map((c) => ({
+        color: c,
+        shape: selShape,
+        fill: selFill,
+        rotation: selRotation,
+      })),
       onCardClick: (i: number) => setSelColor(SPELL_COLORS[i]),
     },
     {
@@ -334,7 +344,12 @@ function SpellPreviewSection() {
       keyPrefix: 'shape',
       isRotation: false,
       selectedIndex: SPELL_SHAPES.indexOf(selShape),
-      spells: SPELL_SHAPES.map((s) => ({ color: selColor, shape: s, fill: selFill, rotation: selRotation })),
+      spells: SPELL_SHAPES.map((s) => ({
+        color: selColor,
+        shape: s,
+        fill: selFill,
+        rotation: selRotation,
+      })),
       onCardClick: (i: number) => setSelShape(SPELL_SHAPES[i]),
     },
     {
@@ -342,7 +357,12 @@ function SpellPreviewSection() {
       keyPrefix: 'fill',
       isRotation: false,
       selectedIndex: SPELL_FILLS.indexOf(selFill),
-      spells: SPELL_FILLS.map((f) => ({ color: selColor, shape: selShape, fill: f, rotation: selRotation })),
+      spells: SPELL_FILLS.map((f) => ({
+        color: selColor,
+        shape: selShape,
+        fill: f,
+        rotation: selRotation,
+      })),
       onCardClick: (i: number) => setSelFill(SPELL_FILLS[i]),
     },
     {
@@ -350,8 +370,16 @@ function SpellPreviewSection() {
       keyPrefix: 'rot',
       isRotation: true,
       selectedIndex: SPELL_ROTATIONS.indexOf(selRotation),
-      spells: SPELL_ROTATIONS.map((r) => ({ color: selColor, shape: selShape, fill: selFill, rotation: r })),
-      onCardClick: (i: number) => { setSelRotation(SPELL_ROTATIONS[i]); setSpinKey((k) => k + 1); },
+      spells: SPELL_ROTATIONS.map((r) => ({
+        color: selColor,
+        shape: selShape,
+        fill: selFill,
+        rotation: r,
+      })),
+      onCardClick: (i: number) => {
+        setSelRotation(SPELL_ROTATIONS[i]);
+        setSpinKey((k) => k + 1);
+      },
     },
   ];
 
@@ -361,24 +389,39 @@ function SpellPreviewSection() {
         ✦ Spell system preview
       </p>
       <div className="flex flex-col gap-6">
-        {categories.map(({ label, spells, keyPrefix, isRotation, selectedIndex, onCardClick }) => (
-          <div key={keyPrefix}>
-            <p className="text-purple-600 text-xs uppercase tracking-widest mb-2">{label}</p>
-            <div className="flex flex-wrap gap-3">
-              {spells.map((spell, i) => (
-                <SpellCard
-                  key={isRotation ? `${keyPrefix}-${i}` : `${keyPrefix}-${i}-${spinKey}`}
-                  spell={spell}
-                  size={80}
-                  selected={i === selectedIndex}
-                  onClick={() => onCardClick(i)}
-                  staticDisplay={!isRotation}
-                  className={!isRotation && spinKey > 0 ? spinCls : undefined}
-                />
-              ))}
+        {categories.map(
+          ({
+            label,
+            spells,
+            keyPrefix,
+            isRotation,
+            selectedIndex,
+            onCardClick,
+          }) => (
+            <div key={keyPrefix}>
+              <p className="text-purple-600 text-xs uppercase tracking-widest mb-2">
+                {label}
+              </p>
+              <div className="flex flex-wrap gap-3">
+                {spells.map((spell, i) => (
+                  <SpellCard
+                    key={
+                      isRotation
+                        ? `${keyPrefix}-${i}`
+                        : `${keyPrefix}-${i}-${spinKey}`
+                    }
+                    spell={spell}
+                    size={80}
+                    selected={i === selectedIndex}
+                    onClick={() => onCardClick(i)}
+                    staticDisplay={!isRotation}
+                    className={!isRotation && spinKey > 0 ? spinCls : undefined}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          ),
+        )}
       </div>
     </div>
   );

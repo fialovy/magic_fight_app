@@ -31,7 +31,8 @@ export function loadProgress(): ProgressStore {
     if (!parsed || typeof parsed !== 'object') return {};
 
     const store: ProgressStore = {};
-    const entryFor = (path: string) => (store[path] ??= { lore: [], beaten: [] });
+    const entryFor = (path: string) =>
+      (store[path] ??= { lore: [], beaten: [] });
     for (const [namePath, value] of Object.entries(parsed)) {
       const entry = value as Partial<CharacterProgress> | null;
       const lore = Array.isArray(entry?.lore)
@@ -45,7 +46,8 @@ export function loadProgress(): ProgressStore {
       for (const i of lore) own.lore = addUnique(own.lore, i);
       // Opponent wins always live on the base character, keyed by base opponent
       const base = entryFor(baseCharacterPath(namePath));
-      for (const p of beaten) base.beaten = addUnique(base.beaten, baseCharacterPath(p));
+      for (const p of beaten)
+        base.beaten = addUnique(base.beaten, baseCharacterPath(p));
     }
     return store;
   } catch {

@@ -146,9 +146,7 @@ function isTheSubstrate(c: Character) {
 // for desktop vs. mobile placement of player vs. opponent
 function panelClass(side: 'player' | 'opponent', character: Character): string {
   const order = side === 'player' ? 'order-3 md:order-1' : 'order-1 md:order-3';
-  const height = isTheSubstrate(character)
-    ? 'h-[calc(32vh+44px)]'
-    : 'h-[32vh]';
+  const height = isTheSubstrate(character) ? 'h-[calc(32vh+44px)]' : 'h-[32vh]';
   return `${order} flex flex-col items-center py-2 md:p-4 w-full md:w-72 xl:w-96 md:shrink-0 md:h-auto ${height}`;
 }
 
@@ -207,7 +205,10 @@ function parseRule(rule: PatternRule): { isAvoid: boolean; dims: string[] } {
   return {
     isAvoid: rule.startsWith('avoid'),
     // both 'match-' and 'avoid-' are 6 chars
-    dims: rule.slice(6).split('+').map((d) => d.toUpperCase()),
+    dims: rule
+      .slice(6)
+      .split('+')
+      .map((d) => d.toUpperCase()),
   };
 }
 
@@ -217,7 +218,8 @@ export default function FightScreen({
   config,
   onGameOver,
 }: Props) {
-  const speedTimer = config.speed !== 'none' ? SPEED_TIMER[config.mode][config.speed] : null;
+  const speedTimer =
+    config.speed !== 'none' ? SPEED_TIMER[config.mode][config.speed] : null;
   const patternTurns = PATTERN_TURNS[config.mode];
   // Refs hold live values read by async turn logic — avoids stale closures
   const livePlayerRef = useRef(initialPlayer);
@@ -255,20 +257,41 @@ export default function FightScreen({
   const [hitAnim, setHitAnim] = useState<BlastAnim | null>(null);
   const [playerSpeech, setPlayerSpeech] = useState<string | null>(null);
   const [opponentSpeech, setOpponentSpeech] = useState<string | null>(null);
-  const playerSpeechTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const opponentSpeechTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [playerDmgFloat, setPlayerDmgFloat] = useState<{ text: string; key: number; cls: string } | null>(null);
-  const [opponentDmgFloat, setOpponentDmgFloat] = useState<{ text: string; key: number; cls: string } | null>(null);
+  const playerSpeechTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+  const opponentSpeechTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+  const [playerDmgFloat, setPlayerDmgFloat] = useState<{
+    text: string;
+    key: number;
+    cls: string;
+  } | null>(null);
+  const [opponentDmgFloat, setOpponentDmgFloat] = useState<{
+    text: string;
+    key: number;
+    cls: string;
+  } | null>(null);
   const [currentRule, setCurrentRule] = useState<PatternRule>(
     patternRef.current.rule,
   );
   const [ruleKey, setRuleKey] = useState(0);
-  const [ruleAnnounce, setRuleAnnounce] = useState<{ key: number; isAvoid: boolean } | null>(null);
+  const [ruleAnnounce, setRuleAnnounce] = useState<{
+    key: number;
+    isAvoid: boolean;
+  } | null>(null);
   const streakRef = useRef(0);
   const [streak, setStreak] = useState(0);
-  const [timerBar, setTimerBar] = useState<{ duration: number; key: number; colorClass: string } | null>(null);
+  const [timerBar, setTimerBar] = useState<{
+    duration: number;
+    key: number;
+    colorClass: string;
+  } | null>(null);
   const [playerBgOverride, setPlayerBgOverride] = useState<string | null>(null);
-  const [opponentBgOverride, setOpponentBgOverride] = useState<string | null>(null);
+  const [opponentBgOverride, setOpponentBgOverride] = useState<string | null>(
+    null,
+  );
 
   const playerPortraitRef = useRef<HTMLDivElement>(null);
   const opponentPortraitRef = useRef<HTMLDivElement>(null);
@@ -276,8 +299,7 @@ export default function FightScreen({
   const projectile2Ref = useRef<HTMLDivElement>(null);
 
   async function showShapeshiftEffect(fromIdx: number, toIdx: number) {
-    const isSprite =
-      fromIdx === SPRITE_IDX || toIdx === SPRITE_IDX;
+    const isSprite = fromIdx === SPRITE_IDX || toIdx === SPRITE_IDX;
     // The splat effect picture is different depending on what forms we are
     // going between 🏳️‍🌈
     const suffix = isSprite
@@ -492,10 +514,17 @@ export default function FightScreen({
     setOpponentSpell(oppSpell);
     setPhase('opponent-shown');
     if (speedTimer) {
-      const barColorClass = config.mode === 'follow'
-        ? (rule.startsWith('avoid') ? 'bg-rose-400' : 'bg-blue-400')
-        : 'bg-purple-400';
-      setTimerBar({ duration: timerDurationRef.current, key: Date.now(), colorClass: barColorClass });
+      const barColorClass =
+        config.mode === 'follow'
+          ? rule.startsWith('avoid')
+            ? 'bg-rose-400'
+            : 'bg-blue-400'
+          : 'bg-purple-400';
+      setTimerBar({
+        duration: timerDurationRef.current,
+        key: Date.now(),
+        colorClass: barColorClass,
+      });
     }
 
     const selectedSpell = await new Promise<Spell | null>((resolve) => {
@@ -588,22 +617,40 @@ export default function FightScreen({
     const now = Date.now();
     if (damage > 0) {
       if (outcome === 'win' || outcome === 'decisive-win')
-        setOpponentDmgFloat({ text: `−${damage}`, key: now, cls: 'text-amber-300 text-6xl font-black' });
+        setOpponentDmgFloat({
+          text: `−${damage}`,
+          key: now,
+          cls: 'text-amber-300 text-6xl font-black',
+        });
       else if (outcome === 'loss' || outcome === 'decisive-loss')
-        setPlayerDmgFloat({ text: `−${damage}`, key: now, cls: 'text-rose-400 text-6xl font-black' });
+        setPlayerDmgFloat({
+          text: `−${damage}`,
+          key: now,
+          cls: 'text-rose-400 text-6xl font-black',
+        });
     }
     if (outcome === 'decisive-win')
-      setPlayerDmgFloat({ text: '✦ Affinity!', key: now + 1, cls: 'text-amber-300 text-xl font-bold' });
+      setPlayerDmgFloat({
+        text: '✦ Affinity!',
+        key: now + 1,
+        cls: 'text-amber-300 text-xl font-bold',
+      });
     else if (outcome === 'decisive-loss')
-      setOpponentDmgFloat({ text: '✦ Affinity!', key: now + 1, cls: 'text-amber-300 text-xl font-bold' });
+      setOpponentDmgFloat({
+        text: '✦ Affinity!',
+        key: now + 1,
+        cls: 'text-amber-300 text-xl font-bold',
+      });
 
     // Speech bubbles
     if ((outcome === 'loss' || outcome === 'decisive-loss') && damage > 0) {
       const reaction = pickReaction(vP, vO.namePath);
-      if (reaction) setSpeechTimed(playerSpeechTimerRef, setPlayerSpeech, reaction);
+      if (reaction)
+        setSpeechTimed(playerSpeechTimerRef, setPlayerSpeech, reaction);
     }
     const newTaunt = pickTaunt(vO, vP.namePath);
-    if (newTaunt) setSpeechTimed(opponentSpeechTimerRef, setOpponentSpeech, newTaunt);
+    if (newTaunt)
+      setSpeechTimed(opponentSpeechTimerRef, setOpponentSpeech, newTaunt);
 
     await delay(800);
 
@@ -638,7 +685,10 @@ export default function FightScreen({
       setCurrentRule(newRule);
       setRuleKey((k) => k + 1);
       if (config.mode === 'guess') {
-        setRuleAnnounce({ key: Date.now(), isAvoid: newRule.startsWith('avoid') });
+        setRuleAnnounce({
+          key: Date.now(),
+          isAvoid: newRule.startsWith('avoid'),
+        });
       }
     } else {
       patternRef.current = { ...patternRef.current, turnsLeft: newTurnsLeft };
@@ -680,18 +730,10 @@ export default function FightScreen({
   const isPlayerSubstrate = isTheSubstrate(player);
   const isOpponentSubstrate = isTheSubstrate(opponent);
   const displayPlayer = isPlayerSubstrate
-    ? applyShapeshift(
-        player,
-        substrateForm.idx,
-        substrateFormsRef.current,
-      )
+    ? applyShapeshift(player, substrateForm.idx, substrateFormsRef.current)
     : player;
   const displayOpponent = isOpponentSubstrate
-    ? applyShapeshift(
-        opponent,
-        substrateForm.idx,
-        substrateFormsRef.current,
-      )
+    ? applyShapeshift(opponent, substrateForm.idx, substrateFormsRef.current)
     : opponent;
 
   return (
@@ -717,7 +759,6 @@ export default function FightScreen({
         className="fixed top-0 left-0 pointer-events-none"
         style={{ width: ORB_SIZE, height: ORB_SIZE, zIndex: 100, opacity: 0 }}
       />
-
 
       <div className="hidden md:block text-center py-3 border-b border-purple-800">
         <span className="text-purple-400 text-sm tracking-widest uppercase">
@@ -761,10 +802,18 @@ export default function FightScreen({
           >
             {config.mode === 'follow'
               ? currentDisplay.dims.map((dim, i) => (
-                  <span key={i} className={currentDisplay.isAvoid ? 'line-through' : undefined}>{dim}</span>
+                  <span
+                    key={i}
+                    className={
+                      currentDisplay.isAvoid ? 'line-through' : undefined
+                    }
+                  >
+                    {dim}
+                  </span>
                 ))
-              : (currentDisplay.isAvoid ? 'AVOID' : 'MATCH')
-            }
+              : currentDisplay.isAvoid
+                ? 'AVOID'
+                : 'MATCH'}
           </span>
           <span
             className={`hidden md:block text-purple-500 text-xs uppercase tracking-widest ${showOpponentSpell ? '' : 'invisible'}`}
@@ -788,14 +837,22 @@ export default function FightScreen({
               <div
                 key={timerBar.key}
                 className={`h-full rounded-full timer-drain ${timerBar.colorClass}`}
-                style={{ '--timer-duration': `${timerBar.duration}ms` } as React.CSSProperties}
+                style={
+                  {
+                    '--timer-duration': `${timerBar.duration}ms`,
+                  } as React.CSSProperties
+                }
               />
             )}
           </div>
           <div className="h-5 flex items-center justify-center">
             {phase === 'resolving' && lastOutcome && (
-              <span className={`text-sm font-bold ${lastWasTimeout ? 'text-purple-500' : OUTCOME_DISPLAY[lastOutcome].color}`}>
-                {lastWasTimeout ? '⏱ Timed out!' : OUTCOME_DISPLAY[lastOutcome].label}
+              <span
+                className={`text-sm font-bold ${lastWasTimeout ? 'text-purple-500' : OUTCOME_DISPLAY[lastOutcome].color}`}
+              >
+                {lastWasTimeout
+                  ? '⏱ Timed out!'
+                  : OUTCOME_DISPLAY[lastOutcome].label}
               </span>
             )}
           </div>
@@ -947,9 +1004,11 @@ function CharacterPanel({
         ref={portraitRef}
         className={`relative w-full flex-1 min-h-20 md:flex-none md:aspect-square overflow-hidden${side === 'player' ? ' max-md:order-2' : ''}`}
         style={{
-          maskImage: 'linear-gradient(to right, transparent, black 22%, black 78%, transparent), linear-gradient(to bottom, black 60%, transparent 100%)',
+          maskImage:
+            'linear-gradient(to right, transparent, black 22%, black 78%, transparent), linear-gradient(to bottom, black 60%, transparent 100%)',
           maskComposite: 'intersect',
-          WebkitMaskImage: 'linear-gradient(to right, transparent, black 22%, black 78%, transparent), linear-gradient(to bottom, black 60%, transparent 100%)',
+          WebkitMaskImage:
+            'linear-gradient(to right, transparent, black 22%, black 78%, transparent), linear-gradient(to bottom, black 60%, transparent 100%)',
           WebkitMaskComposite: 'source-in',
         }}
       >
@@ -1029,7 +1088,9 @@ function CharacterPanel({
         <span className="text-xs text-purple-400 tabular-nums mt-0.5">
           {character.life} / {GAME_LIFE} HP
         </span>
-        <span className={`text-sm font-bold text-amber-400 mt-2 ${streak !== undefined && streak >= 2 ? '' : 'invisible'}`}>
+        <span
+          className={`text-sm font-bold text-amber-400 mt-2 ${streak !== undefined && streak >= 2 ? '' : 'invisible'}`}
+        >
           🔥 ×{streak ?? 0}
         </span>
       </div>

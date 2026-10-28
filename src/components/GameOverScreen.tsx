@@ -67,8 +67,14 @@ async function downloadImage(
     document.body.removeChild(a);
     URL.revokeObjectURL(objectUrl);
   } catch (err) {
-    if (err instanceof Error && (err.name === 'AbortError' || err.message.includes('cancel'))) return;
-    onError(`${err instanceof Error ? err.name + ': ' + err.message : String(err)}`);
+    if (
+      err instanceof Error &&
+      (err.name === 'AbortError' || err.message.includes('cancel'))
+    )
+      return;
+    onError(
+      `${err instanceof Error ? err.name + ': ' + err.message : String(err)}`,
+    );
   }
 }
 
@@ -114,8 +120,12 @@ export default function GameOverScreen({
     if (!playerWon || winRecorded.current) return;
     winRecorded.current = true;
     loadLore(player.namePath).then((facts) => {
-      const unlocked = getCharacterProgress(loadProgress(), player.namePath).lore;
-      const idx = facts.length > 0 ? pickLoreIndex(facts.length, unlocked) : null;
+      const unlocked = getCharacterProgress(
+        loadProgress(),
+        player.namePath,
+      ).lore;
+      const idx =
+        facts.length > 0 ? pickLoreIndex(facts.length, unlocked) : null;
       recordWin(player.namePath, opponent.namePath, idx);
       if (idx !== null) setLoreFact(facts[idx]);
     });
@@ -152,56 +162,55 @@ export default function GameOverScreen({
   return (
     <div className="min-h-screen app-bg">
       <div className="flex flex-col items-center justify-center px-4 py-8 animate-screen-in">
-      <div className="text-center mb-8">
-        <h1
-          className={`text-5xl font-extrabold mb-2 ${playerWon ? 'text-amber-300' : 'text-rose-400'}`}
-        >
-          {playerWon ? 'Victory!' : 'Defeat.'}
-        </h1>
-        <p className="text-purple-300 text-lg">
-          {playerWon
-            ? `${player.displayName} has vanquished ${opponent.displayName}!`
-            : `${opponent.displayName} has defeated ${player.displayName}.`}
-        </p>
-      </div>
-
-      <div className="flex flex-col md:flex-row items-center gap-6 md:gap-12 mb-10">
-        <CharacterDisplay character={player} side="player" won={playerWon} />
-        <span className="text-4xl font-bold text-purple-500">vs</span>
-        <CharacterDisplay
-          character={opponent}
-          side="opponent"
-          won={!playerWon}
-        />
-      </div>
-
-      <div className="flex gap-4 mb-10">
-        <button
-          onClick={onNewGame}
-          className="w-40 px-8 py-3 text-lg font-bold rounded-xl bg-purple-700 hover:bg-purple-600 text-white border border-purple-500 transition-all hover:scale-105 shadow-lg shadow-purple-900/50"
-        >
-          New Game
-        </button>
-        {playerWon && trophies.length > 0 && (
-          <TrophyButton onClick={() => setCarouselIdx(0)} />
-        )}
-      </div>
-
-      {loreFact && (
-        <div className="w-full max-w-lg bg-amber-800/20 border border-amber-500/40 rounded-2xl p-5 mb-6">
-          <p className="text-amber-500 text-xs font-semibold tracking-widest uppercase mb-2">
-            ✦ {player.displayName} — lore unlocked
-          </p>
-          <p className="text-amber-100/80 text-sm leading-relaxed">
-            {loreFact}
+        <div className="text-center mb-8">
+          <h1
+            className={`text-5xl font-extrabold mb-2 ${playerWon ? 'text-amber-300' : 'text-rose-400'}`}
+          >
+            {playerWon ? 'Victory!' : 'Defeat.'}
+          </h1>
+          <p className="text-purple-300 text-lg">
+            {playerWon
+              ? `${player.displayName} has vanquished ${opponent.displayName}!`
+              : `${opponent.displayName} has defeated ${player.displayName}.`}
           </p>
         </div>
-      )}
 
-      {turnHistory.length > 0 && (
-        <BattleStats history={turnHistory} playerWon={playerWon} />
-      )}
+        <div className="flex flex-col md:flex-row items-center gap-6 md:gap-12 mb-10">
+          <CharacterDisplay character={player} side="player" won={playerWon} />
+          <span className="text-4xl font-bold text-purple-500">vs</span>
+          <CharacterDisplay
+            character={opponent}
+            side="opponent"
+            won={!playerWon}
+          />
+        </div>
 
+        <div className="flex gap-4 mb-10">
+          <button
+            onClick={onNewGame}
+            className="w-40 px-8 py-3 text-lg font-bold rounded-xl bg-purple-700 hover:bg-purple-600 text-white border border-purple-500 transition-all hover:scale-105 shadow-lg shadow-purple-900/50"
+          >
+            New Game
+          </button>
+          {playerWon && trophies.length > 0 && (
+            <TrophyButton onClick={() => setCarouselIdx(0)} />
+          )}
+        </div>
+
+        {loreFact && (
+          <div className="w-full max-w-lg bg-amber-800/20 border border-amber-500/40 rounded-2xl p-5 mb-6">
+            <p className="text-amber-500 text-xs font-semibold tracking-widest uppercase mb-2">
+              ✦ {player.displayName} — lore unlocked
+            </p>
+            <p className="text-amber-100/80 text-sm leading-relaxed">
+              {loreFact}
+            </p>
+          </div>
+        )}
+
+        {turnHistory.length > 0 && (
+          <BattleStats history={turnHistory} playerWon={playerWon} />
+        )}
       </div>
 
       {/* Scroll hint */}

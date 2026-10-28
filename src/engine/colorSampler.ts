@@ -18,17 +18,25 @@ export async function sampleEdgeColor(imageUrl: string): Promise<string> {
         canvas.width = SIZE;
         canvas.height = SIZE;
         const ctx = canvas.getContext('2d');
-        if (!ctx) { resolve(FALLBACK); return; }
+        if (!ctx) {
+          resolve(FALLBACK);
+          return;
+        }
         ctx.drawImage(img, 0, 0, SIZE, SIZE);
         const { data } = ctx.getImageData(0, 0, SIZE, SIZE);
 
-        let sumR = 0, sumG = 0, sumB = 0, count = 0;
+        let sumR = 0,
+          sumG = 0,
+          sumB = 0,
+          count = 0;
         const patch = (sx: number, sy: number) => {
           for (let y = sy; y < sy + PATCH; y++) {
             for (let x = sx; x < sx + PATCH; x++) {
               const i = (y * SIZE + x) * 4;
               if (data[i + 3] < 128) continue;
-              sumR += data[i]; sumG += data[i + 1]; sumB += data[i + 2];
+              sumR += data[i];
+              sumG += data[i + 1];
+              sumB += data[i + 2];
               count++;
             }
           }
@@ -38,7 +46,10 @@ export async function sampleEdgeColor(imageUrl: string): Promise<string> {
         patch(0, SIZE - PATCH);
         patch(SIZE - PATCH, SIZE - PATCH);
 
-        if (count === 0) { resolve(FALLBACK); return; }
+        if (count === 0) {
+          resolve(FALLBACK);
+          return;
+        }
         const hex = (n: number) => Math.round(n).toString(16).padStart(2, '0');
         const color = `#${hex(sumR / count)}${hex(sumG / count)}${hex(sumB / count)}`;
         edgeCache.set(imageUrl, color);

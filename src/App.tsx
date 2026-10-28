@@ -1,5 +1,10 @@
 import { useState } from 'react';
-import type { Character, GameConfig, GameScreen, TurnRecord } from './types/game';
+import type {
+  Character,
+  GameConfig,
+  GameScreen,
+  TurnRecord,
+} from './types/game';
 import { DEFAULT_CONFIG } from './types/game';
 import { loadCharacter } from './engine/loader';
 import TitleScreen from './components/TitleScreen';
@@ -16,15 +21,27 @@ const TUTORIAL_KEY = 'mf_tutorial_done';
 export default function App() {
   const [screen, setScreen] = useState<GameScreen>('title');
   const [warningAcknowledged, setWarningAcknowledged] = useState(() => {
-    try { return localStorage.getItem(WARNING_KEY) === 'yes'; } catch { return false; }
+    try {
+      return localStorage.getItem(WARNING_KEY) === 'yes';
+    } catch {
+      return false;
+    }
   });
   const [tutorialDone, setTutorialDone] = useState(() => {
-    try { return localStorage.getItem(TUTORIAL_KEY) === 'yes'; } catch { return false; }
+    try {
+      return localStorage.getItem(TUTORIAL_KEY) === 'yes';
+    } catch {
+      return false;
+    }
   });
   const [showingTutorial, setShowingTutorial] = useState(false);
 
   function acknowledgeWarning() {
-    try { localStorage.setItem(WARNING_KEY, 'yes'); } catch { /* ignore */ }
+    try {
+      localStorage.setItem(WARNING_KEY, 'yes');
+    } catch {
+      /* ignore */
+    }
     setWarningAcknowledged(true);
   }
 
@@ -37,7 +54,8 @@ export default function App() {
   // player got right and wrong
   const [turnHistory, setTurnHistory] = useState<TurnRecord[]>([]);
   const [gameConfig, setGameConfig] = useState<GameConfig>(DEFAULT_CONFIG);
-  const [galleryFrom, setGalleryFrom] = useState<GameScreen>('character-select');
+  const [galleryFrom, setGalleryFrom] =
+    useState<GameScreen>('character-select');
 
   // unlockAll is for the dev-only title shortcut, so the gallery can be checked
   // without completing every character
@@ -82,7 +100,11 @@ export default function App() {
   }
 
   function dismissTutorial() {
-    try { localStorage.setItem(TUTORIAL_KEY, 'yes'); } catch { /* ignore */ }
+    try {
+      localStorage.setItem(TUTORIAL_KEY, 'yes');
+    } catch {
+      /* ignore */
+    }
     setTutorialDone(true);
   }
 

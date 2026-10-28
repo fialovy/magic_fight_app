@@ -7,7 +7,9 @@ export default function FadeImage({
 }: React.ImgHTMLAttributes<HTMLImageElement>) {
   return (
     <img
-      ref={(el) => { if (el?.complete) el.classList.remove('opacity-0'); }}
+      ref={(el) => {
+        if (el?.complete) el.classList.remove('opacity-0');
+      }}
       className={`opacity-0 transition-opacity duration-300${className ? ` ${className}` : ''}`}
       onLoad={(e) => {
         e.currentTarget.classList.remove('opacity-0');

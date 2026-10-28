@@ -154,7 +154,9 @@ export default function SpellCard({
           className={
             staticDisplay
               ? ''
-              : spell.rotation === 'clockwise' ? 'spell-spin-cw' : 'spell-spin-ccw'
+              : spell.rotation === 'clockwise'
+                ? 'spell-spin-cw'
+                : 'spell-spin-ccw'
           }
         >
           <ShapePath

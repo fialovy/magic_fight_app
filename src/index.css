@@ -190,9 +190,18 @@ body {
 }
 
 @keyframes badge-flash {
-  0%   { opacity: 0.4; transform: scale(0.88); }
-  45%  { opacity: 1;   transform: scale(1.08); }
-  100% { opacity: 1;   transform: scale(1);    }
+  0% {
+    opacity: 0.4;
+    transform: scale(0.88);
+  }
+  45% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .badge-flash {
@@ -200,8 +209,12 @@ body {
 }
 
 @keyframes timer-drain {
-  from { width: 100%; }
-  to { width: 0%; }
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
 }
 
 .timer-drain {

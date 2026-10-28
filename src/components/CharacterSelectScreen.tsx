@@ -92,21 +92,25 @@ export default function CharacterSelectScreen({
       <div className="flex flex-wrap items-center justify-center gap-4 md:gap-8 mb-4 md:mb-6">
         <SegmentedControl
           label="Rule"
-          options={[
-            { value: 'follow', label: 'Follow' },
-            { value: 'guess',  label: 'Guess'  },
-          ] as { value: GameMode; label: string }[]}
+          options={
+            [
+              { value: 'follow', label: 'Follow' },
+              { value: 'guess', label: 'Guess' },
+            ] as { value: GameMode; label: string }[]
+          }
           value={config.mode}
           onChange={(v) => onConfigChange({ ...config, mode: v })}
         />
         <SegmentedControl
           label="Speed"
-          options={[
-            { value: 'relaxed',   label: 'Relaxed'   },
-            { value: 'standard',  label: 'Standard'  },
-            { value: 'challenge', label: 'Challenge' },
-            { value: 'none',      label: 'No Timer'  },
-          ] as { value: GameSpeed; label: string }[]}
+          options={
+            [
+              { value: 'relaxed', label: 'Relaxed' },
+              { value: 'standard', label: 'Standard' },
+              { value: 'challenge', label: 'Challenge' },
+              { value: 'none', label: 'No Timer' },
+            ] as { value: GameSpeed; label: string }[]
+          }
           value={config.speed}
           onChange={(v) => onConfigChange({ ...config, speed: v })}
         />
@@ -165,7 +169,9 @@ export default function CharacterSelectScreen({
       {onGallery && (
         <div className="flex flex-col items-center mt-6">
           <button
-            onClick={() => (galleryUnlocked ? onGallery() : setGalleryHint(true))}
+            onClick={() =>
+              galleryUnlocked ? onGallery() : setGalleryHint(true)
+            }
             aria-label={galleryUnlocked ? 'Gallery' : 'Gallery (locked)'}
             className={[
               'px-5 py-2 rounded-xl border-2 text-sm font-semibold transition-colors',
@@ -258,7 +264,9 @@ function SegmentedControl<T extends string>({
 }) {
   return (
     <div className="flex flex-col items-center gap-1">
-      <span className="text-xs text-purple-500 uppercase tracking-widest">{label}</span>
+      <span className="text-xs text-purple-500 uppercase tracking-widest">
+        {label}
+      </span>
       <div className="flex rounded-lg border border-purple-700 overflow-hidden">
         {options.map((opt, i) => (
           <button
@@ -421,7 +429,10 @@ function ProgressDetails({
           {opponents.map((o) => {
             const beaten = progress.beaten.includes(o.namePath);
             return (
-              <div key={o.namePath} className="flex flex-col items-center gap-1">
+              <div
+                key={o.namePath}
+                className="flex flex-col items-center gap-1"
+              >
                 <div
                   className={[
                     'w-full aspect-square overflow-hidden rounded-lg border-2 bg-purple-900',

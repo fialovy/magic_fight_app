@@ -72,16 +72,19 @@ export const DEFAULT_CONFIG: GameConfig = { mode: 'follow', speed: 'standard' };
 // patternTurns: how many turns a rule lasts before rotating
 export const PATTERN_TURNS: Record<GameMode, number> = { follow: 1, guess: 4 };
 
-export const SPEED_TIMER: Record<GameMode, Record<TimedGameSpeed, { startMs: number; stepMs: number; floorMs: number }>> = {
+export const SPEED_TIMER: Record<
+  GameMode,
+  Record<TimedGameSpeed, { startMs: number; stepMs: number; floorMs: number }>
+> = {
   guess: {
-    relaxed:   { startMs: 6000, stepMs: 100, floorMs: 4000 },
-    standard:  { startMs: 3000, stepMs: 200, floorMs: 1500 },
-    challenge: { startMs: 1400, stepMs: 175, floorMs: 700  },
+    relaxed: { startMs: 6000, stepMs: 100, floorMs: 4000 },
+    standard: { startMs: 3000, stepMs: 200, floorMs: 1500 },
+    challenge: { startMs: 1400, stepMs: 175, floorMs: 700 },
   },
   follow: {
-    relaxed:   { startMs: 4000, stepMs: 100, floorMs: 2500 },
-    standard:  { startMs: 2000, stepMs: 175, floorMs: 1000 },
-    challenge: { startMs: 900,  stepMs: 125, floorMs: 450  },
+    relaxed: { startMs: 4000, stepMs: 100, floorMs: 2500 },
+    standard: { startMs: 2000, stepMs: 175, floorMs: 1000 },
+    challenge: { startMs: 900, stepMs: 125, floorMs: 450 },
   },
 };
 
