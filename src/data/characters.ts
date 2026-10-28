@@ -26,9 +26,9 @@ export interface CharacterMeta {
   formLabel?: string;
   // used in sentences like "unlock all of her lore"; falls back to "their"
   possessive?: string;
-  // for now this only refers to shapeshifting, which no longer does anything
-  // meaningful for the game itself, but there could be other ways to 'change' a
-  // character in the future
+  // A shapeshift form of another character (e.g. Norm is a form of Nora):
+  // not selectable on its own, nested under the base character's namePath, and
+  // tracked with its own lore but its base character's opponent wins
   isVariant: boolean;
 }
 
